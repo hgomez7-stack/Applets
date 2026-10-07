@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activitat interactiva · Sessió 4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;0,900;1,400;1,500;1,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#F7F2E6;
+  --cream-deep:#F1EAD8;
+  --ink:#2A2019;
+  --ink-soft:#4A4038;
+  --muted:#8A8272;
+  --gold:#C99A3D;
+  --gold-dark:#9C7A2E;
+  --line:#E4DCC8;
+  --card:#FDFBF5;
+  --teal:#1F6F72;
+  --teal-bg:#DEEAE8;
+  --tan:#B9862E;
+  --tan-bg:#F3E4BE;
+  --coral:#B24B2A;
+  --coral-bg:#FBE0D2;
+  --coral-border:#E3A583;
+  --dark-bg:#241C16;
+  --dark-fg:#F3EBDC;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;background:#111;}
+body{font-family:'Inter',sans-serif;color:var(--ink);}
+
+.deck{position:relative;width:100vw;height:100vh;}
+.slide{
+  position:absolute;inset:0;
+  background:var(--cream);
+  opacity:0;pointer-events:none;
+  transform:translateX(40px);
+  transition:opacity .35s ease, transform .35s ease;
+  padding:64px 88px 76px;
+  display:flex;flex-direction:column;
+}
+.slide.active{opacity:1;pointer-events:all;transform:translateX(0);z-index:2;}
+.slide.left{transform:translateX(-40px);}
+.slide.dark{background:var(--dark-bg);color:var(--dark-fg);}
+
+.kicker{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:14px;
+}
+.dark .kicker{color:var(--gold);}
+
+h1{
+  font-family:'Playfair Display',serif;font-weight:700;
+  font-size:clamp(30px,3.6vw,46px);line-height:1.12;color:var(--ink);
+  max-width:920px;
+}
+.dark h1{color:var(--dark-fg);font-style:italic;font-weight:500;font-size:clamp(32px,4vw,50px);}
+
+.rule{width:64px;height:3px;background:var(--gold);border:none;margin:22px 0 26px;}
+
+.subtitle{
+  font-family:'Playfair Display',serif;font-style:italic;font-weight:400;
+  font-size:clamp(17px,1.5vw,21px);line-height:1.55;color:var(--ink-soft);max-width:640px;
+}
+.dark .subtitle{color:#D8CBB4;font-style:normal;font-family:'Inter',sans-serif;font-size:16px;max-width:520px;}
+
+p.body{
+  font-size:16.5px;line-height:1.68;color:var(--ink-soft);max-width:800px;margin-top:4px;
+}
+
+blockquote{
+  border-left:3px solid var(--gold);
+  padding-left:20px;margin-top:22px;max-width:620px;
+  font-family:'Playfair Display',serif;font-style:italic;font-weight:500;
+  font-size:clamp(18px,1.8vw,22px);line-height:1.45;color:var(--gold-dark);
+}
+
+/* swoosh icon */
+.swoosh{position:absolute;top:44px;right:60px;opacity:.9;}
+.dark .swoosh path{stroke:var(--gold);}
+
+/* persistent footer + nav */
+.chrome-footer{
+  position:fixed;left:0;right:0;bottom:0;height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 88px;z-index:20;pointer-events:none;
+}
+.brand{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;
+  color:var(--muted);text-transform:uppercase;
+}
+.pagecount{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.05em;color:var(--muted);
+}
+.navchevrons{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  display:flex;gap:14px;align-items:center;z-index:25;
+}
+.navchevrons button{
+  width:34px;height:34px;border-radius:50%;
+  border:1px solid var(--line);background:var(--card);
+  color:var(--gold-dark);font-family:'JetBrains Mono',monospace;font-size:14px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:.15s;
+}
+.navchevrons button:hover{border-color:var(--gold);background:#fff;}
+.navchevrons button:disabled{opacity:.25;cursor:default;}
+.navchevrons .dot{
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+  min-width:44px;text-align:center;
+}
+
+/* content area helper */
+.content{margin-top:8px;flex:1;min-height:0;}
+
+/* ---- recap checklist card ---- */
+.recap-card{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:26px 30px;max-width:760px;margin-top:8px;
+}
+.recap-item{display:flex;gap:16px;align-items:flex-start;padding:11px 0;}
+.recap-item + .recap-item{border-top:1px solid var(--line);}
+.recap-num{
+  font-family:'Playfair Display',serif;font-weight:700;color:var(--gold);
+  font-size:20px;min-width:26px;
+}
+.recap-text{font-size:15.5px;line-height:1.6;color:var(--ink-soft);}
+.recap-text strong{color:var(--ink);}
+
+/* ---- highlight boxes (cas de partida) ---- */
+.hbox{
+  background:var(--coral-bg);border:1px solid var(--coral-border);
+  border-radius:8px;padding:12px 18px;margin-bottom:10px;max-width:820px;
+  font-family:'JetBrains Mono',monospace;font-size:13.5px;color:var(--coral);
+}
+hr.thin{border:none;border-top:1px solid var(--line);margin:22px 0 18px;max-width:900px;}
+h3.question{
+  font-family:'Playfair Display',serif;font-weight:700;font-size:clamp(20px,2.2vw,27px);
+  color:var(--ink);max-width:800px;line-height:1.3;
+}
+
+/* ---- two-col comparison cards ---- */
+.panel-wrap{
+  background:var(--cream-deep);border-radius:14px;padding:28px;margin-top:14px;max-width:1020px;
+}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+.compare-card{border-radius:10px;overflow:hidden;border:1px solid rgba(0,0,0,.05);background:var(--card);display:flex;flex-direction:column;height:100%;}
+.compare-card .bar{height:6px;flex-shrink:0;}
+.compare-card.teal .bar{background:var(--teal);}
+.compare-card.tan .bar{background:var(--tan);}
+.compare-card.coral .bar{background:var(--coral);}
+.compare-card .inner{padding:20px 22px;flex:1;}
+.compare-card.teal .inner{background:var(--teal-bg);}
+.compare-card.tan .inner{background:var(--tan-bg);}
+.compare-card.coral .inner{background:var(--coral-bg);}
+.compare-card h4{
+  font-family:'Playfair Display',serif;font-style:italic;font-weight:600;
+  font-size:20px;color:var(--ink);margin-bottom:4px;
+}
+.compare-card .sub{font-size:12.5px;font-style:italic;color:var(--ink-soft);margin-bottom:12px;}
+.compare-card ul{list-style:none;}
+.compare-card li{font-size:14.5px;font-weight:600;color:var(--ink);padding:5px 0;display:flex;justify-content:space-between;gap:8px;}
+.compare-card li span.lbl{display:flex;gap:8px;}
+.compare-card li span.lbl::before{content:'\2022';color:var(--gold-dark);}
+.compare-card.coral li span.lbl::before{content:'\2022';color:var(--coral);}
+.compare-card li span.val{font-family:'JetBrains Mono',monospace;font-weight:600;}
+.compare-card li.total{border-top:1px dashed rgba(0,0,0,.15);margin-top:6px;padding-top:10px;}
+.alert{
+  margin-top:16px;background:var(--coral-bg);border:1px solid var(--coral-border);
+  border-radius:10px;padding:14px 20px;text-align:center;
+  font-size:14px;font-weight:600;color:var(--coral);
+}
+
+/* ---- plain 2-card grid (béns/serveis) ---- */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:1000px;margin-top:16px;}
+.grid4{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1000px;margin-top:16px;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px 24px;}
+.card h4{font-family:'Playfair Display',serif;font-weight:700;font-size:18px;color:var(--gold-dark);margin-bottom:10px;}
+.card p{font-size:14.5px;line-height:1.6;color:var(--ink-soft);}
+.note{
+  margin-top:16px;max-width:760px;font-family:'Playfair Display',serif;font-style:italic;
+  font-size:15.5px;color:var(--ink-soft);border-left:3px solid var(--gold);padding-left:16px;
+}
+
+/* ---- factor table ---- */
+.table-wrap{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:8px 30px;max-width:1040px;margin-top:14px;
+}
+.trow{display:grid;grid-template-columns:1.3fr 1.6fr 1fr;gap:20px;padding:16px 0;align-items:center;}
+.trow.head{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;
+  color:var(--gold-dark);text-transform:uppercase;
+}
+.trow + .trow{border-top:1px solid var(--line);}
+.trow.head + .trow{border-top:2px solid var(--gold);}
+.trow .fname{font-family:'Playfair Display',serif;font-weight:700;font-size:16.5px;color:var(--ink);}
+.trow .fwho{font-size:14px;color:var(--ink-soft);}
+.trow .fpay{font-size:14px;font-weight:700;color:var(--gold-dark);}
+.table-note{
+  margin-top:14px;max-width:900px;font-family:'Playfair Display',serif;font-style:italic;
+  font-size:14.5px;color:var(--ink-soft);
+}
+
+/* ---- illustration full-bleed slide ---- */
+.illus-slide{padding:0 !important;}
+.illus-top{
+  height:72%;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#1F6F72 0%,#2C8C86 38%,#E7C36B 100%);
+  display:flex;align-items:center;justify-content:center;gap:56px;
+}
+.illus-top svg{width:70px;height:70px;}
+.illus-cap{
+  height:28%;display:flex;align-items:center;justify-content:space-between;
+  padding:0 88px;background:var(--cream);
+}
+.illus-cap .capleft h4{
+  font-family:'Playfair Display',serif;font-weight:700;font-size:22px;color:var(--ink);
+}
+.illus-cap .capleft .capsub{
+  font-family:'Playfair Display',serif;font-style:italic;font-size:14.5px;color:var(--ink-soft);margin-top:4px;max-width:560px;
+}
+.illus-cap .capright{
+  font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);text-align:right;
+}
+
+/* ---- quiz ---- */
+.optgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:1000px;margin-top:18px;}
+.optcard{
+  background:var(--card);border:1.5px solid var(--line);border-radius:10px;
+  padding:16px 18px;display:flex;gap:14px;align-items:flex-start;
+  font-size:14.5px;color:var(--ink);transition:.15s;
+}
+.optcard .oletter{
+  font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--gold-dark);
+  min-width:18px;
+}
+.reveal-btn{
+  align-self:flex-start;
+  margin-top:20px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.08em;
+  text-transform:uppercase;background:transparent;border:1px solid var(--gold);color:var(--gold-dark);
+  padding:9px 20px;border-radius:20px;cursor:pointer;transition:.15s;white-space:nowrap;
+}
+.reveal-btn:hover{background:var(--gold);color:#fff;}
+.solution{
+  display:none;margin-top:16px;max-width:820px;background:var(--tan-bg);
+  border:1px solid var(--tan);border-radius:10px;padding:16px 20px;
+  font-size:14.5px;line-height:1.6;color:var(--ink-soft);
+}
+.solution.show{display:block;}
+.solution strong{color:var(--gold-dark);font-family:'JetBrains Mono',monospace;}
+.optcard.correct{border-color:var(--teal);background:var(--teal-bg);}
+
+/* ---- checklist (repassa) ---- */
+.checklist{max-width:760px;margin-top:16px;}
+.check-item{display:flex;gap:14px;align-items:flex-start;padding:9px 0;}
+.check-box{
+  width:16px;height:16px;border:1.5px solid var(--gold);border-radius:4px;margin-top:3px;flex-shrink:0;
+}
+.check-text{font-size:15.5px;line-height:1.6;color:var(--ink-soft);}
+.nextline{
+  margin-top:26px;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--gold-dark);
+  border-top:1px solid var(--line);padding-top:16px;max-width:760px;
+}
+
+/* ---- FPP diagram ---- */
+.fppwrap{margin-top:14px;display:flex;justify-content:flex-start;}
+.legend-row{display:flex;gap:26px;flex-wrap:wrap;margin-top:6px;}
+.legend-item{
+  display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-soft);
+}
+.legend-item strong{color:var(--ink);}
+.legend-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+
+/* ---- example box + media link ---- */
+.example-box{
+  background:var(--tan-bg);border:1px solid var(--tan);border-radius:12px;
+  padding:20px 24px;margin-top:18px;max-width:820px;
+}
+.example-box .ex-label{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--gold-dark);margin-bottom:8px;
+}
+.example-box .ex-text{font-size:14.5px;line-height:1.62;color:var(--ink-soft);}
+.example-box .ex-text strong{color:var(--ink);}
+.medialink{
+  display:flex;align-items:center;gap:14px;margin-top:14px;padding:12px 16px;
+  background:var(--card);border:1px solid var(--line);border-radius:10px;
+  text-decoration:none;transition:.15s;
+}
+.medialink:hover{border-color:var(--gold);background:#fff;}
+.medialink .micon{flex-shrink:0;}
+.medialink .mtext{flex:1;min-width:0;}
+.medialink .mtitle{font-family:'Playfair Display',serif;font-weight:600;font-size:14.5px;color:var(--ink);}
+.medialink .msource{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.04em;color:var(--muted);margin-top:2px;}
+.medialink .marrow{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--gold-dark);flex-shrink:0;}
+
+/* ===== activitat interactiva ===== */
+.slide .content{overflow-y:auto;padding-right:6px;}
+h3.qtitle{
+  font-family:'Playfair Display',serif;font-weight:700;font-size:clamp(20px,2.1vw,27px);
+  color:var(--ink);max-width:940px;line-height:1.3;margin-top:2px;
+}
+.qhint{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.06em;color:var(--gold-dark);margin-top:10px;}
+.qctx{
+  background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:16px 20px;margin-top:14px;max-width:940px;font-size:15px;line-height:1.6;color:var(--ink-soft);
+}
+.qctx strong{color:var(--ink);}
+button.optcard{font:inherit;text-align:left;cursor:pointer;width:100%;color:var(--ink);}
+button.optcard:hover{border-color:var(--gold);background:#fff;}
+button.optcard.sel{border-color:var(--gold-dark);background:var(--tan-bg);box-shadow:0 0 0 1px var(--gold-dark) inset;}
+button.optcard.sel .oletter{color:var(--ink);}
+.optgrid.one{grid-template-columns:1fr;max-width:940px;}
+.matchwrap{max-width:760px;margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 24px;}
+.matchrow{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:center;padding:12px 0;}
+.matchrow + .matchrow{border-top:1px solid var(--line);}
+.mlabel{font-family:'Playfair Display',serif;font-weight:700;font-size:17px;color:var(--ink);}
+select,.numin,textarea{
+  font-family:'Inter',sans-serif;font-size:15px;color:var(--ink);background:#fff;
+  border:1.5px solid var(--line);border-radius:8px;padding:10px 12px;width:100%;
+}
+select:focus,.numin:focus,textarea:focus,.nameinput:focus{outline:none;border-color:var(--gold-dark);box-shadow:0 0 0 3px rgba(201,154,61,.2);}
+textarea{resize:vertical;line-height:1.5;min-height:74px;}
+.flabel{font-size:13.5px;font-weight:600;color:var(--ink);margin:14px 0 6px;max-width:900px;}
+.fieldset{max-width:900px;}
+.numrow{display:flex;align-items:center;gap:12px;margin-top:16px;}
+.numin{width:130px;font-family:'JetBrains Mono',monospace;font-size:20px;text-align:center;}
+.numunit{font-size:15px;color:var(--ink-soft);}
+.qgrid{display:grid;grid-template-columns:1.05fr 1fr;gap:36px;align-items:start;margin-top:12px;max-width:1100px;}
+.ptable{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:15px;}
+.ptable th{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-dark);text-align:left;padding:10px 14px;border-bottom:2px solid var(--gold);}
+.ptable td{padding:10px 14px;border-top:1px solid var(--line);color:var(--ink-soft);}
+.ptable td:first-child{font-family:'Playfair Display',serif;font-weight:700;color:var(--ink);}
+.howto{max-width:720px;margin-top:6px;}
+.nameline{display:grid;grid-template-columns:2fr 1fr;gap:16px;max-width:720px;margin-top:22px;}
+.nameline label{display:block;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-dark);margin-bottom:6px;}
+.nameinput{font-family:'Inter',sans-serif;font-size:16px;border:1.5px solid var(--line);border-radius:8px;padding:11px 13px;width:100%;background:#fff;color:var(--ink);}
+.chips{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;max-width:760px;margin-top:16px;}
+.chip{
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;padding:11px 0;border-radius:10px;
+  border:1.5px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer;transition:.15s;
+}
+.chip.done{border-color:var(--teal);background:var(--teal-bg);color:var(--teal);}
+.chip.pend{border-color:var(--coral-border);background:var(--coral-bg);color:var(--coral);}
+.chip:hover{filter:brightness(.97);}
+.genrow{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:22px;}
+.genbtn{
+  font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  background:var(--gold-dark);color:#fff;border:none;border-radius:26px;padding:14px 30px;cursor:pointer;transition:.15s;
+}
+.genbtn:hover{background:var(--ink);}
+.genbtn.alt{background:transparent;color:var(--gold-dark);border:1px solid var(--gold);}
+.genbtn.alt:hover{background:var(--gold);color:#fff;}
+.genmsg{margin-top:16px;max-width:760px;font-size:14.5px;line-height:1.55;color:var(--ink-soft);min-height:22px;}
+.genmsg.warn{color:var(--coral);font-weight:600;}
+.genmsg.ok{color:var(--teal);font-weight:600;}
+#printReport{display:none;}
+@media print{
+  html,body{overflow:visible;height:auto;background:#fff;}
+  .deck,.chrome-footer,.navchevrons{display:none !important;}
+  #printReport{display:block;font-family:'Inter',sans-serif;color:#000;padding:10mm;}
+  #printReport h1{font-size:20pt;margin-bottom:4mm;}
+  #printReport .pr-meta{font-size:11pt;margin-bottom:6mm;}
+  #printReport .pr-q{margin-bottom:5mm;page-break-inside:avoid;}
+  #printReport .pr-n{font-size:9pt;color:#555;}
+  #printReport .pr-p{font-weight:700;font-size:11pt;margin:1mm 0;}
+  #printReport .pr-a{font-size:11pt;white-space:pre-wrap;border-left:2px solid #C99A3D;padding-left:3mm;}
+}
+@media (max-width:820px){
+  .slide{padding:40px 22px 80px;}
+  .optgrid,.compare-grid,.qgrid,.matchrow,.nameline{grid-template-columns:1fr;}
+  .chips{grid-template-columns:repeat(5,1fr);}
+  .swoosh{display:none;}
+}
+.qgrid.svg{grid-template-columns:1fr 1.15fr;}
+.matchrow{grid-template-columns:.7fr 1.5fr;}
+.matchwrap{max-width:900px;}
+.optcard{font-size:16.5px;padding:18px 20px;}
+.qctx{font-size:16.5px;}
+select,.numin,textarea{font-size:16px;}
+.ptable{font-size:17px;}
+.table-wrap .trow{grid-template-columns:1.2fr 2fr .4fr;}
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+<!-- PORTADA -->
+<section class="slide active" id="slideCover">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">ACTIVITAT · BLOC I · ECONOMIA</div>
+  <h1>Triar té un preu: ho posem en pràctica</h1>
+  <hr class="rule">
+  <div class="content">
+    <div class="recap-card howto">
+      <div class="recap-item"><div class="recap-num">1</div><div class="recap-text"><strong>Escriu el teu nom</strong> i el grup aquí sota.</div></div>
+      <div class="recap-item"><div class="recap-num">2</div><div class="recap-text"><strong>Respon cada diapositiva</strong>: marca opcions o escriu a les caixes. Pots tornar enrere amb la fletxa ← o els botons de sota.</div></div>
+      <div class="recap-item"><div class="recap-num">3</div><div class="recap-text">A l'última diapositiva, <strong>genera el PDF</strong> amb les teves respostes i lliura'l.</div></div>
+    </div>
+    <div class="nameline">
+      <div><label for="nameIn">Nom i cognoms</label><input class="nameinput" id="nameIn" type="text" autocomplete="off" data-meta="name"></div>
+      <div><label for="groupIn">Grup</label><input class="nameinput" id="groupIn" type="text" autocomplete="off" data-meta="group"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- RÚBRICA -->
+<section class="slide" id="slideRubric">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">COM S'AVALUARÀ</div>
+  <h1>Cinc criteris, quatre nivells</h1>
+  <hr class="rule">
+  <div class="content">
+    <div class="table-wrap" id="rubTable" style="max-width:1000px"></div>
+    <p class="table-note">Cada criteri es valora en quatre nivells: excel·lent, notable, suficient i insuficient. A cada pregunta veuràs quin criteri s'hi treballa.</p>
+  </div>
+</section>
+
+<!-- FINAL -->
+<section class="slide" id="slideFinal">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">ÚLTIM PAS</div>
+  <h1>Revisa i genera el teu PDF</h1>
+  <hr class="rule">
+  <div class="content">
+    <p class="body">Cada requadre és una pregunta. En <strong>verd</strong>, respostes completes; en <strong>vermell</strong>, pendents. Clica un requadre per anar-hi.</p>
+    <div class="chips" id="chips"></div>
+    <div class="genrow">
+      <button type="button" class="genbtn" id="genBtn">Genera el PDF</button>
+      <button type="button" class="genbtn alt" id="printBtn">Imprimeix / desa com a PDF</button>
+    </div>
+    <div class="genmsg" id="genMsg"></div>
+  </div>
+</section>
+
+</div>
+
+<div id="printReport"></div>
+
+<div class="chrome-footer">
+  <div class="brand">ECONOMIA · 4T ESO</div>
+  <div class="pagecount" id="pagecount">01/17</div>
+</div>
+<div class="navchevrons">
+  <button id="prevBtn" onclick="go(-1)">&#8592;</button>
+  <div class="dot" id="dotLabel">1 / 17</div>
+  <button id="nextBtn" onclick="go(1)">&#8594;</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+var TITLE = "Triar té un preu: ho posem en pràctica";
+var SVG_FPP = '<svg viewBox="0 0 700 440" width="100%" style="max-width:520px" role="img" aria-label="Frontera de possibilitats de producció de bicicletes i patinets">'
+ + '<path d="M70,400 L70,60 C300,120 480,260 620,400 Z" fill="#DEEAE8"/>'
+ + '<line x1="70" y1="400" x2="665" y2="400" stroke="#2A2019" stroke-width="2"/>'
+ + '<line x1="70" y1="400" x2="70" y2="36" stroke="#2A2019" stroke-width="2"/>'
+ + '<path d="M70,60 C300,120 480,260 620,400" fill="none" stroke="#1F6F72" stroke-width="4"/>'
+ + '<text x="665" y="430" text-anchor="end" font-family="Inter,sans-serif" font-size="16" fill="#4A4038">Bicicletes</text>'
+ + '<text x="82" y="34" font-family="Inter,sans-serif" font-size="16" fill="#4A4038">Patinets</text>'
+ + '<circle cx="379" cy="200" r="9" fill="#1F6F72"/><text x="395" y="190" font-family="JetBrains Mono,monospace" font-size="20" font-weight="700" fill="#2A2019">B</text>'
+ + '<circle cx="300" cy="320" r="9" fill="#B9862E"/><text x="316" y="312" font-family="JetBrains Mono,monospace" font-size="20" font-weight="700" fill="#2A2019">D</text>'
+ + '<circle cx="520" cy="180" r="9" fill="#B24B2A"/><text x="536" y="170" font-family="JetBrains Mono,monospace" font-size="20" font-weight="700" fill="#2A2019">E</text>'
+ + '</svg>';
+
+var TABLE = '<table class="ptable"><thead><tr><th>Pla</th><th>Bicicletes</th><th>Patinets</th></tr></thead><tbody>'
+ + '<tr><td>A</td><td>0</td><td>40</td></tr><tr><td>B</td><td>10</td><td>32</td></tr>'
+ + '<tr><td>C</td><td>20</td><td>20</td></tr><tr><td>D</td><td>30</td><td>0</td></tr></tbody></table>';
+
+var Q = [
+ { id:"q1", crit:[1], part:"Part 1 · Recordem", type:"single",
+   prompt:"Què vol dir que l'escassetat és el problema econòmic bàsic?",
+   options:["Que els recursos són limitats i les necessitats, il·limitades","Que els diners s'han de guardar sempre","Que només els països pobres no tenen prou recursos","Que els preus sempre pugen"] },
+ { id:"q2", crit:[1], part:"Part 1 · Recordem", type:"multi",
+   prompt:"Marca TOTES les afirmacions positives (descriuen fets, no opinions).",
+   hint:"Pots marcar-ne més d'una.",
+   options:["L'atur ha pujat dos punts durant l'últim any.","El govern hauria de pujar el salari mínim.","Si el preu d'un bé puja, normalment se'n consumeix menys.","Tothom hauria de poder accedir a un habitatge digne."] },
+ { id:"q3", crit:[1], part:"Part 1 · Recordem", type:"match",
+   prompt:"Classifica cada element com a bé o com a servei.",
+   choices:["Bé","Servei"],
+   items:["Una bicicleta","Una classe de guitarra","Un tall de cabells","Un telèfon mòbil"] },
+ { id:"q4", crit:[1], part:"Part 1 · Recordem", type:"match",
+   prompt:"Relaciona cada factor de producció amb la seva retribució.",
+   choices:["Renda","Salari","Interès","Benefici"],
+   items:["Terra","Treball","Capital","Iniciativa empresarial"] },
+ { id:"q5", crit:[1], part:"Part 1 · Recordem", type:"single",
+   prompt:"Una fleca vol ampliar el negoci. Quin d'aquests elements és capital?",
+   options:["Un forn industrial nou","Els 20.000 euros que té al compte bancari","El sou del forner","El solar on està situada la fleca"] },
+
+ { id:"q6", crit:[2], part:"Part 2 · Cost d'oportunitat", type:"single",
+   prompt:"El cost d'oportunitat d'una decisió és…",
+   options:["El preu que pagues en diners","El valor de la millor alternativa a la qual renuncies","Tot el que et costa en total","Els diners que t'estalvies"] },
+ { id:"q7", ev:"Valorarem que justifiquis la resposta amb un argument propi i vocabulari d'economia.", crit:[2, 5], part:"Part 2 · Cost d'oportunitat", type:"single",
+   ctx:"La Marta té una tarda lliure. Pot <strong>anar al cinema</strong> (amb una entrada que li han regalat), <strong>fer de cangur</strong> (guanyaria 30 euros) o <strong>estudiar</strong> per a l'examen de dimecres. Després del cinema, la seva segona opció preferida és fer de cangur.",
+   ctxText:"La Marta té una tarda lliure. Pot anar al cinema (amb una entrada que li han regalat), fer de cangur (guanyaria 30 euros) o estudiar per a l'examen de dimecres. Després del cinema, la seva segona opció preferida és fer de cangur.",
+   prompt:"Si la Marta decideix anar al cinema, quin és el seu cost d'oportunitat?",
+   options:["0 euros, perquè l'entrada és gratuïta","Els 30 euros que hauria guanyat fent de cangur","Les tres opcions sumades","Cap, perquè el cinema és oci i no una despesa"],
+   justify:"Explica en una frase per què el cost no és zero, encara que l'entrada sigui gratuïta." },
+ { id:"q8", ev:"Valorarem que diguis què has triat, a què has renunciat i quant valia per a tu.", crit:[4], part:"Part 2 · Cost d'oportunitat", type:"text",
+   prompt:"Una decisió teva: pensa en alguna cosa que has triat fa poc.",
+   fields:[{l:"Quina decisió vas prendre?",r:2},{l:"A què vas renunciar? Quant valia per a tu?",r:3}] },
+
+ { id:"q9", crit:[2], part:"Part 3 · La FPP", type:"number", layout:"table",
+   ctx:TABLE,
+   ctxText:"Taula de plans de producció (bicicletes, patinets): A (0, 40); B (10, 32); C (20, 20); D (30, 0).",
+   prompt:"Un taller fabrica bicicletes i patinets amb els mateixos recursos. Quants patinets deixa de produir si passa del pla B al pla C?",
+   unit:"patinets" },
+ { id:"q10", crit:[2], part:"Part 3 · La FPP", type:"single",
+   prompt:"Passar del pla A al B costa 8 patinets; del B al C, 12; del C al D, 20. Què passa amb el cost d'oportunitat de cada bicicleta més?",
+   options:["Creix","Es manté igual","Disminueix","No es pot saber"] },
+ { id:"q11", crit:[3], part:"Part 3 · La FPP", type:"match", layout:"svg",
+   ctx:SVG_FPP,
+   prompt:"Segons el gràfic de la FPP de bicicletes i patinets, classifica cada punt.",
+   choices:["Eficient (sobre la corba)","Ineficient (per sota de la corba)","Impossible (per sobre de la corba)"],
+   items:["Punt B","Punt D","Punt E"] },
+ { id:"q12", crit:[3], part:"Part 3 · La FPP", type:"single",
+   prompt:"Per què la FPP sol ser una corba i no una línia recta?",
+   options:["Perquè els recursos no serveixen igual de bé per a tots els productes","Perquè els preus canvien cada any","Perquè les empreses no saben calcular","Perquè la tecnologia sempre augmenta"] },
+
+ { id:"q13", ev:"Valorarem que justifiquis l'elecció, que identifiquis bé l'alternativa a la qual renuncies i que utilitzis vocabulari d'economia (escassetat, cost d'oportunitat).", crit:[4, 5], part:"Part 4 · Ho apliquem", type:"text",
+   ctx:"L'institut ha rebut una subvenció de <strong>2.000 euros</strong> i l'alumnat n'ha de decidir l'ús. Només es pot triar una opció: <strong>(a)</strong> renovar les taules del pati, <strong>(b)</strong> comprar material per al taller de ciències o <strong>(c)</strong> organitzar una sortida cultural.",
+   ctxText:"L'institut ha rebut una subvenció de 2.000 euros i l'alumnat n'ha de decidir l'ús. Només es pot triar una opció: (a) renovar les taules del pati, (b) comprar material per al taller de ciències o (c) organitzar una sortida cultural.",
+   prompt:"Tria una opció i respon.",
+   fields:[{l:"Quina opció triaries i per què?",r:3},{l:"Quin és el cost d'oportunitat de la teva elecció?",r:2},{l:"Quin recurs és escàs en aquesta decisió?",r:2}] },
+ { id:"q14", ev:"Aquesta resposta ens ajuda a saber què cal repassar.", crit:[5], part:"Part 4 · Ho apliquem", type:"single", survey:true,
+   prompt:"Com portes ara el concepte de cost d'oportunitat?",
+   options:["Ho tinc clar i ho sabria explicar","Ho entenc, però tinc algun dubte","Necessito repassar-ho"],
+   justify:"Si tens algun dubte, escriu-lo aquí (opcional)." }
+];
+
+
+var RUB = [
+ {id:1,name:"Repàs de conceptes",sub:"escassetat, béns i serveis, factors de producció",w:20,auto:true,qs:["q1","q2","q3","q4","q5"],
+  look:"Utilitzes bé els conceptes de les sessions 1, 2 i 3.",
+  L:["Domina els conceptes de repàs: respostes correctes en gairebé tots els apartats (90% o més).","Coneix la majoria dels conceptes, amb alguna confusió puntual (70-89%).","Reconeix part dels conceptes, però amb confusions freqüents (50-69%).","Mostra un coneixement molt limitat dels conceptes (menys del 50%)."]},
+ {id:2,name:"Cost d'oportunitat",sub:"definició i càlcul",w:20,auto:true,qs:["q6","q7","q9","q10"],
+  look:"Defineixes i calcules el cost d'oportunitat i no el confons amb la despesa en diners.",
+  L:["Defineix i calcula correctament el cost d'oportunitat en tots o gairebé tots els casos (90% o més).","Defineix i calcula bé en la majoria de casos, amb algun error puntual (70-89%).","Entén la idea general, però comet errors de càlcul o la confon amb el cost en diners (50-69%).","No distingeix el cost d'oportunitat del cost en diners i no el calcula (menys del 50%)."]},
+ {id:3,name:"Lectura de la FPP",sub:"punts i forma de la corba",w:15,auto:true,qs:["q11","q12"],
+  look:"Interpretes el gràfic: punts eficients, ineficients i impossibles, i per què la corba és corba.",
+  L:["Interpreta correctament el gràfic i explica la forma de la corba (90% o més).","Interpreta bé el gràfic, amb una confusió puntual (70-89%).","Identifica algun punt del gràfic, però no n'enllaça el significat (50-69%).","No sap llegir el gràfic de la FPP (menys del 50%)."]},
+ {id:4,name:"Aplicació a situacions reals",sub:"decisions pròpies i de l'institut",w:25,auto:false,qs:["q8","q13"],
+  look:"Identifiques la decisió, l'alternativa a la qual renuncies i quant valia.",
+  L:["Identifica amb precisió la decisió, l'alternativa renunciada i el seu valor, amb exemples concrets i coherents.","Identifica la decisió i l'alternativa renunciada, amb alguna imprecisió en el valor o en l'exemple.","Descriu la decisió, però confon el cost d'oportunitat amb el cost en diners o no concreta l'alternativa.","No identifica l'alternativa renunciada, o la resposta és molt incompleta o no s'ajusta a la pregunta."]},
+ {id:5,name:"Raonament i vocabulari econòmic",sub:"justificacions i terminologia",w:20,auto:false,qs:["q7","q13","q14"],
+  look:"Justifiques amb arguments propis i fas servir paraules d'economia.",
+  L:["Justifica amb arguments propis, clars i ben connectats, amb vocabulari econòmic precís.","Justifica amb arguments adequats; el vocabulari econòmic és correcte, amb alguna imprecisió.","Justificacions breus o que repeteixen l'enunciat; vocabulari econòmic escàs.","Gairebé no justifica o no utilitza vocabulari econòmic."]}
+];
+var LVL = ["Excel·lent","Notable","Suficient","Insuficient"], LPCT = [100,75,50,25];
+var KEY = JSON.parse(atob("eyJxMSI6IDAsICJxMiI6IFswLCAyXSwgInEzIjogWzAsIDEsIDEsIDBdLCAicTQiOiBbMCwgMSwgMiwgM10sICJxNSI6IDAsICJxNiI6IDEsICJxNyI6IDEsICJxOSI6IDEyLCAicTEwIjogMCwgInExMSI6IFswLCAxLCAyXSwgInExMiI6IDB9"));
+
+var LS_KEY = "econ4_activitat_s4";
+var A = {}, META = {name:"", group:""};
+try{ var sv = JSON.parse(localStorage.getItem(LS_KEY)||"null"); if(sv){A=sv.A||{};META=sv.META||META;} }catch(e){}
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify({A:A,META:META})); }catch(e){} }
+
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+var LET = ["A","B","C","D","E"];
+var SWOOSH = '<svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>';
+
+function bodyHtml(q){
+  var h = "";
+  if(q.type==="single"||q.type==="multi"){
+    h += '<div class="optgrid" data-q="'+q.id+'" data-type="'+q.type+'">';
+    q.options.forEach(function(o,i){
+      h += '<button type="button" class="optcard" data-i="'+i+'"><span class="oletter">'+LET[i]+'</span><span>'+esc(o)+'</span></button>';
+    });
+    h += '</div>';
+  } else if(q.type==="match"){
+    h += '<div class="matchwrap">';
+    q.items.forEach(function(it,k){
+      h += '<div class="matchrow"><div class="mlabel">'+esc(it)+'</div><select data-q="'+q.id+'" data-k="'+k+'"><option value="">Tria…</option>';
+      q.choices.forEach(function(c,ci){ h += '<option value="'+ci+'">'+esc(c)+'</option>'; });
+      h += '</select></div>';
+    });
+    h += '</div>';
+  } else if(q.type==="number"){
+    h += '<div class="numrow"><input class="numin" type="number" inputmode="numeric" data-q="'+q.id+'" data-k="n"><span class="numunit">'+esc(q.unit||"")+'</span></div>';
+  } else if(q.type==="text"){
+    h += '<div class="fieldset">';
+    q.fields.forEach(function(f,k){
+      h += '<div class="flabel">'+esc(f.l)+'</div><textarea rows="'+f.r+'" data-q="'+q.id+'" data-k="'+k+'" placeholder="Escriu aquí la teva resposta…"></textarea>';
+    });
+    h += '</div>';
+  }
+  if(q.justify){
+    h += '<div class="fieldset"><div class="flabel">'+esc(q.justify)+'</div><textarea rows="3" data-q="'+q.id+'" data-k="j" placeholder="Escriu aquí la teva resposta…"></textarea></div>';
+  }
+  return h;
+}
+
+function slideHtml(q,i){
+  var h = SWOOSH + '<div class="kicker">'+esc(q.part.toUpperCase())+' · PREGUNTA '+(i+1)+' DE '+Q.length+'</div>';
+  h += '<h3 class="qtitle">'+esc(q.prompt)+'</h3>';
+  var cl = (q.crit||[]).map(function(c){ return 'Criteri '+c+' · '+RUB[c-1].name; }).join('  |  ');
+  if(cl) h += '<div class="qhint">'+esc(cl.toUpperCase())+'</div>';
+  if(q.hint) h += '<div class="qhint">'+esc(q.hint)+'</div>';
+  if(q.ev) h += '<div class="note">'+esc(q.ev)+'</div>';
+  h += '<div class="content">';
+  if(q.layout==="table"||q.layout==="svg"){
+    h += '<div class="qgrid '+(q.layout==="svg"?"svg":"")+'"><div>'+q.ctx+'</div><div>'+bodyHtml(q)+'</div></div>';
+  } else {
+    if(q.ctx) h += '<div class="qctx">'+q.ctx+'</div>';
+    h += bodyHtml(q);
+  }
+  h += '</div>';
+  return h;
+}
+
+/* ---------- construir diapositives ---------- */
+var deck = document.getElementById('deck');
+var finalSlide = document.getElementById('slideFinal');
+Q.forEach(function(q,i){
+  var s = document.createElement('section');
+  s.className = 'slide'; s.id = 'slide_'+q.id;
+  s.innerHTML = slideHtml(q,i);
+  deck.insertBefore(s, finalSlide);
+});
+var slides = document.querySelectorAll('.slide');
+var total = slides.length;
+var current = 0;
+
+/* taula de rúbrica per a l'alumnat */
+(function(){
+  var h='<div class="trow head"><div>Criteri</div><div>Què valorem</div><div>Pes</div></div>';
+  RUB.forEach(function(c){ h+='<div class="trow"><div class="fname">'+c.id+'. '+esc(c.name)+'</div><div class="fwho">'+esc(c.look)+'</div><div class="fpay">'+c.w+' %</div></div>'; });
+  document.getElementById('rubTable').innerHTML=h;
+})();
+/* ---------- restaurar estat ---------- */
+function restore(){
+  document.getElementById('nameIn').value = META.name||"";
+  document.getElementById('groupIn').value = META.group||"";
+  Q.forEach(function(q){
+    var v = A[q.id];
+    if(q.type==="single"||q.type==="multi"){
+      document.querySelectorAll('[data-q="'+q.id+'"] .optcard').forEach(function(b){
+        var i = +b.dataset.i, on = q.type==="single" ? v===i : (Array.isArray(v)&&v.indexOf(i)>-1);
+        b.classList.toggle('sel', !!on);
+      });
+    } else if(v){
+      Object.keys(v).forEach(function(k){
+        var el = document.querySelector('[data-q="'+q.id+'"][data-k="'+k+'"]'); if(el) el.value = v[k];
+      });
+    }
+    if(q.justify && A[q.id+"_j"]!==undefined){
+      var j = document.querySelector('[data-q="'+q.id+'"][data-k="j"]'); if(j) j.value = A[q.id+"_j"];
+    }
+  });
+}
+
+/* ---------- esdeveniments ---------- */
+deck.addEventListener('click', function(e){
+  var b = e.target.closest('.optcard'); if(!b) return;
+  var grp = b.closest('[data-q]'), id = grp.dataset.q, i = +b.dataset.i;
+  if(grp.dataset.type==="single"){
+    A[id] = i;
+    grp.querySelectorAll('.optcard').forEach(function(x){ x.classList.toggle('sel', x===b); });
+  } else {
+    var arr = Array.isArray(A[id]) ? A[id].slice() : [];
+    var p = arr.indexOf(i); if(p>-1) arr.splice(p,1); else arr.push(i);
+    arr.sort(); A[id] = arr; b.classList.toggle('sel', p===-1);
+  }
+  save();
+});
+document.addEventListener('input', function(e){
+  var t = e.target;
+  if(t.dataset && t.dataset.meta){ META[t.dataset.meta] = t.value; save(); return; }
+  if(!t.dataset || !t.dataset.q) return;
+  var id = t.dataset.q, k = t.dataset.k;
+  if(k==="j"){ A[id+"_j"] = t.value; }
+  else { if(typeof A[id]!=="object"||A[id]===null||Array.isArray(A[id])) A[id]={}; A[id][k] = t.value; }
+  save();
+});
+document.addEventListener('keydown', function(e){
+  var tg = e.target && e.target.tagName;
+  if(tg==="INPUT"||tg==="TEXTAREA"||tg==="SELECT") return;
+  if(e.key==="ArrowRight") go(1);
+  if(e.key==="ArrowLeft") go(-1);
+});
+
+/* ---------- navegació ---------- */
+function render(){
+  slides.forEach(function(s,i){
+    s.classList.remove('active','left');
+    if(i===current) s.classList.add('active'); else if(i<current) s.classList.add('left');
+  });
+  document.getElementById('pagecount').textContent = String(current+1).padStart(2,'0')+'/'+String(total).padStart(2,'0');
+  document.getElementById('dotLabel').textContent = (current+1)+' / '+total;
+  document.getElementById('prevBtn').disabled = current===0;
+  document.getElementById('nextBtn').disabled = current===total-1;
+  if(current===total-1) refreshFinal();
+}
+function go(d){ var n=current+d; if(n<0||n>=total) return; current=n; render(); }
+function goTo(n){ current=n; render(); }
+
+/* ---------- respostes ---------- */
+function isDone(q){
+  var v = A[q.id];
+  if(q.type==="single") return typeof v==="number";
+  if(q.type==="multi") return Array.isArray(v)&&v.length>0;
+  if(q.type==="match") return !!v && q.items.every(function(_,k){ return v[k]!==undefined && v[k]!==""; });
+  if(q.type==="number") return !!v && v.n!==undefined && String(v.n).trim()!=="";
+  if(q.type==="text") return !!v && q.fields.every(function(_,k){ return (v[k]||"").trim()!==""; });
+  return false;
+}
+function answerText(q){
+  var v = A[q.id], out = [];
+  if(q.type==="single"){ out.push(typeof v==="number" ? LET[v]+") "+q.options[v] : "(sense resposta)"); }
+  else if(q.type==="multi"){
+    if(Array.isArray(v)&&v.length) v.forEach(function(i){ out.push(LET[i]+") "+q.options[i]); }); else out.push("(sense resposta)");
+  } else if(q.type==="match"){
+    q.items.forEach(function(it,k){ var c = v&&v[k]!==undefined&&v[k]!=="" ? q.choices[+v[k]] : "(sense resposta)"; out.push(it+": "+c); });
+  } else if(q.type==="number"){
+    out.push(v&&String(v.n||"").trim()!=="" ? v.n+" "+(q.unit||"") : "(sense resposta)");
+  } else if(q.type==="text"){
+    q.fields.forEach(function(f,k){ var t=(v&&v[k]||"").trim(); out.push(f.l+"\n"+(t||"(sense resposta)")); });
+  }
+  if(q.justify){ var j=(A[q.id+"_j"]||"").trim(); out.push(q.justify+"\n"+(j||"(sense resposta)")); }
+  return out;
+}
+function buildReport(){
+  return Q.map(function(q,i){
+    return { n:i+1, part:q.part, context:q.ctxText||"", prompt:q.prompt, answers:answerText(q), done:isDone(q), crit:(q.crit||[]).map(function(c){return 'C'+c;}).join(' · ') };
+  });
+}
+
+
+/* ---------- correcció amb rúbrica ---------- */
+function frac(q){
+  var v=A[q.id], k=KEY[q.id];
+  if(k===undefined) return null;
+  if(q.type==="single") return v===k?1:0;
+  if(q.type==="multi"){ if(!Array.isArray(v)) return 0; var r=0,w=0; v.forEach(function(i){ if(k.indexOf(i)>-1) r++; else w++; }); return Math.max(0,(r-w)/k.length); }
+  if(q.type==="match"){ if(!v) return 0; var ok=0; k.forEach(function(c,i){ if(v[i]!==undefined&&v[i]!==""&&+v[i]===c) ok++; }); return ok/k.length; }
+  if(q.type==="number"){ if(!v||String(v.n||"").trim()==="") return 0; return Math.abs(parseFloat(String(v.n).replace(",","."))-k)<1e-9?1:0; }
+  return null;
+}
+function critLevel(c){
+  if(!c.auto) return null;
+  var sum=0, n=0, any=false;
+  c.qs.forEach(function(id){ var q=Q.filter(function(x){return x.id===id;})[0]; var f=frac(q); if(f===null) return; n++; sum+=f; if(isDone(q)) any=true; });
+  if(!n||!any) return {level:0,pct:0};
+  var p=sum/n, lv = p>=0.9?4:p>=0.7?3:p>=0.5?2:1;
+  return {level:lv,pct:Math.round(p*100)};
+}
+
+/* ---------- diapositiva final ---------- */
+function refreshFinal(){
+  var c = document.getElementById('chips'); c.innerHTML = "";
+  Q.forEach(function(q,i){
+    var b = document.createElement('button'); b.type="button";
+    b.className = 'chip '+(isDone(q)?'done':'pend'); b.textContent = (i+1);
+    b.title = isDone(q) ? "Resposta completa" : "Pendent";
+    b.onclick = function(){ goTo(i+2); };
+    c.appendChild(b);
+  });
+}
+function setMsg(t,cls){ var m=document.getElementById('genMsg'); m.textContent=t; m.className='genmsg '+(cls||''); }
+function nameOk(){
+  if(!(META.name||"").trim()){ setMsg("Falta el teu nom. Torna a la portada i escriu-lo abans de generar el PDF.","warn"); return false; }
+  return true;
+}
+function clean(s){
+  return String(s).replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—]/g,"-")
+    .replace(/…/g,"...").replace(/€/g," euros").replace(/ /g," ")
+    .replace(/[^\x09\x0A\x20-\x7E¡-ÿ]/g,"?");
+}
+function slug(s){ return (s||"alumne").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-zA-Z0-9]+/g,"_").replace(/^_+|_+$/g,"").toLowerCase()||"alumne"; }
+
+function makePdf(){
+  if(!nameOk()) return;
+  var J = window.jspdf && window.jspdf.jsPDF;
+  if(!J){ setMsg("No s'ha pogut carregar el generador de PDF (cal connexió a internet). Prova el botó «Imprimeix / desa com a PDF».","warn"); return; }
+  var rep = buildReport(), doc = new J({unit:"mm",format:"a4"});
+  var M=18, PW=210, PH=297, maxW=PW-2*M, y=M;
+  function ensure(h){ if(y+h>PH-M){ doc.addPage(); y=M; } }
+  function put(text,size,style,rgb,indent,lh){
+    doc.setFont("helvetica",style); doc.setFontSize(size); doc.setTextColor(rgb[0],rgb[1],rgb[2]);
+    doc.splitTextToSize(clean(text), maxW-indent).forEach(function(l){ ensure(lh); doc.text(l,M+indent,y); y+=lh; });
+  }
+  put("ECONOMIA · 4T ESO",9,"bold",[156,122,46],0,5);
+  put(TITLE,18,"bold",[42,32,25],0,8);
+  y+=1; doc.setDrawColor(201,154,61); doc.setLineWidth(0.8); doc.line(M,y,M+24,y); y+=6;
+  var d = new Date(), ds = ("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2)+"/"+d.getFullYear();
+  put("Alumne/a: "+META.name.trim(),11,"bold",[42,32,25],0,6);
+  put("Grup: "+((META.group||"").trim()||"-")+"     Data: "+ds,11,"normal",[74,64,56],0,6);
+  var nd = rep.filter(function(r){return r.done;}).length;
+  put("Preguntes completades: "+nd+" de "+rep.length,10,"normal",[138,130,114],0,6);
+  y+=4;
+  var lastPart = "";
+  rep.forEach(function(r){
+    ensure(48);
+    if(r.part!==lastPart){ y+=3; put(r.part.toUpperCase(),9,"bold",[156,122,46],0,5); lastPart=r.part; }
+    put("Pregunta "+r.n+(r.crit?"   ["+r.crit+"]":""),9,"normal",[138,130,114],0,5);
+    if(r.context) put(r.context,10,"italic",[74,64,56],0,5);
+    put(r.prompt,11,"bold",[42,32,25],0,5.6);
+    y+=1;
+    r.answers.forEach(function(a){
+      var parts = a.split("\n");
+      if(parts.length===2){ put(parts[0],9.5,"italic",[138,130,114],3,5); put(parts[1],11,"normal",[42,32,25],3,5.6); }
+      else put(a,11,"normal",[42,32,25],3,5.6);
+    });
+    y+=5;
+  });
+
+  /* ---- full de rúbrica (apaïsat) ---- */
+  doc.addPage("a4","landscape");
+  var LW=297, LM=12, ry=LM, c0=52, cw=(LW-2*LM-c0)/4;
+  function rput(text,size,style,rgb,x,w,lh){
+    doc.setFont("helvetica",style); doc.setFontSize(size); doc.setTextColor(rgb[0],rgb[1],rgb[2]);
+    var ls=doc.splitTextToSize(clean(text),w); ls.forEach(function(l,i){ doc.text(l,x,ry+i*lh); }); return ls.length;
+  }
+  doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(156,122,46); doc.text("ECONOMIA · 4T ESO",LM,ry+3); ry+=8;
+  doc.setFontSize(15); doc.setTextColor(42,32,25); doc.text("Full de rúbrica (per al professorat)",LM,ry+3); ry+=7;
+  doc.setFont("helvetica","normal"); doc.setFontSize(9.5); doc.setTextColor(74,64,56);
+  doc.text(clean("Alumne/a: "+META.name.trim()+"     Grup: "+((META.group||"").trim()||"-")+"     Data: "+ds),LM,ry+3); ry+=5;
+  doc.setFontSize(8); doc.setTextColor(138,130,114);
+  doc.text(clean("Casella plena = nivell proposat automàticament (criteris 1-3, a partir de les respostes tancades). Casella buida = per marcar pel professorat (criteris 4 i 5, a partir de les respostes escrites)."),LM,ry+3); ry+=7;
+  // capçalera
+  doc.setFillColor(241,234,216); doc.rect(LM,ry,LW-2*LM,8,"F");
+  doc.setFont("helvetica","bold"); doc.setFontSize(8); doc.setTextColor(156,122,46);
+  doc.text("CRITERI (PES)",LM+2,ry+5);
+  for(var li=0;li<4;li++) doc.text(clean(("NIVELL "+(4-li)+" · "+LVL[li]+" ("+LPCT[li]+"%)").toUpperCase()),LM+c0+li*cw+2,ry+5);
+  ry+=8;
+  var autoPts=0, autoMax=0, manMax=0;
+  RUB.forEach(function(c){
+    var info=critLevel(c), lv=info?info.level:null;
+    var cl=doc.splitTextToSize(clean(c.name),c0-4).length, sl=doc.splitTextToSize(clean(c.sub),c0-4).length;
+    var maxL=0; c.L.forEach(function(t){ maxL=Math.max(maxL,doc.splitTextToSize(clean(t),cw-9).length); });
+    var h=Math.max(cl*4+sl*3.3+14, maxL*3.3+6);
+    doc.setDrawColor(228,220,200); doc.setLineWidth(0.2); doc.rect(LM,ry,LW-2*LM,h);
+    doc.line(LM+c0,ry,LM+c0,ry+h);
+    // criteri
+    var yy=ry+4.5;
+    doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(42,32,25);
+    doc.splitTextToSize(clean(c.id+". "+c.name),c0-4).forEach(function(l){ doc.text(l,LM+2,yy); yy+=4; });
+    doc.setFont("helvetica","normal"); doc.setFontSize(7.5); doc.setTextColor(138,130,114);
+    doc.splitTextToSize(clean(c.sub),c0-4).forEach(function(l){ doc.text(l,LM+2,yy); yy+=3.3; });
+    yy+=1; doc.setFont("helvetica","bold"); doc.setTextColor(156,122,46);
+    doc.text("Pes: "+c.w+"%",LM+2,yy); yy+=3.6;
+    doc.setFont("helvetica","normal"); doc.setTextColor(74,64,56);
+    doc.text(clean(c.auto?"Automàtic: "+(info.pct)+"% d'encert":"Preguntes: "+c.qs.map(function(q){return q.replace("q","");}).join(", ")),LM+2,yy);
+    // nivells
+    for(var k=0;k<4;k++){
+      var x=LM+c0+k*cw; if(k>0) doc.line(x,ry,x,ry+h);
+      doc.setDrawColor(156,122,46); doc.setLineWidth(0.3);
+      if(c.auto && lv===4-k){ doc.setFillColor(201,154,61); doc.rect(x+2,ry+2.2,3.6,3.6,"FD"); }
+      else { doc.rect(x+2,ry+2.2,3.6,3.6); }
+      doc.setDrawColor(228,220,200); doc.setLineWidth(0.2);
+      doc.setFont("helvetica","normal"); doc.setFontSize(7.5); doc.setTextColor(74,64,56);
+      doc.splitTextToSize(clean(c.L[k]),cw-9).forEach(function(l,i){ doc.text(l,x+7,ry+4.8+i*3.3); });
+    }
+    if(c.auto){ autoMax+=c.w; autoPts+=c.w*(lv>0?LPCT[4-lv]:0)/100; } else manMax+=c.w;
+    ry+=h;
+  });
+  ry+=7;
+  doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(42,32,25);
+  doc.text(clean("Part automàtica (criteris 1-3): "+(Math.round(autoPts*10)/10)+" / "+autoMax+" punts"),LM,ry);
+  doc.text(clean("Criteris 4 i 5: ______ / "+manMax+" punts"),LM+95,ry);
+  doc.text("Nota final (punts / 10): ________",LM+180,ry);
+  ry+=5;
+  doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(138,130,114);
+  doc.text(clean("Punts d'un criteri = pes x percentatge del nivell (100%, 75%, 50% o 25%). Sense resposta valorable: 0 punts."),LM,ry);
+  ry+=6; doc.setFontSize(9); doc.setTextColor(74,64,56); doc.text("Observacions:",LM,ry);
+  doc.setDrawColor(228,220,200); doc.line(LM+22,ry,LW-LM,ry);
+  var n = doc.getNumberOfPages();
+  for(var p=1;p<=n;p++){ doc.setPage(p); doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(138,130,114);
+    var pw=doc.internal.pageSize.getWidth(), ph=doc.internal.pageSize.getHeight(); doc.text(clean(META.name.trim())+"  ·  "+p+"/"+n, pw-12, ph-6, {align:"right"}); }
+  doc.save("respostes_"+slug(META.name)+".pdf");
+  setMsg("PDF generat. Cerca'l a la carpeta de Baixades i lliura'l pel Classroom.","ok");
+}
+function printReport(){
+  if(!nameOk()) return;
+  var rep = buildReport(), h = '<h1>'+esc(TITLE)+'</h1><div class="pr-meta"><strong>Alumne/a:</strong> '+esc(META.name.trim())+' &nbsp; <strong>Grup:</strong> '+esc((META.group||"-").trim()||"-")+'</div>';
+  rep.forEach(function(r){
+    h += '<div class="pr-q"><div class="pr-n">Pregunta '+r.n+' · '+esc(r.part)+'</div>'+(r.context?'<div class="pr-n">'+esc(r.context)+'</div>':'')+'<div class="pr-p">'+esc(r.prompt)+'</div><div class="pr-a">'+esc(r.answers.join("\n\n"))+'</div></div>';
+  });
+  h += '<h1 style="page-break-before:always;margin-top:0">Full de rúbrica (professorat)</h1><table style="width:100%;border-collapse:collapse;font-size:9pt">';
+  h += '<tr><th style="border:1px solid #999;padding:4px">Criteri</th>'+LVL.map(function(n,i){return '<th style="border:1px solid #999;padding:4px">Nivell '+(4-i)+' · '+n+'</th>';}).join('')+'</tr>';
+  RUB.forEach(function(c){ var inf=critLevel(c), lv=inf?inf.level:null;
+    h += '<tr><td style="border:1px solid #999;padding:4px;vertical-align:top"><strong>'+c.id+'. '+esc(c.name)+'</strong><br>Pes: '+c.w+'%'+(c.auto?'<br>Automàtic: '+inf.pct+'%':'')+'</td>';
+    c.L.forEach(function(t,k){ h += '<td style="border:1px solid #999;padding:4px;vertical-align:top">'+((c.auto&&lv===4-k)?'&#9632; ':'&#9633; ')+esc(t)+'</td>'; });
+    h += '</tr>'; });
+  h += '</table><p style="margin-top:6mm;font-size:10pt">Nota final (punts / 10): ________ &nbsp; Observacions: ________________________________</p>';
+  document.getElementById('printReport').innerHTML = h;
+  window.print();
+}
+document.getElementById('genBtn').addEventListener('click', makePdf);
+document.getElementById('printBtn').addEventListener('click', printReport);
+
+restore();
+render();
+</script>
+
+</body>
+</html>
