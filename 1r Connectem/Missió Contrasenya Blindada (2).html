@@ -1,0 +1,879 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Missió Contrasenya Blindada</title>
+<style>
+/*
+  Layout concept: single full-bleed "browser window" card centered on a bold
+  blue field, lime-green chunky tag/label system, thick black outlines and
+  hard offset shadows (no blur) — neobrutalist/8-bit poster language lifted
+  from the reference poster. One screen visible at a time, paged with
+  fixed Back/Next buttons + clickable progress dots. Pixel-style icons are
+  drawn as tiny inline SVGs on a visible pixel grid (no smoothing).
+*/
+:root{
+  --blue:        #1476DE;
+  --blue-deep:   #0A4F9E;
+  --blue-ink:    #063164;
+  --lime:        #CFEB6E;
+  --lime-deep:   #9FC23E;
+  --ink:         #15181E;
+  --paper:       #F4F7EC;
+  --white:       #FFFFFF;
+  --red:         #FF5C5C;
+  --red-deep:    #C23B3B;
+  --green:       #3FB871;
+  --green-deep:  #2A8650;
+  --font-display: 'Archivo Black', 'Arial Black', sans-serif;
+  --font-body:    'Space Grotesk', 'Segoe UI', sans-serif;
+  --font-mono:    'Space Mono', 'Courier New', monospace;
+  color-scheme: light;
+}
+
+*{box-sizing:border-box;}
+body{
+  background: var(--blue);
+  background-image:
+    radial-gradient(circle at 8% 10%, rgba(255,255,255,0.08) 0, transparent 40%),
+    radial-gradient(circle at 92% 85%, rgba(0,0,0,0.12) 0, transparent 45%);
+  color: var(--ink);
+  font-family: var(--font-body);
+  min-height: 100%;
+  padding-inline: 16px;
+  padding-block: 24px;
+  display:flex;
+  justify-content:center;
+}
+
+a{color:inherit;}
+
+.app{
+  width:100%;
+  max-width: 860px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+/* ---------- Browser chrome frame ---------- */
+.chrome{
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 8px 8px 0 var(--blue-ink);
+  overflow:hidden;
+}
+.chrome-bar{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background: var(--white);
+  border-bottom: 3px solid var(--ink);
+  padding: 10px 14px;
+}
+.chrome-dot{width:13px;height:13px;border-radius:50%;border:2px solid var(--ink);}
+.chrome-dot.lime{background:var(--lime);}
+.chrome-dot.ink{background:var(--ink);}
+.chrome-dot.blue{background:var(--blue);}
+.chrome-url{
+  margin-left:8px;
+  font-family: var(--font-mono);
+  font-size:12px;
+  color: var(--ink);
+  opacity:.65;
+  letter-spacing:.3px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.screen-body{
+  padding: 28px 26px 30px;
+  min-height: 430px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+/* ---------- Top brand row ---------- */
+.brandbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.brand{
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing:.5px;
+  background: var(--ink);
+  color: var(--lime);
+  padding:6px 10px;
+  border-radius:6px;
+}
+.progress-label{
+  font-family: var(--font-mono);
+  font-size:12px;
+  color: var(--blue-deep);
+  font-weight:700;
+}
+
+/* ---------- Headlines ---------- */
+h1,h2{
+  font-family: var(--font-display);
+  line-height: 0.98;
+  margin:0;
+  text-wrap: balance;
+  color: var(--ink);
+}
+h1{font-size: clamp(30px, 6vw, 46px);}
+h2{font-size: clamp(22px, 4.2vw, 30px);}
+.eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-family: var(--font-mono);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.6px;
+  text-transform:uppercase;
+  color: var(--blue-deep);
+}
+.sub{
+  font-size:15px;
+  line-height:1.5;
+  color: var(--ink);
+  opacity:.85;
+  max-width:62ch;
+}
+
+/* ---------- Tag / label chip (poster's green rectangles) ---------- */
+.tag{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background: var(--lime);
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+/* ---------- Generic panel/card ---------- */
+.panel{
+  background: var(--white);
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 5px 5px 0 var(--ink);
+}
+.panel.lime{background:var(--lime);}
+.panel.ink{background:var(--ink); color:var(--white);}
+.panel.blue{background:var(--blue); color:var(--white); border-color:var(--blue-ink);}
+
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+.grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+@media (max-width:620px){
+  .grid-2{grid-template-columns:1fr;}
+  .grid-3{grid-template-columns:1fr;}
+}
+
+/* ---------- Rule / checklist rows ---------- */
+.rule-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px 4px;
+  border-bottom: 2px dashed rgba(21,24,30,0.18);
+}
+.rule-row:last-child{border-bottom:none;}
+.rule-icon{
+  width:30px;height:30px;flex:0 0 auto;
+  border-radius:7px;
+  border:2.5px solid var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  background: var(--paper);
+  transition: background .15s, transform .15s;
+}
+.rule-row.ok .rule-icon{background:var(--green); border-color:var(--green-deep);}
+.rule-row.ok .rule-icon svg{stroke:white;}
+.rule-text{font-size:14px; font-weight:600;}
+.rule-row.ok .rule-text{color:var(--green-deep);}
+
+/* ---------- Inputs ---------- */
+label.field-label{
+  display:block;
+  font-family: var(--font-mono);
+  font-size:12px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+  color: var(--blue-deep);
+  margin-bottom:6px;
+}
+input[type=text], input[type=date]{
+  width:100%;
+  font-family: var(--font-mono);
+  font-size:16px;
+  padding: 11px 12px;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+  outline: none;
+}
+input[type=text]:focus, input[type=date]:focus{
+  background: var(--white);
+  box-shadow: 3px 3px 0 var(--blue);
+}
+input::placeholder{color:#8a9099;}
+
+.output-box{
+  font-family: var(--font-mono);
+  font-size: 19px;
+  font-weight:700;
+  word-break:break-all;
+  background: var(--ink);
+  color: var(--lime);
+  border-radius:8px;
+  padding:14px 16px;
+  min-height:52px;
+  display:flex;
+  align-items:center;
+}
+
+/* ---------- Strength meter ---------- */
+.meter{
+  height:14px;
+  border:2.5px solid var(--ink);
+  border-radius:8px;
+  background:var(--paper);
+  overflow:hidden;
+}
+.meter-fill{height:100%; width:0%; background:var(--red); transition: width .25s, background .25s;}
+.meter-label{font-family:var(--font-mono); font-size:12px; font-weight:700; margin-top:6px;}
+
+/* ---------- Level cards ---------- */
+.level-card{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  background: var(--white);
+  border:3px solid var(--ink);
+  border-radius:12px;
+  padding:16px;
+  box-shadow:5px 5px 0 var(--ink);
+  position:relative;
+}
+.level-head{display:flex; align-items:center; gap:10px;}
+.level-medal{
+  width:38px;height:38px;border-radius:50%;
+  border:2.5px solid var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  flex:0 0 auto;
+  font-family:var(--font-display);
+  font-size:14px;
+}
+.level-medal.bronze{background:#D7914C;}
+.level-medal.silver{background:#CBD2D9;}
+.level-medal.gold{background:var(--lime);}
+.level-title{font-family:var(--font-display); font-size:15px;}
+.level-req{font-size:12px; opacity:.75; margin:0;}
+.badge-complete{
+  display:none;
+  align-items:center;
+  gap:6px;
+  font-family:var(--font-display);
+  font-size:12px;
+  color: var(--green-deep);
+  background: #E3F7EA;
+  border:2px solid var(--green-deep);
+  border-radius:7px;
+  padding:5px 9px;
+  width:fit-content;
+}
+.level-card.complete .badge-complete{display:flex;}
+.level-card.complete{box-shadow:5px 5px 0 var(--green-deep); border-color:var(--green-deep);}
+
+.mini-checks{display:flex; flex-wrap:wrap; gap:6px;}
+.mini-check{
+  font-family:var(--font-mono);
+  font-size:11px;
+  padding:3px 7px;
+  border-radius:12px;
+  border:2px solid var(--ink);
+  background:var(--paper);
+}
+.mini-check.on{background:var(--green); color:white; border-color:var(--green-deep);}
+
+/* ---------- Decoder table ---------- */
+.decoder{display:flex; flex-direction:column; gap:8px;}
+.decoder-row{
+  display:flex; align-items:center; gap:10px;
+  font-family:var(--font-mono); font-weight:700;
+}
+.decoder-letter, .decoder-number{
+  width:40px;height:40px;
+  border-radius:8px;
+  border:2.5px solid var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+}
+.decoder-letter{background:var(--lime);}
+.decoder-number{background:var(--ink); color:var(--lime);}
+
+/* ---------- Pixel icon helper ---------- */
+.pixel-icon{image-rendering:pixelated; display:block;}
+
+/* ---------- Nav ---------- */
+.navbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.navbtn{
+  font-family: var(--font-display);
+  font-size:14px;
+  letter-spacing:.3px;
+  background: var(--lime);
+  color: var(--ink);
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  padding: 12px 18px;
+  box-shadow: 4px 4px 0 var(--ink);
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  transition: transform .08s;
+  user-select:none;
+}
+.navbtn:active{transform: translate(3px,3px); box-shadow:1px 1px 0 var(--ink);}
+.navbtn:disabled{opacity:.35; cursor:not-allowed;}
+.navbtn:disabled:active{transform:none; box-shadow:4px 4px 0 var(--ink);}
+.navbtn.ghost{background:var(--white);}
+.navbtn.primary{background:var(--ink); color:var(--lime); border-color:var(--ink);}
+
+.dots{display:flex; gap:7px; flex-wrap:wrap; justify-content:center;}
+.dot{
+  width:11px;height:11px;border-radius:50%;
+  border:2px solid var(--ink);
+  background:var(--white);
+  cursor:pointer;
+  padding:0;
+}
+.dot.active{background:var(--blue); border-color:var(--blue-ink);}
+.dot.done{background:var(--lime);}
+
+/* ---------- Screens ---------- */
+.screen{display:none; flex-direction:column; gap:18px; animation: fadein .25s ease;}
+.screen.active{display:flex;}
+@keyframes fadein{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+@media (prefers-reduced-motion: reduce){
+  .screen{animation:none;}
+}
+
+/* ---------- Misc ---------- */
+.callout{
+  display:flex; gap:10px; align-items:flex-start;
+  font-size:13.5px; line-height:1.5;
+  background: #FFF4D6;
+  border: 2.5px solid var(--ink);
+  border-radius:10px;
+  padding:12px 14px;
+}
+.callout.warn{background:#FFE1E1;}
+.callout.good{background:#E3F7EA;}
+.list-steps{display:flex; flex-direction:column; gap:10px; margin:0; padding:0; list-style:none;}
+.list-steps li{display:flex; gap:12px; align-items:flex-start; font-size:14px;}
+.step-num{
+  font-family:var(--font-display);
+  width:26px;height:26px;border-radius:50%;
+  background:var(--blue); color:white;
+  border:2px solid var(--blue-ink);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px; flex:0 0 auto;
+}
+
+.trophy-wrap{display:flex; justify-content:center; padding:10px 0;}
+
+.report-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+@media (max-width:560px){.report-grid{grid-template-columns:1fr;}}
+.report-item{
+  background:var(--paper); border:2.5px solid var(--ink); border-radius:8px;
+  padding:10px 12px;
+  color: var(--ink);
+}
+.report-item .k{font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; color: var(--blue-deep); opacity:.85; letter-spacing:.4px;}
+.report-item .v{font-family:var(--font-mono); font-weight:700; font-size:14px; word-break:break-all; color: var(--ink);}
+
+footer.credit{
+  text-align:center;
+  color: rgba(255,255,255,0.75);
+  font-family: var(--font-mono);
+  font-size:11.5px;
+  padding-bottom: 4px;
+}
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<div class="app">
+  <div class="chrome">
+    <div class="chrome-bar">
+      <span class="chrome-dot lime"></span>
+      <span class="chrome-dot ink"></span>
+      <span class="chrome-dot blue"></span>
+      <span class="chrome-url" id="urlbar">connectem.missio/contrasenya-blindada</span>
+    </div>
+
+    <div class="screen-body">
+
+      <!-- ============ SCREEN 1 : TITLE ============ -->
+      <section class="screen active" data-screen="0">
+        <div class="brandbar">
+          <span class="brand">CONNECTEM · 1r ESO</span>
+          <span class="tag">🔒 MISSIÓ ESPECIAL</span>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:flex-start; gap:10px; padding-top:6px;">
+          <svg class="pixel-icon" width="56" height="56" viewBox="0 0 8 8" aria-hidden="true">
+            <rect width="8" height="8" fill="none"/>
+            <g fill="#15181E">
+              <rect x="2" y="3" width="4" height="4"/>
+              <rect x="3" y="1" width="2" height="2"/>
+            </g>
+            <g fill="#CFEB6E">
+              <rect x="3" y="4" width="2" height="2"/>
+            </g>
+          </svg>
+          <h1>MISSIÓ:<br>CONTRASENYA<br>BLINDADA</h1>
+          <p class="sub">Converteix-te en un mestre de la seguretat digital. Pas a pas, aprendràs a crear contrasenyes que cap ordinador podrà endevinar.</p>
+        </div>
+        <div class="callout">
+          <span>🕹️</span>
+          <span>Fes servir els botons <b>Enrere</b> i <b>Endavant</b> de sota per moure't per la missió. Algunes pantalles tenen caixes on pots escriure i provar coses tu mateix.</span>
+        </div>
+      </section>
+
+      <!-- ============ SCREEN 2 : WHY IT MATTERS ============ -->
+      <section class="screen" data-screen="1">
+        <span class="eyebrow">01 · El problema</span>
+        <h2>Per què importa?</h2>
+        <p class="sub">Un ordinador pot provar <b>mil milions</b> de contrasenyes per segon. Com més feble sigui la teva, abans la troba.</p>
+        <div class="grid-2">
+          <div class="panel" style="border-color:var(--red-deep);">
+            <div class="tag" style="background:var(--red); color:white; border-color:var(--red-deep); box-shadow:4px 4px 0 var(--red-deep);">😬 FEBLE</div>
+            <div class="output-box" style="color:#FF8A8A; margin-top:12px;">123456</div>
+            <p class="sub" style="margin-top:10px; font-size:13px;">Temps per endevinar-la: <b>0 segons</b>. Massa curta i és de les més utilitzades del món.</p>
+          </div>
+          <div class="panel" style="border-color:var(--green-deep);">
+            <div class="tag" style="background:var(--green); color:white; border-color:var(--green-deep); box-shadow:4px 4px 0 var(--green-deep);">💪 FORTA</div>
+            <div class="output-box" style="margin-top:12px;">P3rr0V3rd3!</div>
+            <p class="sub" style="margin-top:10px; font-size:13px;">Temps per endevinar-la: <b>segles</b>. Llarga, amb majúscules, números i un símbol.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SCREEN 3 : RULES + LIVE CHECKER ============ -->
+      <section class="screen" data-screen="2">
+        <span class="eyebrow">02 · Les regles</span>
+        <h2>Les 4 regles d'or</h2>
+        <div class="panel">
+          <div class="rule-row" id="rule-len">
+            <span class="rule-icon">#</span>
+            <span class="rule-text">Mínim 8 caràcters</span>
+          </div>
+          <div class="rule-row" id="rule-upper">
+            <span class="rule-icon">A</span>
+            <span class="rule-text">Almenys 1 majúscula</span>
+          </div>
+          <div class="rule-row" id="rule-num">
+            <span class="rule-icon">1</span>
+            <span class="rule-text">Almenys 1 número</span>
+          </div>
+          <div class="rule-row" id="rule-sym">
+            <span class="rule-icon">!</span>
+            <span class="rule-text">Almenys 1 símbol (! ? # *)</span>
+          </div>
+          <div class="rule-row" id="rule-space">
+            <span class="rule-icon">_</span>
+            <span class="rule-text">Sense espais (uneix-los amb _ )</span>
+          </div>
+        </div>
+        <div class="panel lime">
+          <label class="field-label" for="checker-input">Prova-ho tu mateix</label>
+          <input type="text" id="checker-input" placeholder="Escriu una contrasenya d'exemple..." autocomplete="off" oninput="updateChecker()">
+          <div class="meter" style="margin-top:12px;"><div class="meter-fill" id="meter-fill"></div></div>
+          <div class="meter-label" id="meter-label">Encara no has escrit res</div>
+        </div>
+        <div class="callout warn"><span>⚠️</span><span>Evita el teu nom, la data de naixement, "1234" o "password".</span></div>
+      </section>
+
+      <!-- ============ SCREEN 4 : SECRET WEAPON / ENCODER ============ -->
+      <section class="screen" data-screen="3">
+        <span class="eyebrow">03 · L'arma secreta</span>
+        <h2>El codi d'hacker</h2>
+        <p class="sub">Converteix les vocals en números i els espais en guions baixos (_) per amagar la teva frase dins la contrasenya. Una contrasenya mai pot tenir espais!</p>
+        <div class="grid-2">
+          <div class="panel">
+            <div class="decoder">
+              <div class="decoder-row"><span class="decoder-letter">A</span> ⇄ <span class="decoder-number">4</span></div>
+              <div class="decoder-row"><span class="decoder-letter">E</span> ⇄ <span class="decoder-number">3</span></div>
+              <div class="decoder-row"><span class="decoder-letter">I</span> ⇄ <span class="decoder-number">1</span></div>
+              <div class="decoder-row"><span class="decoder-letter">O</span> ⇄ <span class="decoder-number">0</span></div>
+              <div class="decoder-row"><span class="decoder-letter">U</span> ⇄ <span class="decoder-number">8</span></div>
+            </div>
+          </div>
+          <div class="panel lime" style="display:flex; flex-direction:column; gap:10px;">
+            <label class="field-label" for="encoder-input">Escriu una frase</label>
+            <input type="text" id="encoder-input" placeholder="p. ex. perro verde" autocomplete="off" oninput="updateEncoder()">
+            <label class="field-label" style="margin-top:4px;">Resultat codificat</label>
+            <div class="output-box" id="encoder-output">...</div>
+            <p class="sub" style="font-size:12.5px;">Truc: afegeix encara una majúscula i un símbol per blindar-la del tot.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SCREEN 5 : CHALLENGE 3 LEVELS ============ -->
+      <section class="screen" data-screen="4">
+        <span class="eyebrow">04 · El repte</span>
+        <h2>Supera els 3 nivells</h2>
+        <p class="sub">Crea una contrasenya per a cada nivell. Com més amunt, més difícil.</p>
+
+        <div class="level-card" id="level-1">
+          <div class="level-head">
+            <span class="level-medal bronze">🥉</span>
+            <div>
+              <div class="level-title">NIVELL 1 · BRONZE</div>
+              <p class="level-req">8+ caràcters, majúscula, número i símbol</p>
+            </div>
+          </div>
+          <input type="text" id="level1-input" placeholder="La teva contrasenya nivell 1..." autocomplete="off" oninput="updateLevels()">
+          <div class="mini-checks" id="level1-checks"></div>
+          <div class="badge-complete">🏆 Nivell superat!</div>
+        </div>
+
+        <div class="level-card" id="level-2">
+          <div class="level-head">
+            <span class="level-medal silver">🥈</span>
+            <div>
+              <div class="level-title">NIVELL 2 · PLATA</div>
+              <p class="level-req">Tot l'anterior + 10 caràcters + 2 números (fes servir el codi secret)</p>
+            </div>
+          </div>
+          <input type="text" id="level2-input" placeholder="La teva contrasenya nivell 2..." autocomplete="off" oninput="updateLevels()">
+          <div class="mini-checks" id="level2-checks"></div>
+          <div class="badge-complete">🏆 Nivell superat!</div>
+        </div>
+
+        <div class="level-card" id="level-3">
+          <div class="level-head">
+            <span class="level-medal gold">🥇</span>
+            <div>
+              <div class="level-title">NIVELL 3 · OR</div>
+              <p class="level-req">Tot l'anterior + 12 caràcters + sense espais (frase pròpia)</p>
+            </div>
+          </div>
+          <input type="text" id="level3-input" placeholder="La teva contrasenya nivell 3..." autocomplete="off" oninput="updateLevels()">
+          <div class="mini-checks" id="level3-checks"></div>
+          <div class="badge-complete">🏆 Nivell superat!</div>
+        </div>
+      </section>
+
+      <!-- ============ SCREEN 6 : MISSION REPORT ============ -->
+      <section class="screen" data-screen="5">
+        <span class="eyebrow">05 · La teva missió</span>
+        <h2>Informe final</h2>
+        <p class="sub">Omple les teves dades. Les contrasenyes dels 3 nivells es recullen automàticament.</p>
+        <div class="panel">
+          <div class="grid-2">
+            <div>
+              <label class="field-label" for="report-name">Nom</label>
+              <input type="text" id="report-name" placeholder="El teu nom" autocomplete="off" oninput="updateReport()">
+            </div>
+            <div>
+              <label class="field-label" for="report-course">Curs</label>
+              <input type="text" id="report-course" placeholder="p. ex. 1r ESO B" autocomplete="off" oninput="updateReport()">
+            </div>
+          </div>
+          <label class="field-label" style="margin-top:12px;" for="report-date">Data</label>
+          <input type="date" id="report-date" oninput="updateReport()">
+        </div>
+        <div class="panel ink">
+          <div class="tag" style="margin-bottom:12px;">📋 RESUM DE LA MISSIÓ</div>
+          <div class="report-grid">
+            <div class="report-item"><div class="k">Nom</div><div class="v" id="sum-name">—</div></div>
+            <div class="report-item"><div class="k">Curs</div><div class="v" id="sum-course">—</div></div>
+            <div class="report-item"><div class="k">Data</div><div class="v" id="sum-date">—</div></div>
+            <div class="report-item"><div class="k">Nivells superats</div><div class="v" id="sum-levels">0 / 3</div></div>
+            <div class="report-item" style="grid-column:1/-1;"><div class="k">Contrasenya nivell 1</div><div class="v" id="sum-l1">—</div></div>
+            <div class="report-item" style="grid-column:1/-1;"><div class="k">Contrasenya nivell 2</div><div class="v" id="sum-l2">—</div></div>
+            <div class="report-item" style="grid-column:1/-1;"><div class="k">Contrasenya nivell 3</div><div class="v" id="sum-l3">—</div></div>
+          </div>
+        </div>
+        <div class="callout"><span>📎</span><span>Ensenya aquesta pantalla al professor/a com a comprovant que has completat la missió.</span></div>
+      </section>
+
+      <!-- ============ SCREEN 7 : BONUS ROUND ============ -->
+      <section class="screen" data-screen="6">
+        <span class="eyebrow">06 · Repte extra</span>
+        <h2>Bonus: intercanvi de pistes</h2>
+        <p class="sub">En parelles, sense ensenyar mai la contrasenya final:</p>
+        <ul class="list-steps">
+          <li><span class="step-num">1</span><span>Comparteix només la <b>frase original</b> (p. ex. "perro verde"), mai la contrasenya final.</span></li>
+          <li><span class="step-num">2</span><span>El teu company/a la codifica aplicant les 4 regles i el codi secret.</span></li>
+          <li><span class="step-num">3</span><span>Compareu resultats: qui ha creat la contrasenya més creativa i segura?</span></li>
+        </ul>
+        <div class="callout good"><span>✅</span><span>Important: mai comparteixis una contrasenya real que facis servir de veritat.</span></div>
+      </section>
+
+      <!-- ============ SCREEN 8 : RECAP ============ -->
+      <section class="screen" data-screen="7">
+        <div class="trophy-wrap">
+          <svg width="72" height="72" viewBox="0 0 8 8" class="pixel-icon" aria-hidden="true">
+            <g fill="#CFEB6E" stroke="#15181E" stroke-width="0.15">
+              <rect x="2" y="1" width="4" height="3"/>
+              <rect x="3" y="4" width="2" height="2"/>
+              <rect x="2" y="6" width="4" height="1"/>
+            </g>
+          </svg>
+        </div>
+        <h2 style="text-align:center;">Ho has aconseguit!</h2>
+        <div class="grid-2">
+          <div class="panel"><b>🛡️ Regla d'or</b><p class="sub" style="font-size:13px; margin-top:6px;">8+ caràcters, majúscula, número i símbol.</p></div>
+          <div class="panel"><b>🔁 Codi secret</b><p class="sub" style="font-size:13px; margin-top:6px;">a=4, e=3, i=1, o=0, u=8.</p></div>
+          <div class="panel"><b>🏅 Nivells</b><p class="sub" style="font-size:13px; margin-top:6px;">Com més superis, més blindada és la contrasenya.</p></div>
+          <div class="panel"><b>🕵️ Discreció</b><p class="sub" style="font-size:13px; margin-top:6px;">Mai comparteixis contrasenyes reals, ni amb amics.</p></div>
+        </div>
+        <div style="display:flex; justify-content:center;">
+          <button class="navbtn primary" onclick="resetMission()">↺ Reiniciar la missió</button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <div class="navbar">
+    <button class="navbtn ghost" id="btn-back" onclick="go(-1)">← Enrere</button>
+    <div class="dots" id="dots"></div>
+    <button class="navbtn" id="btn-next" onclick="go(1)">Endavant →</button>
+  </div>
+
+  <footer class="credit">Contrasenyes Segures · Connectem · 1r ESO</footer>
+</div>
+
+<script>
+var TOTAL = 8;
+var current = 0;
+
+function buildDots(){
+  var wrap = document.getElementById('dots');
+  wrap.innerHTML = '';
+  for (var i=0;i<TOTAL;i++){
+    var d = document.createElement('button');
+    d.className = 'dot';
+    d.setAttribute('aria-label', 'Pantalla ' + (i+1));
+    d.onclick = (function(idx){ return function(){ showScreen(idx); }; })(i);
+    wrap.appendChild(d);
+  }
+}
+
+function showScreen(idx){
+  if (idx < 0 || idx >= TOTAL) return;
+  current = idx;
+  var screens = document.querySelectorAll('.screen');
+  screens.forEach(function(s){
+    s.classList.toggle('active', parseInt(s.getAttribute('data-screen'),10) === idx);
+  });
+  var dots = document.querySelectorAll('.dot');
+  dots.forEach(function(d, i){
+    d.classList.toggle('active', i === idx);
+    d.classList.toggle('done', i < idx);
+  });
+  document.getElementById('btn-back').disabled = (idx === 0);
+  var nextBtn = document.getElementById('btn-next');
+  if (idx === TOTAL - 1){
+    nextBtn.disabled = true;
+    nextBtn.textContent = 'Fi de la missió';
+  } else {
+    nextBtn.disabled = false;
+    nextBtn.textContent = 'Endavant →';
+  }
+  var urlSlugs = [
+    'inici', 'per-que-importa', 'les-4-regles', 'codi-secret',
+    'el-repte', 'informe-final', 'repte-bonus', 'enhorabona'
+  ];
+  document.getElementById('urlbar').textContent = 'connectem.missio/' + urlSlugs[idx];
+  window.scrollTo(0,0);
+}
+
+function go(delta){ showScreen(current + delta); }
+
+document.addEventListener('keydown', function(e){
+  if (e.key === 'ArrowRight') go(1);
+  if (e.key === 'ArrowLeft') go(-1);
+});
+
+/* ---------- Rule checking (shared) ---------- */
+function ruleChecks(pw){
+  return {
+    len: pw.length >= 8,
+    upper: /[A-ZÀ-Ý]/.test(pw),
+    num: /[0-9]/.test(pw),
+    sym: /[^A-Za-zÀ-ÿ0-9\s]/.test(pw),
+    nospace: pw.length > 0 && pw.indexOf(' ') === -1
+  };
+}
+
+function updateChecker(){
+  var pw = document.getElementById('checker-input').value;
+  var checks = ruleChecks(pw);
+  toggleRule('rule-len', checks.len);
+  toggleRule('rule-upper', checks.upper);
+  toggleRule('rule-num', checks.num);
+  toggleRule('rule-sym', checks.sym);
+  toggleRule('rule-space', checks.nospace);
+
+  var score = (checks.len?1:0)+(checks.upper?1:0)+(checks.num?1:0)+(checks.sym?1:0)+(checks.nospace?1:0);
+  var fill = document.getElementById('meter-fill');
+  var label = document.getElementById('meter-label');
+  if (pw.length === 0){
+    fill.style.width = '0%'; fill.style.background = 'var(--red)';
+    label.textContent = 'Encara no has escrit res';
+    return;
+  }
+  var pct = (score/5)*100;
+  fill.style.width = pct + '%';
+  var texts = ['Molt feble','Molt feble','Feble','Mitjana','Forta','Molt forta!'];
+  var colors = ['var(--red)','var(--red)','var(--red)','#E8A33D','var(--green)','var(--green-deep)'];
+  fill.style.background = colors[score];
+  label.textContent = texts[score] + ' (' + score + '/5 regles)';
+  label.style.color = colors[score];
+}
+
+function toggleRule(id, ok){
+  var row = document.getElementById(id);
+  row.classList.toggle('ok', ok);
+}
+
+/* ---------- Encoder ---------- */
+var VOWEL_MAP = {'a':'4','e':'3','i':'1','o':'0','u':'8','A':'4','E':'3','I':'1','O':'0','U':'8'};
+function updateEncoder(){
+  var phrase = document.getElementById('encoder-input').value;
+  var out = document.getElementById('encoder-output');
+  if (!phrase){ out.textContent = '...'; return; }
+  var encoded = phrase.split('').map(function(ch){
+    if (ch === ' ') return '_';
+    return VOWEL_MAP.hasOwnProperty(ch) ? VOWEL_MAP[ch] : ch;
+  }).join('');
+  out.textContent = encoded;
+}
+
+/* ---------- Levels ---------- */
+function levelChecksFor(n, pw){
+  var base = ruleChecks(pw);
+  if (n === 1){
+    return [
+      {label:'8+ caràcters', ok: base.len},
+      {label:'Majúscula', ok: base.upper},
+      {label:'Número', ok: base.num},
+      {label:'Símbol', ok: base.sym},
+      {label:'Sense espais', ok: base.nospace}
+    ];
+  }
+  if (n === 2){
+    var numCount = (pw.match(/[0-9]/g)||[]).length;
+    return [
+      {label:'Totes les regles', ok: base.len && base.upper && base.num && base.sym && base.nospace},
+      {label:'10+ caràcters', ok: pw.length >= 10},
+      {label:'2+ números', ok: numCount >= 2}
+    ];
+  }
+  return [
+    {label:'Totes les regles', ok: base.len && base.upper && base.num && base.sym && base.nospace},
+    {label:'12+ caràcters', ok: pw.length >= 12},
+    {label:'Sense espais', ok: base.nospace}
+  ];
+}
+
+function renderLevel(n){
+  var pw = document.getElementById('level' + n + '-input').value;
+  var checks = levelChecksFor(n, pw);
+  var holder = document.getElementById('level' + n + '-checks');
+  holder.innerHTML = '';
+  var allOk = pw.length > 0;
+  checks.forEach(function(c){
+    var span = document.createElement('span');
+    span.className = 'mini-check' + (c.ok ? ' on' : '');
+    span.textContent = (c.ok ? '✓ ' : '· ') + c.label;
+    holder.appendChild(span);
+    if (!c.ok) allOk = false;
+  });
+  var card = document.getElementById('level-' + n);
+  card.classList.toggle('complete', allOk);
+  return allOk;
+}
+
+function updateLevels(){
+  renderLevel(1); renderLevel(2); renderLevel(3);
+  updateReport();
+}
+
+/* ---------- Mission report ---------- */
+function updateReport(){
+  var name = document.getElementById('report-name').value || '—';
+  var course = document.getElementById('report-course').value || '—';
+  var date = document.getElementById('report-date').value || '—';
+  document.getElementById('sum-name').textContent = name;
+  document.getElementById('sum-course').textContent = course;
+  document.getElementById('sum-date').textContent = date;
+
+  var l1 = document.getElementById('level1-input').value || '—';
+  var l2 = document.getElementById('level2-input').value || '—';
+  var l3 = document.getElementById('level3-input').value || '—';
+  document.getElementById('sum-l1').textContent = l1;
+  document.getElementById('sum-l2').textContent = l2;
+  document.getElementById('sum-l3').textContent = l3;
+
+  var passed = 0;
+  [1,2,3].forEach(function(n){
+    var pw = document.getElementById('level' + n + '-input').value;
+    var checks = levelChecksFor(n, pw);
+    if (pw.length > 0 && checks.every(function(c){return c.ok;})) passed++;
+  });
+  document.getElementById('sum-levels').textContent = passed + ' / 3';
+}
+
+function resetMission(){
+  ['checker-input','encoder-input','level1-input','level2-input','level3-input','report-name','report-course'].forEach(function(id){
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('report-date').value = '';
+  updateChecker();
+  updateEncoder();
+  updateLevels();
+  showScreen(0);
+}
+
+/* ---------- Boot ---------- */
+function start(data){
+  buildDots();
+  showScreen(0);
+  updateChecker();
+  updateEncoder();
+  updateLevels();
+}
+
+if (window.claude && window.claude.hot){
+  window.claude.hot.ready ? window.claude.hot.ready(start) : start((window.claude.hot && window.claude.hot.data) || {});
+} else {
+  start({});
+}
+</script>
+
+</body></html>
