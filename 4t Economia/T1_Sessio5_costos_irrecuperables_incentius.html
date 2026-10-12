@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sessió 5 · Costos irrecuperables i incentius</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;0,900;1,400;1,500;1,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#F7F2E6;
+  --cream-deep:#F1EAD8;
+  --ink:#2A2019;
+  --ink-soft:#4A4038;
+  --muted:#8A8272;
+  --gold:#C99A3D;
+  --gold-dark:#9C7A2E;
+  --line:#E4DCC8;
+  --card:#FDFBF5;
+  --teal:#1F6F72;
+  --teal-bg:#DEEAE8;
+  --tan:#B9862E;
+  --tan-bg:#F3E4BE;
+  --coral:#B24B2A;
+  --coral-bg:#FBE0D2;
+  --coral-border:#E3A583;
+  --dark-bg:#241C16;
+  --dark-fg:#F3EBDC;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;background:#111;}
+body{font-family:'Inter',sans-serif;color:var(--ink);}
+
+.deck{position:relative;width:100vw;height:100vh;}
+.slide{
+  position:absolute;inset:0;
+  background:var(--cream);
+  opacity:0;pointer-events:none;
+  transform:translateX(40px);
+  transition:opacity .35s ease, transform .35s ease;
+  padding:64px 88px 76px;
+  display:flex;flex-direction:column;
+}
+.slide.active{opacity:1;pointer-events:all;transform:translateX(0);z-index:2;}
+.slide.left{transform:translateX(-40px);}
+.slide.dark{background:var(--dark-bg);color:var(--dark-fg);}
+
+.kicker{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:14px;
+}
+.dark .kicker{color:var(--gold);}
+
+h1{
+  font-family:'Playfair Display',serif;font-weight:700;
+  font-size:clamp(30px,3.6vw,46px);line-height:1.12;color:var(--ink);
+  max-width:920px;
+}
+.dark h1{color:var(--dark-fg);font-style:italic;font-weight:500;font-size:clamp(32px,4vw,50px);}
+
+.rule{width:64px;height:3px;background:var(--gold);border:none;margin:22px 0 26px;}
+
+.subtitle{
+  font-family:'Playfair Display',serif;font-style:italic;font-weight:400;
+  font-size:clamp(17px,1.5vw,21px);line-height:1.55;color:var(--ink-soft);max-width:640px;
+}
+.dark .subtitle{color:#D8CBB4;font-style:normal;font-family:'Inter',sans-serif;font-size:16px;max-width:520px;}
+
+p.body{
+  font-size:16.5px;line-height:1.68;color:var(--ink-soft);max-width:800px;margin-top:4px;
+}
+
+blockquote{
+  border-left:3px solid var(--gold);
+  padding-left:20px;margin-top:22px;max-width:620px;
+  font-family:'Playfair Display',serif;font-style:italic;font-weight:500;
+  font-size:clamp(18px,1.8vw,22px);line-height:1.45;color:var(--gold-dark);
+}
+
+/* swoosh icon */
+.swoosh{position:absolute;top:44px;right:60px;opacity:.9;}
+.dark .swoosh path{stroke:var(--gold);}
+
+/* persistent footer + nav */
+.chrome-footer{
+  position:fixed;left:0;right:0;bottom:0;height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 88px;z-index:20;pointer-events:none;
+}
+.brand{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;
+  color:var(--muted);text-transform:uppercase;
+}
+.pagecount{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.05em;color:var(--muted);
+}
+.navchevrons{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  display:flex;gap:14px;align-items:center;z-index:25;
+}
+.navchevrons button{
+  width:34px;height:34px;border-radius:50%;
+  border:1px solid var(--line);background:var(--card);
+  color:var(--gold-dark);font-family:'JetBrains Mono',monospace;font-size:14px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:.15s;
+}
+.navchevrons button:hover{border-color:var(--gold);background:#fff;}
+.navchevrons button:disabled{opacity:.25;cursor:default;}
+.navchevrons .dot{
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+  min-width:44px;text-align:center;
+}
+
+/* content area helper */
+.content{margin-top:8px;flex:1;min-height:0;}
+
+/* ---- recap checklist card ---- */
+.recap-card{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:26px 30px;max-width:760px;margin-top:8px;
+}
+.recap-item{display:flex;gap:16px;align-items:flex-start;padding:11px 0;}
+.recap-item + .recap-item{border-top:1px solid var(--line);}
+.recap-num{
+  font-family:'Playfair Display',serif;font-weight:700;color:var(--gold);
+  font-size:20px;min-width:26px;
+}
+.recap-text{font-size:15.5px;line-height:1.6;color:var(--ink-soft);}
+.recap-text strong{color:var(--ink);}
+
+/* ---- highlight boxes (cas de partida) ---- */
+.hbox{
+  background:var(--coral-bg);border:1px solid var(--coral-border);
+  border-radius:8px;padding:12px 18px;margin-bottom:10px;max-width:820px;
+  font-family:'JetBrains Mono',monospace;font-size:13.5px;color:var(--coral);
+}
+hr.thin{border:none;border-top:1px solid var(--line);margin:22px 0 18px;max-width:900px;}
+h3.question{
+  font-family:'Playfair Display',serif;font-weight:700;font-size:clamp(20px,2.2vw,27px);
+  color:var(--ink);max-width:800px;line-height:1.3;
+}
+
+/* ---- two-col comparison cards ---- */
+.panel-wrap{
+  background:var(--cream-deep);border-radius:14px;padding:28px;margin-top:14px;max-width:1020px;
+}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+.compare-card{border-radius:10px;overflow:hidden;border:1px solid rgba(0,0,0,.05);background:var(--card);display:flex;flex-direction:column;height:100%;}
+.compare-card .bar{height:6px;flex-shrink:0;}
+.compare-card.teal .bar{background:var(--teal);}
+.compare-card.tan .bar{background:var(--tan);}
+.compare-card.coral .bar{background:var(--coral);}
+.compare-card .inner{padding:20px 22px;flex:1;}
+.compare-card.teal .inner{background:var(--teal-bg);}
+.compare-card.tan .inner{background:var(--tan-bg);}
+.compare-card.coral .inner{background:var(--coral-bg);}
+.compare-card h4{
+  font-family:'Playfair Display',serif;font-style:italic;font-weight:600;
+  font-size:20px;color:var(--ink);margin-bottom:4px;
+}
+.compare-card .sub{font-size:12.5px;font-style:italic;color:var(--ink-soft);margin-bottom:12px;}
+.compare-card ul{list-style:none;}
+.compare-card li{font-size:14.5px;font-weight:600;color:var(--ink);padding:5px 0;display:flex;justify-content:space-between;gap:8px;}
+.compare-card li span.lbl{display:flex;gap:8px;}
+.compare-card li span.lbl::before{content:'\2022';color:var(--gold-dark);}
+.compare-card.coral li span.lbl::before{content:'\2022';color:var(--coral);}
+.compare-card li span.val{font-family:'JetBrains Mono',monospace;font-weight:600;}
+.compare-card li.total{border-top:1px dashed rgba(0,0,0,.15);margin-top:6px;padding-top:10px;}
+.alert{
+  margin-top:16px;background:var(--coral-bg);border:1px solid var(--coral-border);
+  border-radius:10px;padding:14px 20px;text-align:center;
+  font-size:14px;font-weight:600;color:var(--coral);
+}
+
+/* ---- plain 2-card grid (béns/serveis) ---- */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:1000px;margin-top:16px;}
+.grid4{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1000px;margin-top:16px;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px 24px;}
+.card h4{font-family:'Playfair Display',serif;font-weight:700;font-size:18px;color:var(--gold-dark);margin-bottom:10px;}
+.card p{font-size:14.5px;line-height:1.6;color:var(--ink-soft);}
+.note{
+  margin-top:16px;max-width:760px;font-family:'Playfair Display',serif;font-style:italic;
+  font-size:15.5px;color:var(--ink-soft);border-left:3px solid var(--gold);padding-left:16px;
+}
+
+/* ---- factor table ---- */
+.table-wrap{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:8px 30px;max-width:1040px;margin-top:14px;
+}
+.trow{display:grid;grid-template-columns:1.3fr 1.6fr 1fr;gap:20px;padding:16px 0;align-items:center;}
+.trow.head{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;
+  color:var(--gold-dark);text-transform:uppercase;
+}
+.trow + .trow{border-top:1px solid var(--line);}
+.trow.head + .trow{border-top:2px solid var(--gold);}
+.trow .fname{font-family:'Playfair Display',serif;font-weight:700;font-size:16.5px;color:var(--ink);}
+.trow .fwho{font-size:14px;color:var(--ink-soft);}
+.trow .fpay{font-size:14px;font-weight:700;color:var(--gold-dark);}
+.table-note{
+  margin-top:14px;max-width:900px;font-family:'Playfair Display',serif;font-style:italic;
+  font-size:14.5px;color:var(--ink-soft);
+}
+
+/* ---- illustration full-bleed slide ---- */
+.illus-slide{padding:0 !important;}
+.illus-top{
+  height:72%;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#1F6F72 0%,#2C8C86 38%,#E7C36B 100%);
+  display:flex;align-items:center;justify-content:center;gap:56px;
+}
+.illus-top svg{width:70px;height:70px;}
+.illus-cap{
+  height:28%;display:flex;align-items:center;justify-content:space-between;
+  padding:0 88px;background:var(--cream);
+}
+.illus-cap .capleft h4{
+  font-family:'Playfair Display',serif;font-weight:700;font-size:22px;color:var(--ink);
+}
+.illus-cap .capleft .capsub{
+  font-family:'Playfair Display',serif;font-style:italic;font-size:14.5px;color:var(--ink-soft);margin-top:4px;max-width:560px;
+}
+.illus-cap .capright{
+  font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);text-align:right;
+}
+
+/* ---- quiz ---- */
+.optgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:1000px;margin-top:18px;}
+.optcard{
+  background:var(--card);border:1.5px solid var(--line);border-radius:10px;
+  padding:16px 18px;display:flex;gap:14px;align-items:flex-start;
+  font-size:14.5px;color:var(--ink);transition:.15s;
+}
+.optcard .oletter{
+  font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--gold-dark);
+  min-width:18px;
+}
+.reveal-btn{
+  align-self:flex-start;
+  margin-top:20px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.08em;
+  text-transform:uppercase;background:transparent;border:1px solid var(--gold);color:var(--gold-dark);
+  padding:9px 20px;border-radius:20px;cursor:pointer;transition:.15s;white-space:nowrap;
+}
+.reveal-btn:hover{background:var(--gold);color:#fff;}
+.solution{
+  display:none;margin-top:16px;max-width:820px;background:var(--tan-bg);
+  border:1px solid var(--tan);border-radius:10px;padding:16px 20px;
+  font-size:14.5px;line-height:1.6;color:var(--ink-soft);
+}
+.solution.show{display:block;}
+.solution strong{color:var(--gold-dark);font-family:'JetBrains Mono',monospace;}
+.optcard.correct{border-color:var(--teal);background:var(--teal-bg);}
+
+/* ---- checklist (repassa) ---- */
+.checklist{max-width:760px;margin-top:16px;}
+.check-item{display:flex;gap:14px;align-items:flex-start;padding:9px 0;}
+.check-box{
+  width:16px;height:16px;border:1.5px solid var(--gold);border-radius:4px;margin-top:3px;flex-shrink:0;
+}
+.check-text{font-size:15.5px;line-height:1.6;color:var(--ink-soft);}
+.nextline{
+  margin-top:26px;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--gold-dark);
+  border-top:1px solid var(--line);padding-top:16px;max-width:760px;
+}
+
+/* ---- FPP diagram ---- */
+.fppwrap{margin-top:14px;display:flex;justify-content:flex-start;}
+.legend-row{display:flex;gap:26px;flex-wrap:wrap;margin-top:6px;}
+.legend-item{
+  display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-soft);
+}
+.legend-item strong{color:var(--ink);}
+.legend-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+
+/* ---- example box + media link ---- */
+.example-box{
+  background:var(--tan-bg);border:1px solid var(--tan);border-radius:12px;
+  padding:20px 24px;margin-top:18px;max-width:820px;
+}
+.example-box .ex-label{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--gold-dark);margin-bottom:8px;
+}
+.example-box .ex-text{font-size:14.5px;line-height:1.62;color:var(--ink-soft);}
+.example-box .ex-text strong{color:var(--ink);}
+.medialink{
+  display:flex;align-items:center;gap:14px;margin-top:14px;padding:12px 16px;
+  background:var(--card);border:1px solid var(--line);border-radius:10px;
+  text-decoration:none;transition:.15s;
+}
+.medialink:hover{border-color:var(--gold);background:#fff;}
+.medialink .micon{flex-shrink:0;}
+.medialink .mtext{flex:1;min-width:0;}
+.medialink .mtitle{font-family:'Playfair Display',serif;font-weight:600;font-size:14.5px;color:var(--ink);}
+.medialink .msource{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.04em;color:var(--muted);margin-top:2px;}
+.medialink .marrow{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--gold-dark);flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+<section class="slide active">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">SESSIÓ 5 · BLOC I · ECONOMIA</div>
+  <h1>Costos irrecuperables i incentius</h1>
+  <hr class="rule">
+  <div class="subtitle">Què hem d'oblidar quan decidim, i què ens empeny a decidir com ho fem.</div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">ABANS DE COMENÇAR</div>
+  <h1>Què vam veure la sessió 4</h1>
+  <div class="content">
+    <p class="body">Ho recordem en tres idees, abans d'avançar avui.</p>
+    <div class="recap-card">
+      <div class="recap-item"><div class="recap-num">1</div><div class="recap-text">El <strong>cost d'oportunitat</strong> és el valor de la millor alternativa a la qual renuncies quan tries.</div></div>
+      <div class="recap-item"><div class="recap-num">2</div><div class="recap-text">La <strong>frontera de possibilitats de producció</strong> mostra què es pot produir amb els recursos disponibles.</div></div>
+      <div class="recap-item"><div class="recap-num">3</div><div class="recap-text">El cost d'oportunitat <strong>creix</strong> com més t'especialitzes en una sola cosa.</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">CAS DE PARTIDA</div>
+  <h1>Pizza de tòfona. Pagada. I no t'agrada.</h1>
+  <div class="content">
+    <p class="body">Has demanat una pizza de tòfona que costa 18 €. Ja l'has pagada. La tastes i no t'agrada gens. Què fas?</p>
+    <div class="hbox">La menges igualment?</div>
+    <div class="hbox">La deixes?</div>
+    <div class="hbox">Demanes una altra cosa?</div>
+    <hr class="thin">
+    <div class="kicker">LA PREGUNTA</div>
+    <h3 class="question">Els 18 € ja pagats, haurien d'influir en la teva decisió? Per què?</h3>
+  </div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">§5</div>
+  <h1>Els costos irrecuperables</h1>
+  <hr class="rule">
+  <div class="subtitle">El que ja està gastat no s'ha de tornar a pagar... ni a comptar.</div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">CONCEPTE CLAU</div>
+  <h1>Cost irrecuperable</h1>
+  <div class="content">
+    <p class="body">Un cost irrecuperable és una despesa ja feta que no es pot recuperar, facis el que facis a partir d'ara. Com que no depèn de la decisió que prens ara, no ha de condicionar les decisions futures.</p>
+    <blockquote>El que ja s'ha gastat és igual en totes les opcions: per això no ajuda a triar.</blockquote>
+    <div class="example-box">
+      <div class="ex-label">Exemple real</div>
+      <div class="ex-text">Als anys seixanta, els governs del Regne Unit i França van continuar invertint en el Concorde, tot i que ja es veia que no seria rendible. Un dels arguments era «ja hem invertit massa per a aturar-nos». Aquest raonament s'anomena sovint <strong>fal·làcia dels costos irrecuperables</strong>: es continua pagant perquè ja s'ha pagat molt.</div>
+      <a class="medialink" href="https://commons.wikimedia.org/wiki/File:CONCORDE_-_BRITISH_FRENCH_SUPERSONIC_TRANSPORT_AIRPLANE_-_NARA_-_17426586.jpg" target="_blank" rel="noopener">
+        <svg class="micon" width="30" height="30" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="20" rx="2" stroke="#9C7A2E" stroke-width="1.8"/><circle cx="11" cy="13" r="2.2" stroke="#9C7A2E" stroke-width="1.6"/><path d="M6 23L13 16L18 20L22 15L27 21" stroke="#9C7A2E" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>
+        <div class="mtext"><div class="mtitle">El Concorde: un projecte que va continuar per tot el que ja s'hi havia invertit</div><div class="msource">IMATGE · WIKIMEDIA COMMONS</div></div>
+        <div class="marrow">Obrir ↗</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">COM DECIDIR</div>
+  <h1>Només compta el que encara pots decidir</h1>
+  <div class="content">
+    <div class="panel-wrap" style="margin-top:6px;">
+      <div class="compare-grid">
+        <div class="compare-card teal"><div class="bar"></div><div class="inner">
+          <h4>Sí que compta</h4><div class="sub">Depèn de la decisió que prens ara</div>
+          <ul><li><span class="lbl">Els costos futurs</span></li><li><span class="lbl">Els beneficis futurs</span></li><li><span class="lbl">El cost d'oportunitat</span></li></ul>
+        </div></div>
+        <div class="compare-card coral"><div class="bar"></div><div class="inner">
+          <h4>No compta</h4><div class="sub">Ja està fet i no es pot recuperar</div>
+          <ul><li><span class="lbl">Els diners ja pagats</span></li><li><span class="lbl">El temps ja gastat</span></li><li><span class="lbl">«Ja que hi he anat, m'hi quedo»</span></li></ul>
+        </div></div>
+      </div>
+    </div>
+    <div class="example-box">
+      <div class="ex-label">Exemple real</div>
+      <div class="ex-text">Has pagat 9 € per anar al cinema i, a la mitja hora, la pel·lícula et sembla molt dolenta. Els 9 € ja no els recuperaràs ni si et quedes ni si te'n vas. El que et cal comparar és això: <strong>dues hores més avorrit</strong> o <strong>la millor alternativa</strong> que tens (descansar, estudiar, quedar amb algú).</div>
+      <a class="medialink" href="https://commons.wikimedia.org/wiki/File:Cinema_seats_in_blue.jpg" target="_blank" rel="noopener">
+        <svg class="micon" width="30" height="30" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="20" rx="2" stroke="#9C7A2E" stroke-width="1.8"/><circle cx="11" cy="13" r="2.2" stroke="#9C7A2E" stroke-width="1.6"/><path d="M6 23L13 16L18 20L22 15L27 21" stroke="#9C7A2E" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>
+        <div class="mtext"><div class="mtitle">Una sala de cinema: la despesa ja està feta, la decisió és futura</div><div class="msource">IMATGE · WIKIMEDIA COMMONS</div></div>
+        <div class="marrow">Obrir ↗</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">CONCEPTE CLAU</div>
+  <h1>Incentiu</h1>
+  <div class="content">
+    <p class="body">Un incentiu és tot allò que ens empeny a actuar d'una manera concreta. Pot ser un premi, un descompte, una sanció o una norma. Les persones responen als incentius, i per això els economistes els estudien tant.</p>
+    <blockquote>Si canvien els incentius, canvia el comportament.</blockquote>
+    <div class="example-box">
+      <div class="ex-label">Exemple real</div>
+      <div class="ex-text">Una botiga ofereix un descompte del 20 % només aquesta setmana. Molta gent compra aquesta setmana el que potser hauria comprat més endavant: el <strong>descompte</strong> és l'incentiu que n'avança la decisió.</div>
+      <a class="medialink" href="https://sketchplanations.com/the-cobra-effect" target="_blank" rel="noopener">
+        <svg class="micon" width="30" height="30" viewBox="0 0 32 32" fill="none"><path d="M8 4h11l6 6v18H8V4Z" stroke="#9C7A2E" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 15h9M12 19h9M12 23h6" stroke="#9C7A2E" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <div class="mtext"><div class="mtitle">L'efecte cobra: quan un incentiu produeix el resultat contrari</div><div class="msource">IL·LUSTRACIÓ · SKETCHPLANATIONS</div></div>
+        <div class="marrow">Obrir ↗</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">INCENTIUS</div>
+  <h1 style="font-size:clamp(22px,2.6vw,30px);max-width:980px;">Positius, negatius… i amb efectes no previstos</h1>
+  <div class="content">
+    <div class="panel-wrap" style="margin-top:6px;">
+      <div class="compare-grid">
+        <div class="compare-card teal"><div class="bar"></div><div class="inner">
+          <h4>Incentius positius</h4><div class="sub">Premien una conducta</div>
+          <ul><li><span class="lbl">Una beca</span></li><li><span class="lbl">Una bonificació</span></li><li><span class="lbl">Un descompte</span></li></ul>
+        </div></div>
+        <div class="compare-card coral"><div class="bar"></div><div class="inner">
+          <h4>Incentius negatius</h4><div class="sub">Penalitzen una conducta</div>
+          <ul><li><span class="lbl">Una multa</span></li><li><span class="lbl">Un impost</span></li><li><span class="lbl">Una sanció</span></li></ul>
+        </div></div>
+      </div>
+    </div>
+    <div class="example-box">
+      <div class="ex-label">Exemple real</div>
+      <div class="ex-text">Segons els historiadors, a l'Hanoi colonial es va pagar una recompensa per cada cua de rata per frenar una plaga. Alguns habitants van començar a criar rates per cobrar més recompenses: l'<strong>incentiu</strong> va produir un efecte contrari al desitjat.</div>
+      <a class="medialink" href="https://en.wikipedia.org/wiki/Great_Hanoi_Rat_Massacre" target="_blank" rel="noopener">
+        <svg class="micon" width="30" height="30" viewBox="0 0 32 32" fill="none"><path d="M8 4h11l6 6v18H8V4Z" stroke="#9C7A2E" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 15h9M12 19h9M12 23h6" stroke="#9C7A2E" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <div class="mtext"><div class="mtitle">La gran matança de rates d'Hanoi</div><div class="msource">ARTICLE · WIKIPEDIA</div></div>
+        <div class="marrow">Obrir ↗</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">ANÀLISI MARGINAL</div>
+  <h1 style="font-size:clamp(22px,2.6vw,30px);max-width:980px;">Cada hora extra: quant guanyes, quant costa</h1>
+  <div class="content">
+    <p class="body" style="max-width:900px;">Abans de decidir, compara el benefici que aconsegueixes amb una unitat més amb el cost d'aquesta unitat més. Continua mentre el benefici extra sigui més gran que el cost extra.</p>
+    <div class="table-wrap" style="max-width:900px;margin-top:6px;">
+      <div class="trow head" style="grid-template-columns:1.2fr 1.3fr 1.3fr 1.6fr;"><div>Hora d'estudi</div><div>Benefici extra</div><div>Cost extra</div><div>Decisió</div></div>
+      <div class="trow" style="grid-template-columns:1.2fr 1.3fr 1.3fr 1.6fr;"><div class="fname">1a hora</div><div class="fwho">+4 punts de nota</div><div class="fwho">1 punt d'oci</div><div class="fpay">Continua</div></div>
+      <div class="trow" style="grid-template-columns:1.2fr 1.3fr 1.3fr 1.6fr;"><div class="fname">2a hora</div><div class="fwho">+2 punts</div><div class="fwho">1 punt d'oci</div><div class="fpay">Continua</div></div>
+      <div class="trow" style="grid-template-columns:1.2fr 1.3fr 1.3fr 1.6fr;"><div class="fname">3a hora</div><div class="fwho">+1 punt</div><div class="fwho">1 punt d'oci</div><div class="fpay">Indiferent</div></div>
+      <div class="trow" style="grid-template-columns:1.2fr 1.3fr 1.3fr 1.6fr;"><div class="fname">4a hora</div><div class="fwho">+0,5 punts</div><div class="fwho">1 punt d'oci</div><div class="fpay">Atura't</div></div>
+    </div>
+    <div class="example-box">
+      <div class="ex-label">Exemple real</div>
+      <div class="ex-text">Marginal vol dir «una unitat més». Per això la quarta hora d'estudi no es compara amb tot el que has estudiat, sinó només amb <strong>el que et dona aquesta hora més</strong> i amb el que t'impedeix fer.</div>
+      <a class="medialink" href="https://commons.wikimedia.org/wiki/File:Costcurve_-_Marginal_Cost.PNG" target="_blank" rel="noopener">
+        <svg class="micon" width="30" height="30" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="20" rx="2" stroke="#9C7A2E" stroke-width="1.8"/><circle cx="11" cy="13" r="2.2" stroke="#9C7A2E" stroke-width="1.6"/><path d="M6 23L13 16L18 20L22 15L27 21" stroke="#9C7A2E" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>
+        <div class="mtext"><div class="mtitle">Una corba de cost marginal: el cost de produir una unitat més</div><div class="msource">IMATGE · WIKIMEDIA COMMONS</div></div>
+        <div class="marrow">Obrir ↗</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">COMPROVA QUE HO PILLES</div>
+  <h1 style="font-size:clamp(22px,2.6vw,30px);max-width:980px;">Has pagat 12 € per a una entrada de concert, però el dia del concert tens febre. Quin raonament aplica bé el cost irrecuperable?</h1>
+  <div class="optgrid">
+    <div class="optcard"><span class="oletter">A</span><span>He d'anar-hi sí o sí, perquè ja ho he pagat.</span></div>
+    <div class="optcard" id="quizCorrect"><span class="oletter">B</span><span>Els 12 € ja estan gastats tant si hi vaig com si no; decideixo comparant el que guanyo anant-hi malalt amb el que guanyo descansant.</span></div>
+    <div class="optcard"><span class="oletter">C</span><span>Si no hi vaig, haig de recuperar els 12 € d'alguna manera.</span></div>
+    <div class="optcard"><span class="oletter">D</span><span>Com que els diners no es recuperen, no he de tenir en compte res més.</span></div>
+  </div>
+  <button class="reveal-btn" data-label-show="Mostra la solució" data-label-hide="Amaga la solució" onclick="toggleReveal(this)">Mostra la solució</button>
+  <div class="solution"><strong>Solució: B.</strong> Els 12 € són un cost irrecuperable: no canvien amb la decisió. Només compta què guanyes i què perds d'ara endavant, inclòs el cost d'oportunitat de la millor alternativa (descansar).</div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">EXERCICI</div>
+  <h1>Exercici 5.1 — L'hort de l'institut</h1>
+  <div class="content">
+    <p class="body">L'institut ja ha gastat 3.000 € en un hort escolar que dona molt pocs resultats. Per continuar, caldrien 2.000 € més. L'alternativa és destinar aquests 2.000 € a una sala d'estudi. Respon als teus apunts: (a) Quin és el cost irrecuperable? (b) Què ha de comptar a l'hora de decidir? (c) Posa un incentiu positiu perquè l'alumnat cuidi l'hort i un efecte no previst que podria tenir.</p>
+    <button class="reveal-btn" data-label-show="Mostra un exemple de resposta" data-label-hide="Amaga l'exemple" onclick="toggleReveal(this)">Mostra un exemple de resposta</button>
+    <div class="solution">
+      <strong>a)</strong> Els 3.000 € ja gastats: no es poden recuperar decideixi el que decideixi l'institut.<br>
+      <strong>b)</strong> Els 2.000 € futurs, els beneficis que es podrien esperar de l'hort i el cost d'oportunitat: la sala d'estudi a la qual es renunciaria.<br>
+      <strong>c)</strong> Incentiu positiu: per exemple, un punt extra a l'assignatura de ciències per cada trimestre de cura. Efecte no previst: l'alumnat podria cuidar l'hort només per cobrir l'expedient, sense preocupar-se de si les plantes creixen.
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">REPASSA</div>
+  <h1>Abans de tancar la sessió 5</h1>
+  <div class="checklist">
+    <div class="check-item"><div class="check-box"></div><div class="check-text">Sabries definir un cost irrecuperable i posar-ne un exemple de la teva vida.</div></div>
+    <div class="check-item"><div class="check-box"></div><div class="check-text">Sabries explicar per què un cost irrecuperable no ha de condicionar una decisió futura.</div></div>
+    <div class="check-item"><div class="check-box"></div><div class="check-text">Sabries distingir un incentiu positiu d'un de negatiu i descriure'n un efecte no previst.</div></div>
+    <div class="check-item"><div class="check-box"></div><div class="check-text">Sabries aplicar l'anàlisi marginal: comparar el benefici extra amb el cost extra.</div></div>
+  </div>
+  <div class="nextline">Segons el mapa de la unitat, a la propera sessió veurem la diferència entre microeconomia i macroeconomia.</div>
+</section>
+
+<section class="slide dark">
+  <div class="kicker">SESSIÓ 5 · COMPLETADA</div>
+  <h1>Fins aquí la sessió 5</h1>
+  <div class="subtitle">Ja saps què cal deixar fora d'una decisió i què hi ha al darrere de les conductes: costos ja pagats i incentius.</div>
+</section>
+
+</div>
+
+<div class="chrome-footer">
+  <div class="brand">ECONOMIA · 4T ESO</div>
+  <div class="pagecount" id="pagecount">01/13</div>
+</div>
+<div class="navchevrons">
+  <button id="prevBtn" onclick="go(-1)">&#8592;</button>
+  <div class="dot" id="dotLabel">1 / 13</div>
+  <button id="nextBtn" onclick="go(1)">&#8594;</button>
+</div>
+
+<script>
+var slides = document.querySelectorAll('.slide');
+var total = slides.length;
+var current = 0;
+
+function render(){
+  slides.forEach(function(s, i){
+    s.classList.remove('active','left');
+    if(i === current) s.classList.add('active');
+    else if(i < current) s.classList.add('left');
+  });
+  document.getElementById('pagecount').textContent = String(current+1).padStart(2,'0') + '/' + String(total).padStart(2,'0');
+  document.getElementById('dotLabel').textContent = (current+1) + ' / ' + total;
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').disabled = current === total-1;
+}
+
+function go(delta){
+  var n = current + delta;
+  if(n < 0 || n >= total) return;
+  current = n;
+  render();
+}
+
+document.addEventListener('keydown', function(e){
+  if(e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') go(1);
+  if(e.key === 'ArrowLeft' || e.key === 'ArrowUp') go(-1);
+});
+
+document.getElementById('deck').addEventListener('click', function(e){
+  if(e.target.closest('button') || e.target.closest('.optcard')) return;
+  var rect = deck.getBoundingClientRect();
+  var x = e.clientX - rect.left;
+  if(x > rect.width/2) go(1); else go(-1);
+});
+
+function toggleReveal(btn){
+  var box = btn.nextElementSibling;
+  var showing = box.classList.toggle('show');
+  btn.textContent = showing ? btn.dataset.labelHide : btn.dataset.labelShow;
+  var correct = document.getElementById('quizCorrect');
+  if(correct) correct.classList.toggle('correct', showing);
+}
+
+render();
+</script>
+</body>
+</html>
