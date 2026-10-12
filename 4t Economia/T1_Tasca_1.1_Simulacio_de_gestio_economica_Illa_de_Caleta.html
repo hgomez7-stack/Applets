@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, orientation=landscape">
+<title>CALETA · Consejo Económico · 4º ESO</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Barlow:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --soil:   #0A0E1A; --dark:   #05070F; --card:   #0D1424; --panel:  #121B33;
+  --lime:   #B4DC50; --llime:  rgba(180,220,80,.1);
+  --fire:   #FF6B35; --lfire:  rgba(255,107,53,.1);
+  --ice:    #7ECFFF; --lice:   rgba(126,207,255,.1);
+  --violet: #C084FC; --lviolet:rgba(192,132,252,.1);
+  --amber:  #F0B429; --lamber: rgba(240,180,41,.1);
+  --snow:   #EAF1FF; --stone:  #7A8AB0; --muted:  #3E4C74;
+  --text:   #B8C6E8; --white:  #EAF1FF;
+  --r: 8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--soil);}
+body{font-family:'Barlow',sans-serif;color:var(--text);}
+
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.025;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 200px;}
+
+.slides{position:relative;width:100vw;height:100vh;}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transform:translateX(60px);z-index:1;}
+.slide.active{opacity:1;pointer-events:all;transform:translateX(0);z-index:2;}
+.slide.slide-left{transform:translateX(-60px);}
+.slide.slide-right{transform:translateX(60px);}
+.slide.animating{transition:opacity .38s ease, transform .38s ease;}
+
+.hbar{height:48px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;background:rgba(5,7,15,.95);border-bottom:1px solid rgba(180,220,80,.12);backdrop-filter:blur(8px);position:relative;z-index:10;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.12em;color:var(--lime);}
+.logo span{color:var(--white);}
+.slide-counter{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.08em;}
+.seg-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;padding:3px 12px;border-radius:12px;border:1px solid;text-transform:uppercase;}
+
+.slide-body{flex:1;display:flex;min-height:0;overflow:hidden;}
+.left-panel{width:42%;flex-shrink:0;display:flex;flex-direction:column;padding:1.25rem 1.5rem;border-right:1px solid rgba(255,255,255,.05);overflow-y:auto;min-height:0;scrollbar-width:thin;scrollbar-color:var(--muted) transparent;}
+.right-panel{flex:1;display:flex;flex-direction:column;padding:1.25rem 1.5rem;overflow-y:auto;min-height:0;scrollbar-width:thin;scrollbar-color:var(--muted) transparent;}
+
+.s0{--acc:var(--white);--lacc:rgba(255,255,255,.07);}
+.s1{--acc:var(--lime);--lacc:var(--llime);}
+.s2{--acc:var(--fire);--lacc:var(--lfire);}
+.s3{--acc:var(--ice); --lacc:var(--lice);}
+.sf{--acc:var(--amber);--lacc:var(--lamber);}
+
+.seg-hero{margin-bottom:1rem;}
+.seg-icon{font-size:2.5rem;line-height:1;margin-bottom:.4rem;}
+.seg-hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.6rem,3vw,2.4rem);color:var(--acc);letter-spacing:.06em;line-height:1;text-shadow:0 0 30px color-mix(in srgb, var(--acc) 40%, transparent);}
+.seg-hero .sh-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.06em;margin-top:4px;}
+
+.brief{background:var(--lacc);border-left:3px solid var(--acc);border-radius:0 var(--r) var(--r) 0;padding:1rem 1.1rem;margin-bottom:.85rem;}
+.brief-lbl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--acc);margin-bottom:.5rem;opacity:.85;}
+.brief p{font-size:13.5px;line-height:1.75;color:var(--text);}
+.brief p+p{margin-top:.4rem;}
+.brief strong{color:var(--white);font-weight:700;}
+
+.qc{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:var(--r);margin-bottom:.75rem;border-left:3px solid var(--acc);}
+.qh{display:flex;align-items:flex-start;gap:10px;padding:.85rem 1.1rem;cursor:pointer;user-select:none;transition:background .15s;border-radius:var(--r) var(--r) 0 0;}
+.qh:hover{background:rgba(255,255,255,.02);}
+.qn{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.05em;color:var(--acc);flex-shrink:0;margin-top:1px;min-width:28px;}
+.qm{flex:1;}
+.qt{font-size:13px;line-height:1.6;color:var(--text);}
+.qt strong{color:var(--white);}
+.qchev{font-size:13px;color:var(--muted);transition:transform .2s;margin-top:3px;}
+.qc.open .qchev{transform:rotate(90deg);}
+.qb{display:none;padding:1rem 1.1rem;border-top:1px solid rgba(255,255,255,.04);background:rgba(0,0,0,.2);border-radius:0 0 var(--r) var(--r);}
+.qc.open .qb{display:block;}
+
+.ar{display:flex;align-items:center;gap:8px;margin:.35rem 0;flex-wrap:wrap;}
+.ar label{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap;}
+.ai{flex:1;min-width:100px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.08);border-radius:4px;padding:.4rem .75rem;font-family:'DM Mono',monospace;font-size:12px;color:var(--acc);outline:none;transition:border-color .15s;}
+.ai:focus{border-color:var(--acc);box-shadow:0 0 0 2px color-mix(in srgb,var(--acc) 15%,transparent);}
+.at{width:100%;min-height:60px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.08);border-radius:4px;padding:.55rem .75rem;font-family:'Barlow',sans-serif;font-size:12.5px;color:var(--text);outline:none;resize:vertical;line-height:1.55;transition:border-color .15s;}
+.at:focus{border-color:var(--acc);}
+
+.hint{background:rgba(0,0,0,.3);border-left:2px solid var(--muted);border-radius:0 4px 4px 0;padding:.55rem .85rem;margin:.6rem 0;font-size:11.5px;color:var(--muted);line-height:1.7;}
+.ht{font-family:'DM Mono',monospace;font-size:9px;color:var(--stone);letter-spacing:.07em;text-transform:uppercase;margin-bottom:2px;}
+.hint code{font-family:'DM Mono',monospace;background:rgba(255,255,255,.06);padding:1px 4px;border-radius:3px;color:var(--text);}
+
+.btn-ans{display:inline-flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;background:transparent;border:1px solid rgba(255,255,255,.12);color:var(--muted);padding:5px 14px;border-radius:4px;cursor:pointer;margin:.6rem 0 .3rem;transition:all .15s;}
+.btn-ans:hover{background:rgba(255,255,255,.04);color:var(--text);border-color:rgba(255,255,255,.2);}
+.ans-box{display:none;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:.75rem 1rem;margin-top:.35rem;font-size:12px;line-height:1.75;color:var(--stone);}
+.ans-box.visible{display:block;}
+.ans-box strong{color:var(--acc);font-family:'DM Mono',monospace;}
+.ans-box .ans-lbl{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem;}
+
+.fml{background:rgba(0,0,0,.4);border:1px solid color-mix(in srgb,var(--acc) 25%,transparent);border-radius:5px;padding:.55rem 1rem;font-family:'DM Mono',monospace;font-size:14px;color:var(--acc);margin:.5rem 0;text-align:center;letter-spacing:.03em;}
+.fml small{display:block;font-size:10px;color:var(--stone);text-align:center;margin-top:3px;font-family:'Barlow',sans-serif;letter-spacing:0;}
+
+.nav-bar{height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;background:rgba(5,7,15,.9);border-top:1px solid rgba(255,255,255,.05);}
+.nav-btn{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.12em;background:transparent;border:1px solid rgba(255,255,255,.12);color:var(--muted);padding:7px 22px;border-radius:4px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;}
+.nav-btn:hover:not(:disabled){background:var(--panel);color:var(--white);border-color:rgba(255,255,255,.25);}
+.nav-btn:disabled{opacity:.2;cursor:default;}
+.nav-btn.primary{background:var(--acc);color:var(--dark);border-color:var(--acc);font-weight:700;}
+.nav-btn.primary:hover:not(:disabled){filter:brightness(1.1);}
+.nav-dots{display:flex;gap:8px;align-items:center;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);cursor:pointer;transition:all .2s;}
+.dot.active{background:var(--dot-color, var(--lime));transform:scale(1.3);}
+
+.progress-track{height:2px;background:rgba(255,255,255,.05);position:absolute;bottom:52px;left:0;right:0;z-index:5;}
+.progress-fill{height:2px;background:linear-gradient(90deg,var(--lime),var(--ice));transition:width .4s;}
+
+.cover-body{flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.cover-bg{position:absolute;inset:0;z-index:0;}
+.cover-bg::before{content:'';position:absolute;inset:0;background:linear-gradient(160deg,#020A0C 0%,#06181C 45%,#0B2E30 100%);}
+.cover-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(180,220,80,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(180,220,80,.03) 1px,transparent 1px);background-size:50px 50px;}
+.cover-glow{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(180,220,80,.07) 0%,transparent 55%),radial-gradient(ellipse at 70% 35%,rgba(240,180,41,.06) 0%,transparent 50%);}
+.cover-stars{position:absolute;inset:0;}
+.star{position:absolute;border-radius:50%;background:white;animation:tw var(--d) infinite;}
+@keyframes tw{0%,100%{opacity:.1}50%{opacity:.8}}
+.planet{position:absolute;bottom:-38vh;left:50%;transform:translateX(-50%);width:90vw;height:90vw;max-width:1100px;max-height:1100px;border-radius:50%;z-index:1;background:radial-gradient(circle at 38% 32%, #1E3E42 0%, #0E2426 45%, #051213 100%);box-shadow:0 -6px 80px rgba(126,207,255,.08), inset 20px -20px 90px rgba(0,0,0,.6);opacity:.9;}
+.planet::before{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(ellipse at 50% 0%, rgba(180,220,80,.12) 0%, transparent 45%);}
+.horizon-line{position:absolute;left:0;right:0;bottom:38vh;height:1px;background:linear-gradient(90deg,transparent,rgba(126,207,255,.25),transparent);z-index:1;}
+.cover-content{position:relative;z-index:2;display:flex;gap:5vw;align-items:center;max-width:1100px;padding:0 3rem;}
+.cover-left{flex:1;}
+.cover-tag{display:inline-flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--lime);background:rgba(180,220,80,.08);border:1px solid rgba(180,220,80,.2);padding:5px 14px;border-radius:12px;margin-bottom:1.2rem;text-transform:uppercase;}
+.cover-h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(4rem,8vw,7rem);color:var(--white);line-height:.9;letter-spacing:.06em;text-shadow:0 4px 30px rgba(0,0,0,.6);margin-bottom:.6rem;}
+.cover-h1 .acc{color:var(--lime);text-shadow:0 0 40px rgba(180,220,80,.5);}
+.cover-desc{font-size:14px;color:var(--stone);line-height:1.75;max-width:420px;margin-bottom:1.5rem;font-weight:300;}
+.cover-desc strong{color:var(--text);font-weight:600;}
+.race-info{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+.ri{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:6px;padding:.55rem 1rem;text-align:center;}
+.ri-val{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--lime);line-height:1;}
+.ri-lbl{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-top:2px;}
+.cta{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:.15em;background:var(--lime);color:var(--dark);border:none;padding:12px 40px;border-radius:4px;cursor:pointer;box-shadow:0 4px 20px rgba(180,220,80,.3);transition:transform .15s,box-shadow .15s;}
+.cta:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(180,220,80,.45);}
+.cover-right{width:38%;}
+.seg-list{display:flex;flex-direction:column;gap:.5rem;}
+.sl-item{display:flex;align-items:center;gap:.85rem;padding:.7rem 1rem;border-radius:var(--r);border:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.25);}
+.sl-icon{font-size:1.4rem;line-height:1;flex-shrink:0;}
+.sl-text .sl-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.06em;}
+.sl-text .sl-sub{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.05em;margin-top:2px;}
+.sl-badge{margin-left:auto;font-family:'DM Mono',monospace;font-size:9px;padding:2px 8px;border-radius:10px;border:1px solid;letter-spacing:.06em;white-space:nowrap;}
+
+.graph-wrap{width:100%;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.07);border-radius:var(--r);overflow:hidden;margin:.6rem 0;position:relative;}
+.graph-wrap canvas{display:block;width:100%;cursor:crosshair;}
+.graph-toolbar{display:flex;gap:6px;align-items:center;justify-content:space-between;padding:.5rem .7rem;border-top:1px solid rgba(255,255,255,.05);background:rgba(0,0,0,.25);}
+.graph-btn{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.07em;text-transform:uppercase;background:transparent;border:1px solid rgba(255,255,255,.1);color:var(--muted);padding:4px 10px;border-radius:3px;cursor:pointer;transition:all .15s;}
+.graph-btn:hover{background:rgba(255,255,255,.05);color:var(--text);}
+.graph-readout{font-family:'DM Mono',monospace;font-size:11px;color:var(--stone);}
+.graph-readout b{color:var(--fire);}
+
+.close-body{flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.close-bg{position:absolute;inset:0;}
+.close-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 85%,#0B1E12 0%,#03060E 60%);}
+.close-glow{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(180,220,80,.09) 0%,transparent 60%),radial-gradient(ellipse at 20% 20%,rgba(126,207,255,.05) 0%,transparent 40%);}
+.close-content{position:relative;z-index:2;text-align:center;padding:2rem;}
+.close-flag{font-size:5rem;line-height:1;margin-bottom:1rem;animation:flagwave 2.4s ease-in-out infinite;}
+@keyframes flagwave{0%,100%{transform:rotate(-3deg) scale(1)}50%{transform:rotate(3deg) scale(1.06)}}
+.close-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,7vw,5.5rem);color:var(--white);letter-spacing:.08em;line-height:.95;text-shadow:0 0 60px rgba(180,220,80,.3);margin-bottom:.5rem;}
+.close-title .acc{color:var(--lime);}
+.close-sub{font-family:'DM Mono',monospace;font-size:12px;color:var(--stone);letter-spacing:.12em;text-transform:uppercase;margin-bottom:2rem;}
+.close-actions{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1.5rem;}
+.close-btn{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.12em;border:1px solid;padding:10px 28px;border-radius:4px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px;}
+.close-btn.outline{background:transparent;border-color:rgba(255,255,255,.15);color:var(--muted);}
+.close-btn.outline:hover{background:rgba(255,255,255,.04);color:var(--white);border-color:rgba(255,255,255,.3);}
+.close-btn.lime{background:var(--lime);border-color:var(--lime);color:var(--dark);}
+.close-btn.lime:hover{filter:brightness(1.1);transform:translateY(-1px);}
+.close-btn.amber{background:transparent;border-color:var(--amber);color:var(--amber);}
+.close-btn.amber:hover{background:rgba(240,180,41,.1);}
+
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-thumb{background:var(--muted);border-radius:2px;}
+
+ol.qlist{padding-left:1.1rem;margin:.4rem 0;}
+ol.qlist li{font-size:13px;line-height:1.7;color:var(--text);margin-bottom:.2rem;}
+ol.qlist li strong{color:var(--white);}
+
+.rubrica-body{flex:1;display:flex;gap:1.5rem;padding:1.25rem 1.5rem;overflow:auto;}
+.rubrica-col{flex:1;min-width:0;}
+.rub-seg{margin-bottom:1.2rem;}
+.rub-seg-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.08em;color:var(--acc);margin-bottom:.5rem;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:.3rem;}
+.rub-row{display:flex;align-items:center;justify-content:space-between;padding:.35rem .5rem;border-radius:4px;font-size:12px;}
+.rub-row:nth-child(even){background:rgba(255,255,255,.02);}
+.rub-q{color:var(--text);font-family:'DM Mono',monospace;font-size:11px;}
+.rub-pts{font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--acc);letter-spacing:.05em;}
+.rub-total{display:flex;justify-content:space-between;align-items:center;padding:.5rem .5rem;margin-top:.4rem;background:rgba(255,255,255,.04);border-radius:4px;border:1px solid rgba(255,255,255,.08);}
+.rub-total span{font-family:'DM Mono',monospace;font-size:10px;color:var(--stone);text-transform:uppercase;letter-spacing:.08em;}
+.rub-total strong{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--white);}
+
+.resum-body{flex:1;overflow:auto;padding:1.25rem 1.5rem;}
+.resum-section{margin-bottom:1.2rem;background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:var(--r);overflow:hidden;}
+.resum-sec-title{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:.08em;padding:.5rem 1rem;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.05);}
+.resum-q{padding:.5rem 1rem;border-bottom:1px solid rgba(255,255,255,.03);}
+.resum-q:last-child{border-bottom:none;}
+.resum-q-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px;}
+.resum-q-val{font-size:12px;color:var(--text);line-height:1.55;white-space:pre-wrap;word-break:break-word;}
+.resum-q-val.empty{color:var(--muted);font-style:italic;}
+</style>
+</head>
+<body>
+
+<div class="slides" id="slides">
+
+<div class="slide s1 active" id="slide-0">
+  <div class="hbar">
+    <div class="logo">CONSEJO<span>CALETA</span></div>
+    <span class="slide-counter">PRESENTACIÓN</span>
+    <span class="seg-label" style="color:var(--lime);border-color:rgba(180,220,80,.3);">Consejo Económico · 4º ESO</span>
+  </div>
+  <div class="cover-body">
+    <div class="cover-bg">
+      <div class="cover-grid"></div>
+      <div class="cover-glow"></div>
+      <div class="cover-stars" id="stars"></div>
+      <div class="horizon-line"></div>
+      <div class="planet"></div>
+    </div>
+    <div class="cover-content">
+      <div class="cover-left">
+        <div class="cover-tag">Simulación de gestión económica · Isla de Caleta</div>
+        <div class="cover-h1">ISLA<br><span class="acc">CALETA</span></div>
+        <p class="cover-desc">Caleta es una pequeña isla con <strong>recursos limitados</strong> y un turismo que crece cada verano. El nuevo Consejo Vecinal se estrena con la tarea más difícil: repartir lo poco que hay y decidir bien. <strong>Cuatro reuniones. Un problema económico del que no se libra nadie.</strong></p>
+        <div class="race-info">
+          <div class="ri"><div class="ri-val">4</div><div class="ri-lbl">Fases</div></div>
+          <div class="ri"><div class="ri-val">40</div><div class="ri-lbl">Puntos</div></div>
+          <div class="ri"><div class="ri-val">13</div><div class="ri-lbl">Retos</div></div>
+          <div class="ri"><div class="ri-val">4</div><div class="ri-lbl">Conceptos</div></div>
+        </div>
+        <button class="cta" onclick="goTo(1)">ABRIR LA SESIÓN</button>
+      </div>
+      <div class="cover-right">
+        <div class="seg-list">
+          <div class="sl-item" onclick="goTo(1)" style="cursor:pointer;border-color:rgba(180,220,80,.15);">
+            <div class="sl-icon">01</div>
+            <div class="sl-text"><div class="sl-title" style="color:var(--lime);">F1 - Diagnóstico</div><div class="sl-sub">¿Qué es la economía?</div></div>
+            <span class="sl-badge" style="color:var(--lime);border-color:rgba(180,220,80,.3);">10 pt</span>
+          </div>
+          <div class="sl-item" onclick="goTo(2)" style="cursor:pointer;border-color:rgba(255,107,53,.15);">
+            <div class="sl-icon">02</div>
+            <div class="sl-text"><div class="sl-title" style="color:var(--fire);">F2 - Censo</div><div class="sl-sub">Escasez, necesidades y recursos</div></div>
+            <span class="sl-badge" style="color:var(--fire);border-color:rgba(255,107,53,.3);">10 pt</span>
+          </div>
+          <div class="sl-item" onclick="goTo(3)" style="cursor:pointer;border-color:rgba(126,207,255,.15);">
+            <div class="sl-icon">03</div>
+            <div class="sl-text"><div class="sl-title" style="color:var(--ice);">F3 - Consejo de Decisión</div><div class="sl-sub">Coste de oportunidad e incentivos</div></div>
+            <span class="sl-badge" style="color:var(--ice);border-color:rgba(126,207,255,.3);">10 pt</span>
+          </div>
+          <div class="sl-item" onclick="goTo(4)" style="cursor:pointer;border-color:rgba(240,180,41,.15);">
+            <div class="sl-icon">04</div>
+            <div class="sl-text"><div class="sl-title" style="color:var(--amber);">Fase Final - Mente Humana</div><div class="sl-sub">Comportamiento y sesgos cognitivos</div></div>
+            <span class="sl-badge" style="color:var(--amber);border-color:rgba(240,180,41,.3);">10 pt</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" style="width:0%"></div></div>
+  <div class="nav-bar">
+    <button class="nav-btn" disabled>ANTERIOR</button>
+    <div class="nav-dots" id="dots-0"></div>
+    <button class="nav-btn primary" onclick="goTo(1)">FASE 1</button>
+  </div>
+</div>
+
+<div class="slide s1" id="slide-1">
+  <div class="hbar">
+    <div class="logo">CONSEJO<span>CALETA</span></div>
+    <span class="slide-counter">1 / 4</span>
+    <span class="seg-label" style="color:var(--lime);border-color:rgba(180,220,80,.3);">F1 - Diagnóstico</span>
+  </div>
+  <div class="slide-body">
+    <div class="left-panel">
+      <div class="seg-hero">
+        <div class="seg-icon">01</div>
+        <h1 style="font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--lime);letter-spacing:.06em;">Fase 1<br>Diagnóstico</h1>
+        <div class="sh-sub">¿Qué es la economía?</div>
+      </div>
+      <div class="brief" style="background:var(--llime);border-color:var(--lime);">
+        <div class="brief-lbl" style="color:var(--lime);">Sala de Plenos - Ayuntamiento de Caleta</div>
+        <p>Antes de repartir un solo euro del presupuesto, el Consejo necesita un diagnóstico claro: <strong>¿qué problema estamos resolviendo realmente?</strong> El agua, el suelo urbanizable, el tiempo del personal municipal, el dinero del presupuesto: todo es limitado en la isla. Y lo que pide el vecindario, no.</p>
+        <p>A eso se le llama <strong>problema de escasez</strong>: recursos escasos que se pueden usar de muchas formas distintas, frente a necesidades que no tienen techo.</p>
+      </div>
+      <div class="brief" style="background:rgba(0,0,0,.25);border-color:var(--muted);">
+        <div class="brief-lbl">Por qué importa</div>
+        <p>Cada vez que el Consejo destina un recurso a algo, renuncia a destinarlo a otra cosa. A esa renuncia la economía la llama <strong>coste de oportunidad</strong>, y va a acompañar cada decisión que tome el pueblo.</p>
+      </div>
+      <div class="fml" style="border-color:rgba(180,220,80,.3);">ECONOMÍA = administrar RECURSOS ESCASOS + USOS ALTERNATIVOS
+        <small>Ciencia social: busca la mejor respuesta posible con método racional, para satisfacer necesidades.</small>
+      </div>
+      <div class="fml" style="border-color:rgba(180,220,80,.3);">ESCASEZ &rarr; NECESIDAD DE ELEGIR &rarr; RENUNCIA = COSTE DE OPORTUNIDAD
+        <small>La cadena que resume por qué la economía es "la ciencia de las decisiones".</small>
+      </div>
+    </div>
+    <div class="right-panel">
+      <div class="qc s1">
+        <div class="qh"><div class="qn">1.1</div><div class="qm">
+          <div class="qt">El informe de recursos del Ayuntamiento destaca tres elementos: <strong>el presupuesto municipal</strong>, <strong>el tiempo del personal técnico</strong> y <strong>el suelo urbanizable</strong> de la isla.
+            <ol class="qlist" style="margin-top:.4rem;">
+              <li>¿Por qué estos tres son "recursos escasos" en sentido económico, y no solo "cosas de las que hay poco"?</li>
+              <li>Pon un ejemplo de un recurso de tu vida diaria que también sea escaso y tenga varios usos posibles.</li>
+            </ol>
+          </div></div><div class="qchev">&rsaquo;</div></div>
+        <div class="qb">
+          <textarea class="at" data-key="1.1.a" placeholder="Explica por qué son recursos escasos..."></textarea>
+          <div class="ar"><label>Tu ejemplo =</label><input class="ai" data-key="1.1.b" placeholder="Un recurso escaso de tu vida diaria..."></div>
+          <div class="hint"><div class="ht">Pista</div>Un recurso es escaso en economía cuando, además de ser limitado, se puede usar para varias alternativas distintas.</div>
+          <button class="btn-ans" onclick="toggleAns(this)">Ver respuesta</button>
+          <div class="ans-box">
+            <div class="ans-lbl">Respuesta modelo</div>
+            Son escasos porque su cantidad es limitada y, a la vez, se pueden destinar a usos distintos: el presupuesto puede invertirse en proyectos diferentes, el tiempo del personal puede dedicarse a una tarea u otra, el suelo urbanizable puede destinarse a viviendas, a un parque o a un aparcamiento. Eso obliga a elegir.<br>
+            Ejemplos válidos: el agua, la batería del móvil, las horas de sueño, los datos móviles...
+          </div>
+        </div>
+      </div>
+
+      <div class="qc s1">
+        <div class="qh"><div class="qn">1.2</div><div class="qm">
+          <div class="qt">Un vecino necesita hacer la compra semanal. Puede ir al supermercado de <strong>Caleta Alta</strong>, más cerca, y gastar <strong>100 euros</strong>. O ir al mercado de <strong>Caleta Baja</strong>, algo más lejos, y comprar lo mismo por <strong>90 euros</strong> (transporte incluido), pero tardando bastante más tiempo.
+            <ol class="qlist" style="margin-top:.4rem;">
+              <li>¿Cuál es el coste de oportunidad de comprar en Caleta Alta?</li>
+              <li>¿Cuál es el coste de oportunidad de comprar en Caleta Baja?</li>
+            </ol>
+          </div></div><div class="qchev">&rsaquo;</div></div>
+        <div class="qb">
+          <div class="ar"><label>Coste oport. (Caleta Alta) =</label><input class="ai" data-key="1.2.a" placeholder="..."></div>
+          <div class="ar"><label>Coste oport. (Caleta Baja) =</label><input class="ai" data-key="1.2.b" placeholder="..."></div>
+          <div class="hint"><div class="ht">Pista</div>El coste de oportunidad es aquello a lo que renuncias al elegir una opción.</div>
+          <button class="btn-ans" onclick="toggleAns(this)">Ver respuesta</button>
+          <div class="ans-box">
+            <div class="ans-lbl">Respuesta modelo</div>
+            Comprar en Caleta Alta cuesta 10 euros más: el coste de oportunidad de elegir Caleta Alta es ese ahorro al que renuncia, <strong>10 euros</strong>.<br>
+            El coste de oportunidad de elegir Caleta Baja es el <strong>tiempo de más</strong> que tarda en ir, comprar y volver: un recurso tan real como el dinero.
+          </div>
+        </div>
+      </div>
+
+      <div class="qc s1">
+        <div class="qh"><div class="qn">1.3</div><div class="qm">
+          <div class="qt">En la biblioteca municipal de Caleta hay una cita enmarcada que todo el Consejo conoce de memoria: <em>"La economía es una manera de ver el mundo. Nos recuerda constantemente que nada es gratis. Cada camino que tomamos deja atrás otro sin explorar."</em>
+            <ol class="qlist" style="margin-top:.4rem;">
+              <li>En tus propias palabras, ¿qué quiere decir "nada es gratis" en economía?</li>
+              <li>Pon un ejemplo de una decisión tuya reciente en la que el "camino no elegido" tuviera un coste real, aunque no pagaras dinero por ello.</li>
+            </ol>
+          </div></div><div class="qchev">&rsaquo;</div></div>
+        <div class="qb">
+          <textarea class="at" data-key="1.3.a" placeholder="Escribe tu explicación y tu ejemplo..." style="min-height:80px;"></textarea>
+          <button class="btn-ans" onclick="toggleAns(this)">Ver respuesta</button>
+          <div class="ans-box">
+            <div class="ans-lbl">Respuesta orientativa (no hay una única respuesta correcta)</div>
+            No hay decisión sin renuncia: incluso lo que no cuesta dinero tiene un coste de oportunidad, porque elegir una opción siempre implica dejar otra de lado. Es válido cualquier ejemplo donde se identifique bien a qué se renunció: tiempo, otra actividad, otra compra...
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" style="width:20%"></div></div>
+  <div class="nav-bar">
+    <button class="nav-btn" onclick="goTo(0)">PORTADA</button>
+    <div class="nav-dots" id="dots-1"></div>
+    <button class="nav-btn primary" onclick="goTo(2)">F2 CENSO</button>
+  </div>
+</div>
+
+<div class="slide s2" id="slide-2">
+  <div class="hbar">
+    <div class="logo">CONSEJO<span>CALETA</span></div>
+    <span class="slide-counter">2 / 4</span>
+    <span class="seg-label" style="color:var(--fire);border-color:rgba(255,107,53,.3);">F2 - Censo</span>
+  </div>
+  <div class="slide-body">
+    <div class="left-panel">
+      <div class="seg-hero">
+        <div class="seg-icon">02</div>
+        <h1 style="font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--fire);letter-spacing:.06em;">Fase 2<br>Censo</h1>
+        <div class="sh-sub">Escasez, necesidades y recursos</div>
+      </div>
+      <div class="brief" style="background:var(--lfire);border-color:var(--fire);">
+        <div class="brief-lbl" style="color:var(--fire);">Censo de Necesidades - Barrio del Puerto</div>
+        <p>El Consejo ha hecho un censo casa por casa. No todas las carencias son iguales: hay vecinos a los que les falta comida o una vivienda digna, y hay vecinos con todo cubierto que aun así sienten que <strong>les falta algo</strong>.</p>
+        <p>Para gestionar bien la isla, primero hay que distinguir qué tipo de escasez tiene cada uno.</p>
+      </div>
+      <div class="brief" style="background:rgba(0,0,0,.25);border-color:var(--muted);">
+        <div class="brief-lbl">Necesidad, en economía</div>
+        <p>Una necesidad es la <strong>carencia de algo unido al deseo de satisfacerla</strong>. Si no hay deseo, solo hay carencia: no necesidad.</p>
+      </div>
+      <div class="fml" style="border-color:rgba(255,107,53,.3);">PRIMARIAS &rarr; supervivencia y vida digna &nbsp;·&nbsp; SECUNDARIAS &rarr; mejoran la vida
+        <small>Comer y tener vivienda vs. relaciones sociales y reconocimiento.</small>
+      </div>
+      <div class="fml" style="border-color:rgba(255,107,53,.3);">ESCASEZ ABSOLUTA (pobreza) &rarr; faltan recursos para necesidades PRIMARIAS
+        <small>Escasez relativa (económica): universal y relativa, afecta a todos, no a todos por igual.</small>
+      </div>
+      <div class="graph-wrap">
+        <canvas id="scarcityCanvas" height="150"></canvas>
+        <div class="graph-toolbar">
+          <span class="graph-readout" id="scarcityReadout">Haz clic en la recta para situar el nivel de recursos de un vecino</span>
+          <button class="graph-btn" onclick="resetScarcity()">Reiniciar</button>
+        </div>
+      </div>
+    </div>
+    <div class="right-panel">
+      <div class="qc s2">
+        <div class="qh"><div class="qn">2.1</div><div class="qm">
+          <div class="qt">Clasifica estas situaciones de Caleta como necesidad <strong>primaria (P)</strong> o <strong>secundaria (S)</strong>:
+            <ol class="qlist" style="margin-top:.4rem;">
+              <li>Tener suficiente comida cada día.</li>
+              <li>Tener un techo firme donde dormir.</li>
+              <li>Tener amistades dentro de la base.</li>
+              <li>Sentirse reconocido por el trabajo que haces.</li>
+            </ol>
+          </div></div><div class="qchev">&rsaquo;</div></div>
+        <div class="qb">
+          <div class="ar"><label>a) Comida =</label><input class="ai" data-key="2.1.a" placeholder="P / S" style="max-width:70px;"></div>
+          <div class="ar"><label>b) Vivienda =</label><input class="ai" data-key="2.1.b" placeholder="P / S" style="max-width:70px;"></div>
+          <div class="ar"><label>c) Amistades =</label><input class="ai" data-key="2.1.c" placeholder="P / S" style="max-width:70px;"></div>
+          <div class="ar"><label>d) Reconocimiento =</label><input class="ai" data-key="2.1.d" placeholder="P / S" style="max-width:70px;"></div>
+          <button class="btn-ans" onclick="toggleAns(this)">Ver respuesta</button>
+          <div class="ans-box">
+            <div class="ans-lbl">Respuesta modelo</div>
+            a) <strong>P</strong> &nbsp; b) <strong>P</strong> &nbsp; c) <strong>S</strong> &nbsp; d) <strong>S</strong><br>
+            Las dos primeras están ligadas a la supervivencia; las dos últimas mejoran la vida pero no son imprescindibles para sobrevivir.
+          </div>
+        </div>
+      </div>
+
+      <div class="qc s2">
+        <div class="qh"><div class="qn">2.2</div><div class="qm">
+          <div class="qt">Dos informes del censo:
+            <ol class="qlist" style="margin-top:.4rem;">
+              <li>Vecino X: no tiene comida suficiente ni un lugar fijo donde dormir.</li>
+              <li>Vecina Y: tiene comida y vivienda cubiertas, pero lleva semanas sin hablar con nadie y se siente muy sola.</li>
+            </ol>
+            Indica qué tipo de escasez sufre cada uno y explica brevemente por qué.
+          </div></div><div class="qchev">&rsaquo;</div></div>
+        <div class="qb">
+          <div class="ar"><label>Vecino X =</label><input class="ai" data-key="2.2.a" placeholder="Absoluta / Relativa"></div>
+          <div class="ar"><label>Vecina Y =</label><input class="ai" data-key="2.2.b" placeholder="Absoluta / Relativa"></div>
+          <textarea class="at" data-key="2.2.c" placeholder="Explica brevemente ambos casos..."></textarea>
+          <button class="btn-ans" onclick="toggleAns(this)">Ver respuesta</button>
+          <div class="ans-box">
+            <div class="ans-lbl">Respuesta modelo</div>
+            Vecino X sufre <strong>escasez absoluta (pobreza)</strong>: le faltan recursos para necesidades primarias.<br>
+            Vecina Y sufre <strong>escasez relativa (económica)</strong>: sus necesidades básicas están cubiertas, pero tiene una necesidad secundaria sin cubrir. Esa sensación de que falta algo es universal, aunque no a todos les falte lo mismo.
+          </div>
+        </div>
+      </div>
+
+      <div class="qc s2">
+        <div class="qh"><div class="qn">2.3</div><div class="qm">
+          <div class="qt">Clasifica cada elemento como <strong>bien (B)</strong> o <strong>servicio (S)</strong>, y después propón algo tuyo:
+            <ol class="qlist" style="margin-top:.4rem;">
+              <li>Una barra de pan del horno del pueblo.</li>
+              <li>Una clase de idiomas en el centro cívico.</li>
+              <li>Una placa solar de repuesto para el ayuntamiento.</li>
+            </ol>
+            Ahora, propón <strong>un bien o un servicio (puede no existir todavía)</strong> que ayude a los vecinos de Caleta a combatir la soledad.
+          </div></div><div class="qchev">&rsaquo;</div></div>
+        <div class="qb">
+          <div class="ar"><label>a) Pan =</label><input class="ai" data-key="2.3.a" placeholder="B / S" style="max-width:70px;"></div>
+          <div class="ar"><label>b) Clase idiomas =</label><input class="ai" data-key="2.3.b" placeholder="B / S" style="max-width:70px;"></div>
+          <div class="ar"><label>c) Placa solar =</label><input class="ai" data-key="2.3.c" placeholder="B / S" style="max-width:70px;"></div>
+          <textarea class="at" data-key="2.3.d" placeholder="Tu propuesta contra la soledad..."></textarea>
+          <button class="btn-ans" onclick="toggleAns(this)">Ver respuesta</button>
+          <div class="ans-box">
+            <div class="ans-lbl">Respuesta modelo</div>
+            a) <strong>B</strong> (tiene presencia física, se puede transferir) &nbsp; b) <strong>S</strong> (actividad prestada por una persona, intangible) &nbsp; c) <strong>B</strong><br>
+            Para la propuesta final no hay una única respuesta correcta: cualquier bien o servicio bien justificado que conecte con la necesidad de relacionarse socialmente es válido.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" style="width:40%"></div></div>
+  <div class="nav-bar">
+    <button class="nav-btn" onclick="goTo(1)">F1 DIAGNÓSTICO</button>
+    <div class="nav-dots" id="dots-2"></div>
+    <button class="nav-btn primary" onclick="goTo(3)">F3 DECISIÓN</button>
+  </div>
+</div>
+
+<div class="slide s3" id="slide-3">
+  <div class="hbar">
+    <div class="logo">CONSEJO<span>CALETA</span></div>
+    <span class="slide-counter">3 / 4</span>
+    <span class="seg-label" style="color:var(--ice);border-color:rgba(126,207,255,.3);">F3 - Consejo de Decisión</span>
+  </div>
+  <div class="slide-body">
+    <div class="left-panel">
+      <div class="seg-hero">
+        <div class="seg-icon">03</div>
+        <h1 style="font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--ice);letter-spacing:.06em;">Fase 3<br>Consejo de Decisión</h1>
+        <div class="sh-sub">Coste de oportunidad e incentivos</div>
+      </div>
+      <div class="brief" style="background:var(--lice);border-color:var(--ice);">
+        <div class="brief-lbl" style="color:var(--ice);">Sala de Plenos - Turno de Presupuesto</div>
+        <p>Cada euro que se destina a algo deja de estar disponible para otra cosa. El Consejo tiene que aprender a decidir <strong>de forma racional</strong>, sopesando alternativas, sin dejarse arrastrar por gastos que ya no se pueden recuperar.</p>
+      </div>
+      <div class="brief" style="background:rgba(0,0,0,.25);border-color:var(--muted);">
+        <div class="brief-lbl">Cuatro herramientas del Consejo</div>
+        <p>Coste de oportunidad, costes irrecuperables, análisis marginal e incentivos. Con estas cuatro piezas se toma cualquier decisión económica racional.</p>
+      </div>
+      <div class="fml" style="border-color:rgba(126,207,255,.3);">COSTE DE OPORTUNIDAD = valor de la SEGUNDA MEJOR opción no elegida
+        <small>No es "todo lo demás": es solo la mejor alternativa que quedó fuera.</small>
+      </div>
+      <div class="fml" style="border-color:rgba(126,207,255,.3);">COSTES IRRECUPERABLES &rarr; ya gastados, NO se recuperan
+        <small>Por eso no deben condicionar las decisiones futuras.</small>
+      </div>
+    </div>
+    <div class="right-panel">
+      <div class="qc s3">
+        <div class="qh"><div class="qn">3.1</div><div class="qm">
+          <div class="qt">Una vecina tiene una ayuda municipal y puede elegir entre: dar la entrada de una vivienda propia, ahorrarla, o comprarse un coche. Decide dar la entrada de la vivienda.
+            <ol class="qlist" style="margin-top:.4rem;">
+              <li>Si su segunda mejor opción era ahorrar, ¿cuál es el coste de oportunidad de su decisión?</li>
+              <li>Si su segunda mejor opción hubiera sido el vehículo, ¿cuál sería entonces el coste de oportunidad?</li>
+            </ol>
+          </div></div><div class="qchev">&rsaquo;</div></div>
+        <div class="qb">
+          <textarea class="at" data-key="3.1.a" placeholder="Coste de oportunidad si la 2ª mejor opción era ahorrar..."></textarea>
+          <textarea class="at" data-key="3.1.b" placeholder="Coste de oportunidad si la 2ª mejor opción era el vehículo..." style="margin-top:.4rem;"></textarea>
+          <button class="btn-ans" onclick="toggleAns(this)">Ver respuesta</button>
+          <div class="ans-box">
+            <div class="ans-lbl">Respuesta modelo</div>
+            Si la segunda mejor opción era ahorrar, el coste de oportunidad es <strong>no tener ese colchón de dinero para imprevistos</strong>.<br>
+            Si la segunda mejor opción era el coche, el coste de oportunidad es <strong>no tener un medio de transporte propio</strong>.<br>
+            El coste de oportunidad siempre es el valor de la alternativa que quedó en segundo lugar, no de todas las alternativas juntas.
+          </div>
+        </div>
+      </div>
+
+      <div class="qc s3">
+        <div class="qh"><div class="qn">3.2</div><div class="qm">
+          <div class="qt">Un vecino ha comprado una entrada para el cine de Caleta. A los diez minutos, la película le parece pésima. ¿Cuál es la decisión correcta según el concepto de <strong>coste irrecuperable</strong>, y por qué?
+          </div></div><div class="qchev">&rsaquo;</div></div>
+        <div class="qb">
+          <textarea class="at" data-key="3.2.a" placeholder="Explica la decisión correcta..."></textarea>
+          <button class="btn-ans" onclick="toggleAns(this)">Ver respuesta</button>
+          <div class="ans-box">
+            <div class="ans-lbl">Respuesta modelo</div>
+            La decisión correcta es <strong>irse</strong>, si puede aprovechar mejor el tiempo en otra cosa. La entrada ya pagada no se va a recuperar se quede o no, así que ese gasto no debería influir en si se queda: lo único relevante ahora es qué hacer con el tiempo que le queda.
+          </div>
+        </div>
+      </div>
+
+      <div class="qc s3">
+        <div class="qh"><div class="qn">3.3</div><div class="qm">
+          <div class="qt">Dos modelos de móvil cuestan lo mismo salvo por <strong>100 euros extra</strong>: el modelo caro tiene mejor cámara. Además, te ofrecen un seguro por <strong>50 euros</strong>.
+            <ol class="qlist" style="margin-top:.4rem;">
+              <li>Coste de oportunidad de elegir el barato.</li>
+              <li>Coste de oportunidad de elegir el caro.</li>
+              <li>Si contratas el seguro, ¿cuál es su coste marginal y cuál su beneficio marginal?</li>
+            </ol>
+          </div></div><div class="qchev">&rsaquo;</div></div>
+        <div class="qb">
+          <div class="ar"><label>Coste oport. (barato) =</label><input class="ai" data-key="3.3.a" placeholder="..."></div>
+          <div class="ar"><label>Coste oport. (caro) =</label><input class="ai" data-key="3.3.b" placeholder="..."></div>
+          <div class="ar"><label>Coste marginal seguro =</label><input class="ai" data-key="3.3.c" placeholder="..."></div>
+          <div class="ar"><label>Beneficio marginal seguro =</label><input class="ai" data-key="3.3.d" placeholder="..."></div>
+          <button class="btn-ans" onclick="toggleAns(this)">Ver respuesta</button>
+          <div class="ans-box">
+            <div class="ans-lbl">Respuesta modelo</div>
+            Coste de oportunidad del barato: <strong>la mejor cámara</strong>. Coste de oportunidad del caro: <strong>100 euros</strong>.<br>
+            El coste marginal del seguro es su precio, <strong>50 euros</strong>; el beneficio marginal es la <strong>cobertura</strong> que ofrece frente a una avería.
+          </div>
+        </div>
+      </div>
+
+      <div class="qc s3">
+        <div class="qh"><div class="qn">3.4</div><div class="qm">
+          <div class="qt">En el mercado del puerto, el pescadero anuncia que el pescado del día acaba de bajar de precio justo cuando pasas por delante. ¿Cómo se llama este tipo de acción en economía, y qué pretende conseguir?
+          </div></div><div class="qchev">&rsaquo;</div></div>
+        <div class="qb">
+          <textarea class="at" data-key="3.4.a" placeholder="..."></textarea>
+          <button class="btn-ans" onclick="toggleAns(this)">Ver respuesta</button>
+          <div class="ans-box">
+            <div class="ans-lbl">Respuesta modelo</div>
+            Es un <strong>incentivo positivo</strong>: busca cambiar tu comportamiento -que compres el pescado- ofreciéndote una recompensa, en este caso un precio más bajo.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" style="width:65%"></div></div>
+  <div class="nav-bar">
+    <button class="nav-btn" onclick="goTo(2)">F2 INVENTARIO</button>
+    <div class="nav-dots" id="dots-3"></div>
+    <button class="nav-btn primary" onclick="goTo(4)">FASE FINAL</button>
+  </div>
+</div>
+
+<div class="slide sf" id="slide-4">
+  <div class="hbar">
+    <div class="logo">CONSEJO<span>CALETA</span></div>
+    <span class="slide-counter">4 / 4</span>
+    <span class="seg-label" style="color:var(--amber);border-color:rgba(240,180,41,.3);">Fase Final - Mente Humana</span>
+  </div>
+  <div class="slide-body">
+    <div class="left-panel">
+      <div class="seg-hero">
+        <div class="seg-icon">04</div>
+        <h1 style="font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--amber);letter-spacing:.06em;">Fase Final<br>Mente Humana</h1>
+        <div class="sh-sub">Comportamiento y sesgos cognitivos</div>
+      </div>
+      <div class="brief" style="background:var(--lamber);border-color:var(--amber);">
+        <div class="brief-lbl" style="color:var(--amber);">Informe Psicológico - Ayuntamiento de Caleta</div>
+        <p>No todas las decisiones del pueblo son racionales. Los vecinos también se equivocan por impulsividad, por presión social, por publicidad o por exceso de información. A esto la economía lo llama <strong>economía conductual</strong>.</p>
+      </div>
+      <div class="brief" style="background:rgba(0,0,0,.25);border-color:var(--muted);">
+        <div class="brief-lbl">Cinco sesgos frecuentes</div>
+        <p><strong>Impulsividad</strong> (valorar demasiado lo inmediato), <strong>entorno</strong> (no saber decir que no), <strong>marketing</strong> (comprar por apariencia), <strong>infoxicación</strong> (demasiadas opciones) y <strong>personalidad</strong> (aversión o afición al riesgo).</p>
+      </div>
+      <div class="fml" style="border-color:rgba(240,180,41,.3);">DECISIÓN RACIONAL &ne; DECISIÓN HUMANA
+        <small>Los sesgos cognitivos nos alejan de la opción más ventajosa.</small>
+      </div>
+    </div>
+    <div class="right-panel">
+      <div class="qc sf">
+        <div class="qh"><div class="qn">4.1</div><div class="qm">
+          <div class="qt">En un experimento clásico, se deja a niños pequeños solos con un dulce: si aguantan sin comérselo un rato, consiguen un segundo dulce de premio. Muchos no aguantan.
+            Pon un ejemplo real (tuyo o de alguien que conozcas) de una <strong>compra o decisión impulsiva</strong> que, mirada con calma, no compensaba.
+          </div></div><div class="qchev">&rsaquo;</div></div>
+        <div class="qb">
+          <textarea class="at" data-key="4.1.a" placeholder="Tu ejemplo..."></textarea>
+          <button class="btn-ans" onclick="toggleAns(this)">Ver respuesta</button>
+          <div class="ans-box">
+            <div class="ans-lbl">Respuesta orientativa (no hay una única respuesta correcta)</div>
+            Se valora que el ejemplo identifique bien el elemento clave: elegir un placer inmediato pequeño en vez de esperar a un beneficio mayor a medio plazo (por ejemplo, gastar la paga en algo impulsivo en vez de ahorrar para algo que se quería más).
+          </div>
+        </div>
+      </div>
+
+      <div class="qc sf">
+        <div class="qh"><div class="qn">4.2</div><div class="qm">
+          <div class="qt">Indica qué sesgo cognitivo (<strong>entorno</strong>, <strong>marketing</strong> o <strong>infoxicación</strong>) explica mejor cada situación:
+            <ol class="qlist" style="margin-top:.4rem;">
+              <li>Le prestas dinero a un amigo, aun sabiendo que es difícil que te lo devuelva, por no quedar mal.</li>
+              <li>Compras unas zapatillas por la marca y el envoltorio, no porque sean mejores que otras más baratas.</li>
+              <li>Llevas media hora mirando el catálogo de una plataforma de series sin decidirte por ninguna.</li>
+            </ol>
+          </div></div><div class="qchev">&rsaquo;</div></div>
+        <div class="qb">
+          <div class="ar"><label>a) Préstamo =</label><input class="ai" data-key="4.2.a" placeholder="Entorno / Marketing / Infoxicación"></div>
+          <div class="ar"><label>b) Zapatillas =</label><input class="ai" data-key="4.2.b" placeholder="Entorno / Marketing / Infoxicación"></div>
+          <div class="ar"><label>c) Catálogo =</label><input class="ai" data-key="4.2.c" placeholder="Entorno / Marketing / Infoxicación"></div>
+          <button class="btn-ans" onclick="toggleAns(this)">Ver respuesta</button>
+          <div class="ans-box">
+            <div class="ans-lbl">Respuesta modelo</div>
+            a) <strong>Entorno</strong> (presión social, no saber decir que no).<br>
+            b) <strong>Marketing</strong> (decides por apariencia, no por calidad).<br>
+            c) <strong>Infoxicación</strong> (demasiadas opciones disponibles dificultan decidir).
+          </div>
+        </div>
+      </div>
+
+      <div class="qc sf">
+        <div class="qh"><div class="qn">4.3</div><div class="qm">
+          <div class="qt">Reflexión final del Consejo: ¿tomas tú siempre decisiones racionales? Describe una decisión reciente tuya que estuviera influida por alguno de estos sesgos, y explica cómo la habrías tomado de forma más racional.
+          </div></div><div class="qchev">&rsaquo;</div></div>
+        <div class="qb">
+          <textarea class="at" data-key="4.3.a" placeholder="Escribe tu reflexión..." style="min-height:90px;"></textarea>
+          <button class="btn-ans" onclick="toggleAns(this)">Ver respuesta</button>
+          <div class="ans-box">
+            <div class="ans-lbl">Respuesta orientativa (no hay una única respuesta correcta)</div>
+            Se valora que el alumno identifique con claridad qué sesgo influyó (impulsividad, entorno, marketing, infoxicación o personalidad) y proponga una alternativa más racional, basada en comparar costes y beneficios con calma.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" style="width:85%"></div></div>
+  <div class="nav-bar">
+    <button class="nav-btn" onclick="goTo(3)">F3 DECISIÓN</button>
+    <div class="nav-dots" id="dots-4"></div>
+    <button class="nav-btn primary" onclick="goTo(5)">FIN DE SESIÓN</button>
+  </div>
+</div>
+
+<div class="slide" id="slide-5" style="--acc:var(--lime);">
+  <div class="hbar">
+    <div class="logo">CONSEJO<span>CALETA</span></div>
+    <span class="slide-counter" style="color:var(--lime);">FIN DE SESIÓN</span>
+    <span class="seg-label" style="color:var(--lime);border-color:rgba(180,220,80,.3);">Isla Caleta · Consejo Económico</span>
+  </div>
+  <div class="close-body">
+    <div class="close-bg">
+      <div class="close-glow"></div>
+      <div class="cover-stars" id="stars2"></div>
+    </div>
+    <div class="close-content">
+      <div class="close-flag">&#127965;</div>
+      <div class="close-title">SESIÓN<br><span class="acc">COMPLETADA</span></div>
+      <div class="close-sub">Isla Caleta · Diagnóstico a Mente Humana · 4 fases · 4 conceptos económicos clave</div>
+      <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--stone);letter-spacing:.06em;margin-top:.5rem;">
+        Decisiones registradas: <span style="color:var(--lime);">13</span> &nbsp;·&nbsp; Puntuación máxima: <span style="color:var(--lime);">40 pt</span>
+      </div>
+      <div class="close-actions">
+        <button class="close-btn outline" onclick="goTo(6)">Ver Rúbrica</button>
+        <button class="close-btn outline" onclick="goTo(7)">Resumen Respuestas</button>
+        <button class="close-btn lime" onclick="exportPDF()">Exportar PDF</button>
+        <button class="close-btn amber" onclick="exportJSON()">Exportar JSON</button>
+      </div>
+    </div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" style="width:100%"></div></div>
+  <div class="nav-bar">
+    <button class="nav-btn" onclick="goTo(4)">FASE FINAL</button>
+    <div class="nav-dots" id="dots-5"></div>
+    <button class="nav-btn" onclick="goTo(0)">PORTADA</button>
+  </div>
+</div>
+
+<div class="slide" id="slide-6" style="--acc:var(--lime);">
+  <div class="hbar">
+    <div class="logo">CONSEJO<span>CALETA</span></div>
+    <span class="slide-counter" style="color:var(--stone);">RÚBRICA</span>
+    <span class="seg-label" style="color:var(--lime);border-color:rgba(180,220,80,.3);">Criterios de evaluación - 40 puntos</span>
+  </div>
+  <div class="rubrica-body">
+    <div class="rubrica-col">
+      <div class="rub-seg" style="--acc:var(--lime);">
+        <div class="rub-seg-title" style="color:var(--lime);">F1 - Diagnóstico</div>
+        <div class="rub-row"><span class="rub-q">1.1 - Recursos escasos + ejemplo</span><span class="rub-pts" style="color:var(--lime);">3 pt</span></div>
+        <div class="rub-row"><span class="rub-q">1.2 - Coste oportunidad Caleta Alta/Baja</span><span class="rub-pts" style="color:var(--lime);">4 pt</span></div>
+        <div class="rub-row"><span class="rub-q">1.3 - "Nada es gratis" (reflexión)</span><span class="rub-pts" style="color:var(--lime);">3 pt</span></div>
+        <div class="rub-total"><span>Total F1</span><strong style="color:var(--lime);">10 pt</strong></div>
+      </div>
+      <div class="rub-seg" style="--acc:var(--fire);">
+        <div class="rub-seg-title" style="color:var(--fire);">F2 - Censo</div>
+        <div class="rub-row"><span class="rub-q">2.1 - Necesidades primarias/secundarias</span><span class="rub-pts" style="color:var(--fire);">3 pt</span></div>
+        <div class="rub-row"><span class="rub-q">2.2 - Escasez absoluta/relativa</span><span class="rub-pts" style="color:var(--fire);">4 pt</span></div>
+        <div class="rub-row"><span class="rub-q">2.3 - Bien o servicio + propuesta</span><span class="rub-pts" style="color:var(--fire);">3 pt</span></div>
+        <div class="rub-total"><span>Total F2</span><strong style="color:var(--fire);">10 pt</strong></div>
+      </div>
+    </div>
+    <div class="rubrica-col">
+      <div class="rub-seg" style="--acc:var(--ice);">
+        <div class="rub-seg-title" style="color:var(--ice);">F3 - Consejo de Decisión</div>
+        <div class="rub-row"><span class="rub-q">3.1 - Coste oportunidad (vivienda)</span><span class="rub-pts" style="color:var(--ice);">3 pt</span></div>
+        <div class="rub-row"><span class="rub-q">3.2 - Costes irrecuperables (cine)</span><span class="rub-pts" style="color:var(--ice);">2 pt</span></div>
+        <div class="rub-row"><span class="rub-q">3.3 - Coste y análisis marginal</span><span class="rub-pts" style="color:var(--ice);">3 pt</span></div>
+        <div class="rub-row"><span class="rub-q">3.4 - Incentivos</span><span class="rub-pts" style="color:var(--ice);">2 pt</span></div>
+        <div class="rub-total"><span>Total F3</span><strong style="color:var(--ice);">10 pt</strong></div>
+      </div>
+      <div class="rub-seg" style="--acc:var(--amber);">
+        <div class="rub-seg-title" style="color:var(--amber);">Fase Final - Mente Humana</div>
+        <div class="rub-row"><span class="rub-q">4.1 - Ejemplo de impulsividad</span><span class="rub-pts" style="color:var(--amber);">3 pt</span></div>
+        <div class="rub-row"><span class="rub-q">4.2 - Identifica el sesgo (x3)</span><span class="rub-pts" style="color:var(--amber);">4 pt</span></div>
+        <div class="rub-row"><span class="rub-q">4.3 - Reflexión final</span><span class="rub-pts" style="color:var(--amber);">3 pt</span></div>
+        <div class="rub-total"><span>Total Final</span><strong style="color:var(--amber);">10 pt</strong></div>
+      </div>
+      <div style="margin-top:1rem;background:rgba(180,220,80,.06);border:1px solid rgba(180,220,80,.2);border-radius:var(--r);padding:1rem 1.2rem;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--stone);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem;">Puntuación total</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:3rem;color:var(--lime);line-height:1;">40 <span style="font-size:1.2rem;color:var(--muted);">puntos</span></div>
+        <div style="font-size:12px;color:var(--stone);margin-top:.4rem;line-height:1.6;">F1: 10 · F2: 10 · F3: 10 · Final: 10</div>
+      </div>
+    </div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" style="width:100%"></div></div>
+  <div class="nav-bar">
+    <button class="nav-btn" onclick="goTo(5)">FIN DE SESIÓN</button>
+    <div class="nav-dots" id="dots-6"></div>
+    <button class="nav-btn primary" onclick="goTo(7)">RESUMEN</button>
+  </div>
+</div>
+
+<div class="slide" id="slide-7" style="--acc:var(--lime);">
+  <div class="hbar">
+    <div class="logo">CONSEJO<span>CALETA</span></div>
+    <span class="slide-counter" style="color:var(--stone);">RESUMEN</span>
+    <span class="seg-label" style="color:var(--lime);border-color:rgba(180,220,80,.3);">Todas las respuestas</span>
+  </div>
+  <div class="resum-body" id="resum-body">
+    <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);text-align:center;padding:2rem;">Cargando respuestas...</div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" style="width:100%"></div></div>
+  <div class="nav-bar">
+    <button class="nav-btn" onclick="goTo(6)">RÚBRICA</button>
+    <div class="nav-dots" id="dots-7"></div>
+    <button class="nav-btn" onclick="goTo(0)">PORTADA</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+function makeStars(containerId, count) {
+  var s = document.getElementById(containerId);
+  if (!s) return;
+  for (var i = 0; i < count; i++) {
+    var d = document.createElement('div');
+    var sz = Math.random() * 1.5 + 0.3;
+    d.style.position = 'absolute';
+    d.style.borderRadius = '50%';
+    d.style.background = 'white';
+    d.style.width = sz + 'px';
+    d.style.height = sz + 'px';
+    d.style.left = Math.random()*100 + '%';
+    d.style.top = Math.random()*100 + '%';
+    d.style.opacity = Math.random()*0.5+0.08;
+    d.style.setProperty('--d', (Math.random()*4+2)+'s');
+    d.style.animationDelay = Math.random()*3+'s';
+    d.className = 'star';
+    s.appendChild(d);
+  }
+}
+makeStars('stars', 90);
+makeStars('stars2', 100);
+
+var TOTAL_SLIDES = 8;
+var current = 0;
+var navigating = false;
+var ANIM_MS = 380;
+var DOT_COLORS = ['#B4DC50','#B4DC50','#FF6B35','#7ECFFF','#F0B429','#B4DC50','#B4DC50','#B4DC50'];
+
+function goTo(n) {
+  if (n < 0 || n >= TOTAL_SLIDES || n === current || navigating) return;
+  var prevEl = document.getElementById('slide-' + current);
+  var nextEl = document.getElementById('slide-' + n);
+  if (!prevEl || !nextEl) return;
+
+  navigating = true;
+  var forward = n > current;
+
+  nextEl.classList.remove('active', 'animating', 'slide-left', 'slide-right');
+  nextEl.classList.add(forward ? 'slide-right' : 'slide-left');
+  void nextEl.offsetWidth;
+
+  prevEl.classList.add('animating');
+  nextEl.classList.add('animating');
+
+  nextEl.classList.remove('slide-left', 'slide-right');
+  nextEl.classList.add('active');
+  prevEl.classList.remove('active');
+  prevEl.classList.add(forward ? 'slide-left' : 'slide-right');
+
+  setTimeout(function() {
+    prevEl.classList.remove('animating', 'slide-left', 'slide-right');
+    nextEl.classList.remove('animating');
+    navigating = false;
+    current = n;
+    updateDots();
+    if (n === 7) buildResum();
+    if (n === 2) initScarcity();
+  }, ANIM_MS);
+
+  current = n;
+  updateDots();
+}
+
+function updateDots() {
+  var containers = document.querySelectorAll('.nav-dots');
+  containers.forEach(function(container) {
+    container.innerHTML = '';
+    var labels = ['0','F1','F2','F3','FF','5','6','7'];
+    for (var i = 0; i < TOTAL_SLIDES; i++) {
+      var d = document.createElement('div');
+      var isActive = i === current;
+      d.className = 'dot' + (isActive ? ' active' : '');
+      if (isActive) d.style.setProperty('--dot-color', DOT_COLORS[current] || '#B4DC50');
+      d.onclick = (function(idx){ return function(){ goTo(idx); }; })(i);
+      d.title = labels[i] || i;
+      container.appendChild(d);
+    }
+  });
+}
+
+function tQ(card) { card.classList.toggle('open'); }
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.qb')) return;
+  var qh = e.target.closest('.qh');
+  if (qh) tQ(qh.closest('.qc'));
+});
+
+function toggleAns(btn) {
+  var box = btn.nextElementSibling;
+  if (!box) return;
+  box.classList.toggle('visible');
+  btn.textContent = box.classList.contains('visible') ? 'Ocultar respuesta' : 'Ver respuesta';
+}
+
+var STORAGE_KEY = 'caleta_economia_v1';
+
+function saveAll() {
+  try {
+    var data = {};
+    document.querySelectorAll('[data-key]').forEach(function(el) { data[el.dataset.key] = el.value || ''; });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch(e) {}
+}
+function loadAll() {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    var data = JSON.parse(raw);
+    document.querySelectorAll('[data-key]').forEach(function(el) {
+      if (data[el.dataset.key] !== undefined) el.value = data[el.dataset.key];
+    });
+  } catch(e) {}
+}
+document.addEventListener('input', function(e) { if (e.target.matches('[data-key]')) saveAll(); });
+
+document.addEventListener('keydown', function(e) {
+  if (e.target.matches('input, textarea')) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(current + 1);
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goTo(current - 1);
+});
+
+var SCAR_MIN = 0, SCAR_MAX = 2000, SCAR_THRESHOLD = 900;
+var scarcityPoint = null;
+
+function initScarcity() {
+  var canvas = document.getElementById('scarcityCanvas');
+  if (!canvas || canvas._init) return;
+  canvas._init = true;
+  drawScarcity();
+  canvas.addEventListener('click', function(e) {
+    var rect = canvas.getBoundingClientRect();
+    var px = (e.clientX - rect.left) / rect.width;
+    var val = SCAR_MIN + px * (SCAR_MAX - SCAR_MIN);
+    scarcityPoint = Math.round(val / 10) * 10;
+    drawScarcity();
+    var poor = scarcityPoint < SCAR_THRESHOLD;
+    var readout = document.getElementById('scarcityReadout');
+    readout.innerHTML = 'Nivel = <b>' + scarcityPoint + '</b> euros/mes &nbsp; ' +
+      (poor ? '<b style="color:#FF6B35;">ESCASEZ ABSOLUTA (POBREZA)</b>' : '<b style="color:#B4DC50;">ESCASEZ RELATIVA (siempre presente)</b>');
+  });
+  window.addEventListener('resize', drawScarcity);
+}
+function resetScarcity() {
+  scarcityPoint = null;
+  document.getElementById('scarcityReadout').textContent = 'Haz clic en la recta para situar el nivel de recursos de un vecino';
+  drawScarcity();
+}
+function drawScarcity() {
+  var canvas = document.getElementById('scarcityCanvas');
+  if (!canvas) return;
+  var dpr = window.devicePixelRatio || 1;
+  var w = canvas.clientWidth, h = 150;
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  var ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,w,h);
+
+  function xOf(v) { return ((v - SCAR_MIN) / (SCAR_MAX - SCAR_MIN)) * (w - 40) + 20; }
+  var midY = 75;
+
+  ctx.fillStyle = 'rgba(255,107,53,.12)';
+  ctx.fillRect(xOf(SCAR_MIN), midY-22, xOf(SCAR_THRESHOLD)-xOf(SCAR_MIN), 44);
+  ctx.fillStyle = 'rgba(180,220,80,.12)';
+  ctx.fillRect(xOf(SCAR_THRESHOLD), midY-22, xOf(SCAR_MAX)-xOf(SCAR_THRESHOLD), 44);
+
+  ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(20, midY); ctx.lineTo(w-20, midY); ctx.stroke();
+
+  ctx.strokeStyle = 'rgba(255,255,255,.5)';
+  ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(xOf(SCAR_THRESHOLD), midY-22); ctx.lineTo(xOf(SCAR_THRESHOLD), midY+22); ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.font = '10px DM Mono, monospace';
+  ctx.fillStyle = 'rgba(255,255,255,.45)';
+  ctx.textAlign = 'center';
+  for (var v = SCAR_MIN; v <= SCAR_MAX; v += 300) {
+    var x = xOf(v);
+    ctx.strokeStyle = 'rgba(255,255,255,.25)';
+    ctx.beginPath(); ctx.moveTo(x, midY-4); ctx.lineTo(x, midY+4); ctx.stroke();
+    ctx.fillText(v, x, midY+18);
+  }
+
+  ctx.fillStyle = '#F0B429';
+  ctx.fillText('900 = línea de necesidades primarias', xOf(SCAR_THRESHOLD), midY-28);
+
+  if (scarcityPoint !== null) {
+    var poor = scarcityPoint < SCAR_THRESHOLD;
+    ctx.fillStyle = poor ? '#FF6B35' : '#B4DC50';
+    ctx.beginPath(); ctx.arc(xOf(scarcityPoint), midY, 6, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+  }
+}
+
+var QUESTION_MAP = [
+  { seg: 'F1 - Diagnóstico', color: '#B4DC50', questions: [
+    {key:'1.1.a', label:'1.1 - Por qué son escasos'}, {key:'1.1.b', label:'1.1 - Tu ejemplo'},
+    {key:'1.2.a', label:'1.2 - Coste oport. Caleta Alta'}, {key:'1.2.b', label:'1.2 - Coste oport. Caleta Baja'},
+    {key:'1.3.a', label:'1.3 - "Nada es gratis" (reflexión)'}
+  ]},
+  { seg: 'F2 - Censo', color: '#FF6B35', questions: [
+    {key:'2.1.a', label:'2.1.a - Comida'}, {key:'2.1.b', label:'2.1.b - Vivienda'}, {key:'2.1.c', label:'2.1.c - Amistades'}, {key:'2.1.d', label:'2.1.d - Reconocimiento'},
+    {key:'2.2.a', label:'2.2 - Vecino X'}, {key:'2.2.b', label:'2.2 - Vecina Y'}, {key:'2.2.c', label:'2.2 - Explicación'},
+    {key:'2.3.a', label:'2.3.a - Ración de comida'}, {key:'2.3.b', label:'2.3.b - Clase de idiomas'}, {key:'2.3.c', label:'2.3.c - Panel solar'}, {key:'2.3.d', label:'2.3 - Tu propuesta'}
+  ]},
+  { seg: 'F3 - Consejo de Decisión', color: '#7ECFFF', questions: [
+    {key:'3.1.a', label:'3.1 - Coste oport. (si 2ª mejor = ahorro)'}, {key:'3.1.b', label:'3.1 - Coste oport. (si 2ª mejor = vehículo)'},
+    {key:'3.2.a', label:'3.2 - Costes irrecuperables (cine)'},
+    {key:'3.3.a', label:'3.3 - Coste oport. barato'}, {key:'3.3.b', label:'3.3 - Coste oport. caro'}, {key:'3.3.c', label:'3.3 - Coste marginal seguro'}, {key:'3.3.d', label:'3.3 - Beneficio marginal seguro'},
+    {key:'3.4.a', label:'3.4 - Incentivo (fresas)'}
+  ]},
+  { seg: 'Fase Final - Mente Humana', color: '#F0B429', questions: [
+    {key:'4.1.a', label:'4.1 - Ejemplo de impulsividad'},
+    {key:'4.2.a', label:'4.2.a - Sesgo (préstamo)'}, {key:'4.2.b', label:'4.2.b - Sesgo (zapatillas)'}, {key:'4.2.c', label:'4.2.c - Sesgo (catálogo)'},
+    {key:'4.3.a', label:'4.3 - Reflexión final'}
+  ]}
+];
+
+function buildResum() {
+  var container = document.getElementById('resum-body');
+  if (!container) return;
+  container.innerHTML = '';
+  QUESTION_MAP.forEach(function(seg) {
+    var sec = document.createElement('div');
+    sec.className = 'resum-section';
+    sec.innerHTML = '<div class="resum-sec-title" style="color:' + seg.color + ';">' + seg.seg + '</div>';
+    seg.questions.forEach(function(q) {
+      var el = document.querySelector('[data-key="' + q.key + '"]');
+      var val = el ? (el.value || '').trim() : '';
+      var row = document.createElement('div');
+      row.className = 'resum-q';
+      row.innerHTML = '<div class="resum-q-label">' + q.label + '</div>' +
+        '<div class="resum-q-val' + (val ? '' : ' empty') + '">' + (val || '(sin respuesta)') + '</div>';
+      sec.appendChild(row);
+    });
+    container.appendChild(sec);
+  });
+}
+
+function exportJSON() {
+  var name = prompt("Nombre del alumno/a:", '') || 'alumno';
+  var data = { alumno: name, fecha: new Date().toLocaleDateString('es-ES'), sesion: 'CALETA - Consejo Económico - 4º ESO', respuestas: {} };
+  document.querySelectorAll('[data-key]').forEach(function(el) { data.respuestas[el.dataset.key] = el.value || ''; });
+  var blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'caleta_' + name.replace(/\s+/g,'_') + '.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportPDF() {
+  var name = prompt("Nombre del alumno/a:", '') || "Alumno/a";
+  var sections = [];
+  QUESTION_MAP.forEach(function(seg) {
+    var rows = '';
+    seg.questions.forEach(function(q) {
+      var el = document.querySelector('[data-key="' + q.key + '"]');
+      var val = el ? (el.value || '').trim() : '';
+      var parentCard = el ? el.closest('.qc') : null;
+      var ansBox = parentCard ? parentCard.querySelector('.ans-box') : null;
+      var ansText = ansBox ? ansBox.innerText.replace('Respuesta modelo\n','').replace('Respuesta orientativa (no hay una única respuesta correcta)\n','').trim() : '-';
+      rows += '<tr><td class="qlabel">' + q.label + '</td><td class="qval">' + (val || '<span class="empty">-</span>') + '</td><td class="qans">' + ansText + '</td></tr>';
+    });
+    sections.push('<div class="section"><h2 style="color:#888;">' + seg.seg + '</h2>' +
+      '<table><thead><tr><th>Pregunta</th><th>Respuesta alumno</th><th>Respuesta correcta</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody></table></div>');
+  });
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CALETA - ' + name + '</title>' +
+  '<style>' +
+    '* { box-sizing: border-box; margin: 0; padding: 0; }' +
+    'body { font-family: Arial, sans-serif; font-size: 11px; color: #222; background: white; }' +
+    'header { background: #0A0E1A; color: #B4DC50; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }' +
+    'header h1 { font-size: 20px; letter-spacing: .05em; }' +
+    'header .meta { font-size: 10px; color: #8A9AC0; text-align: right; line-height: 1.6; }' +
+    '.content { padding: 16px 24px; }' +
+    '.section { margin-bottom: 18px; page-break-inside: avoid; }' +
+    'h2 { font-size: 14px; letter-spacing: .04em; margin-bottom: 6px; border-bottom: 1px solid #eee; padding-bottom: 4px; }' +
+    'table { width: 100%; border-collapse: collapse; font-size: 10px; }' +
+    'th { background: #f5f5f5; padding: 5px 8px; text-align: left; font-size: 9px; letter-spacing: .04em; text-transform: uppercase; border: 1px solid #ddd; }' +
+    'td { padding: 5px 8px; border: 1px solid #eee; vertical-align: top; line-height: 1.5; }' +
+    '.qlabel { font-size: 9px; color: #666; white-space: nowrap; width: 20%; }' +
+    '.qval { width: 38%; } .qans { width: 42%; color: #555; font-size: 9.5px; }' +
+    '.empty { color: #bbb; font-style: italic; }' +
+    '@media print { body { -webkit-print-color-adjust: exact; } }' +
+  '</style></head><body>' +
+  '<header><h1>CALETA - Consejo Económico - 4º ESO</h1>' +
+  '<div class="meta"><strong style="color:#EAF1FF;">' + name + '</strong><br>' + new Date().toLocaleDateString('es-ES') + '</div></header>' +
+  '<div class="content">' + sections.join('') + '</div></body></html>';
+  var w = window.open('', '_blank');
+  w.document.write(html); w.document.close(); w.focus();
+  setTimeout(function(){ w.print(); }, 600);
+}
+
+document.querySelectorAll('.slide').forEach(function(el) {
+  if (!el.classList.contains('active')) el.classList.add('slide-right');
+});
+loadAll();
+updateDots();
+</script>
+</body>
+</html>
