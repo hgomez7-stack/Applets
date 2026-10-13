@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Nau sota el Gel · MODEL D · AMPLIACIÓ</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Oswald:wght@500;600&family=VT323&display=swap');
+:root{
+  --void:#05090c; --panel:rgba(8,18,23,.88); --panel2:rgba(14,28,35,.92);
+  --ice:#d3e8ef; --ice2:#8fb7c6; --glow:#7fd6ff; --term:#8dffb4;
+  --alert:#ff3b1d; --amber:#ffb454; --line:rgba(143,183,198,.3); --dim:rgba(211,232,239,.62);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{background:var(--void);}
+body{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;font-size:15px;line-height:1.65;color:var(--ice);
+  background:radial-gradient(ellipse at 50% -10%,#10252e 0,#070e12 55%,#030608 100%) fixed;min-height:100vh;padding:0 14px 60px;overflow-x:hidden;}
+#snow{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.55;}
+.scan{position:fixed;inset:0;pointer-events:none;z-index:50;background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 1px,transparent 1px 3px);mix-blend-mode:multiply;}
+.vig{position:fixed;inset:0;pointer-events:none;z-index:49;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%);}
+.flash{position:fixed;inset:0;pointer-events:none;z-index:48;background:var(--alert);opacity:0;}
+body.glitch .flash{animation:flash .45s ease-out;}
+body.glitch .w{animation:jit .45s steps(2,end);}
+@keyframes flash{0%{opacity:.28}100%{opacity:0}}
+@keyframes jit{0%{transform:translate(0,0)}20%{transform:translate(-4px,1px) skewX(1.2deg)}40%{transform:translate(5px,-1px)}60%{transform:translate(-3px,0) skewX(-1deg)}100%{transform:none}}
+.w{position:relative;z-index:2;max-width:1000px;margin:0 auto;}
+h1,h2,h3{font-family:'Oswald',Impact,sans-serif;font-weight:600;letter-spacing:.14em;text-transform:uppercase;}
+sup{font-size:.68em;line-height:0;}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.15;margin:0 .12em;font-size:.92em;}
+.fr i{font-style:normal;padding:0 .2em;}.fr i:first-child{border-bottom:1.5px solid currentColor;}
+button{font-family:inherit;}
+/* HUD */
+.hud{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;justify-content:space-between;padding:14px 0 12px;border-bottom:1px solid var(--line);margin-bottom:12px;}
+.brand .eb{font-size:11px;letter-spacing:.3em;color:var(--ice2);text-transform:uppercase;}
+.brand .ti{font-family:'Oswald',sans-serif;font-weight:600;font-size:24px;letter-spacing:.2em;text-transform:uppercase;color:#eef8fb;text-shadow:0 0 14px rgba(127,214,255,.35);}
+.brand .tag{display:inline-block;margin-left:10px;font-size:11px;letter-spacing:.2em;padding:2px 8px;border:1px solid var(--amber);color:var(--amber);vertical-align:middle;}
+.readouts{display:flex;gap:18px;flex-wrap:wrap;font-family:'VT323',monospace;font-size:21px;color:var(--term);}
+.readouts div small{display:block;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.2em;color:var(--ice2);text-transform:uppercase;line-height:1;margin-bottom:2px;}
+.readouts .warn{color:var(--alert);}
+/* station map nav */
+.map{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:22px;}
+.node{flex:1;min-width:92px;padding:7px 8px;border:1px solid var(--line);background:rgba(8,18,23,.6);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;text-align:center;color:rgba(211,232,239,.38);cursor:default;position:relative;}
+.node b{display:block;font-family:'VT323',monospace;font-size:22px;font-weight:400;letter-spacing:.05em;color:inherit;line-height:1;}
+.node.reach{color:var(--ice2);cursor:pointer;}
+.node.cur{border-color:var(--glow);color:var(--glow);box-shadow:0 0 12px rgba(127,214,255,.25) inset;}
+.node.done{border-color:rgba(141,255,180,.55);color:var(--term);cursor:pointer;}
+.node.rest{flex:.6;min-width:70px;border-style:dashed;}
+.node.extra{border-style:dashed;border-color:rgba(255,180,84,.5);}
+/* panels */
+.panel{background:var(--panel);border:1px solid var(--line);padding:22px 24px;margin-bottom:16px;position:relative;
+  clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));}
+.plate{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;background:#e6eff2;color:#071014;padding:9px 16px;margin:0 0 14px;
+  font-family:'Oswald',sans-serif;letter-spacing:.2em;text-transform:uppercase;font-weight:600;}
+.plate .n{font-size:20px;} .plate .pts{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;font-weight:500;}
+.tx{border-left:3px solid var(--glow);background:rgba(127,214,255,.06);padding:11px 16px;margin-bottom:14px;font-size:14px;color:#c4dce5;}
+.tx::before{content:'TRANSMISSIÓ ▸';display:block;font-size:9.5px;letter-spacing:.28em;color:var(--glow);margin-bottom:3px;}
+.remind{border:1px dashed var(--amber);padding:10px 14px;margin:0 0 14px;font-size:13px;color:#f1dcb7;background:rgba(255,180,84,.06);}
+.remind b{display:block;font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--amber);margin-bottom:3px;}
+.item{border:1px solid var(--line);background:var(--panel2);padding:16px 18px;margin-bottom:12px;}
+.item.locked{display:none;}
+.item.done{border-color:rgba(141,255,180,.45);}
+.item.fail{border-color:rgba(255,59,29,.5);}
+.ihead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ice2);}
+.ihead .pill{border:1px solid var(--line);padding:1px 8px;color:var(--ice);}
+.comms{margin:6px 0 10px;border:1px solid rgba(255,180,84,.25);background:rgba(255,180,84,.045);padding:8px 12px;font-size:13.5px;}
+.comms p{margin:2px 0;}
+.who{font-weight:600;letter-spacing:.08em;margin-right:6px;}
+.who.n{color:var(--glow);}.who.m{color:var(--amber);}
+.prompt{font-size:15px;margin:10px 0;color:#eaf5f8;}
+.hintbox{display:none;margin-top:8px;border-left:3px solid var(--amber);padding:6px 12px;font-size:13px;color:#f1dcb7;background:rgba(255,180,84,.07);}
+.hintbox.on{display:block;}
+.acts{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px;}
+.btn{font-family:'Oswald',sans-serif;letter-spacing:.2em;text-transform:uppercase;font-size:13px;cursor:pointer;padding:11px 20px;border:1px solid var(--glow);background:rgba(127,214,255,.1);color:var(--glow);transition:.15s;}
+.btn:hover:not(:disabled){background:rgba(127,214,255,.25);}
+.btn:disabled{opacity:.35;cursor:default;}
+.btn.main{background:var(--glow);color:#021016;}
+.btn.main:hover:not(:disabled){background:#a8e6ff;}
+.btn.ghost{border-color:var(--line);color:var(--ice2);background:transparent;}
+.btn.alert{border-color:var(--alert);color:var(--alert);background:rgba(255,59,29,.08);}
+.fb{margin-top:10px;font-size:13.5px;min-height:20px;}
+.fb.ok{color:var(--term);}.fb.bad{color:#ff7a62;}.fb.soft{color:var(--amber);}
+.reveal{display:none;margin-top:10px;border:1px dashed var(--alert);padding:9px 13px;font-size:13px;color:#ffc2b6;background:rgba(255,59,29,.06);}
+.reveal.on{display:block;}
+/* inputs */
+input[type=text]{font-family:'IBM Plex Mono',monospace;font-size:15px;background:#04100f;border:1px solid var(--ice2);color:var(--term);padding:6px 9px;width:112px;outline:none;caret-color:var(--term);}
+input[type=text]:focus{border-color:var(--glow);box-shadow:0 0 0 2px rgba(127,214,255,.2);}
+input[type=text].wide{width:240px;}
+input[type=text].sm{width:64px;text-align:center;}
+input.tiny{width:46px!important;text-align:center;padding:3px 4px;font-size:14px;}
+input:disabled{opacity:.75;}
+.part{padding:7px 0;border-top:1px dashed rgba(143,183,198,.18);transition:.2s;}
+.part:first-child{border-top:none;}
+.part.ok{box-shadow:-3px 0 0 var(--term);padding-left:10px;}
+.part.bad{box-shadow:-3px 0 0 var(--alert);padding-left:10px;}
+.pq{margin-bottom:5px;font-size:14px;}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:4px 10px;}
+.opt{display:flex;gap:9px;align-items:flex-start;padding:5px 10px;border:1px solid transparent;cursor:pointer;font-size:14px;}
+.opt:hover{background:rgba(127,214,255,.07);}
+.opt input{margin-top:5px;accent-color:#7fd6ff;}
+.nl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.nl .lab{color:var(--ice);}.nl .suf{color:var(--ice2);}
+.sci{display:inline-flex;align-items:center;gap:6px;}
+.sci sup{display:inline-flex;align-items:center;}
+.tpl{line-height:2.4;font-size:15px;}
+.tpl input{margin:0 3px;}.tpl sup input{width:46px;}
+.props{display:flex;flex-wrap:wrap;gap:6px;}
+.props label{display:flex;gap:6px;align-items:center;border:1px solid var(--line);padding:5px 10px;font-size:12.5px;cursor:pointer;}
+.props label:hover{border-color:var(--glow);}
+.props input{accent-color:#7fd6ff;}
+table.cl{border-collapse:collapse;width:100%;font-size:14px;}
+table.cl th,table.cl td{border:1px solid var(--line);padding:7px 10px;text-align:center;}
+table.cl th{background:rgba(143,183,198,.12);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:500;}
+table.cl td:first-child{text-align:left;font-size:16px;color:#fff;}
+table.cl tr.ok td:first-child{box-shadow:inset 3px 0 0 var(--term);}table.cl tr.bad td:first-child{box-shadow:inset 3px 0 0 var(--alert);}
+table.cl input{width:18px;height:18px;accent-color:#7fd6ff;}
+/* number line */
+.nlbox{border:1px solid var(--line);background:#050f13;padding:6px;margin-top:6px;}
+.nlbox svg{display:block;width:100%;height:auto;touch-action:none;user-select:none;}
+.legend{font-size:14px;margin:4px 0 2px;color:var(--ice);}
+.legend b{color:var(--amber);}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0;}
+.chip{border:1px solid var(--ice2);padding:6px 14px;cursor:pointer;background:rgba(127,214,255,.06);font-size:16px;color:#fff;}
+.chip:hover{background:rgba(127,214,255,.2);}
+.chip.used{opacity:.25;pointer-events:none;}
+.slots{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0;font-size:16px;}
+.slot{min-width:70px;min-height:38px;border:1px dashed var(--ice2);display:flex;align-items:center;justify-content:center;padding:4px 10px;cursor:pointer;color:#fff;}
+.slot.f{border-style:solid;background:rgba(127,214,255,.1);}
+.ir{display:grid;grid-template-columns:1fr 1fr 1.7fr;gap:10px;align-items:stretch;}
+.ir>div{border:1px solid var(--line);padding:9px 11px;}
+.ir .h{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ice2);margin-bottom:5px;}
+.ir .given{font-size:17px;color:#fff;}
+.ir .mini{font-size:11px;color:var(--dim);margin-top:4px;}
+.ir.ex>div{background:rgba(141,255,180,.05);}
+.lnbtns{display:flex;gap:6px;margin-top:4px;}
+.lnbtns button{font-size:11px;padding:3px 9px;border:1px solid var(--line);background:transparent;color:var(--ice2);cursor:pointer;}
+.lnbtns button:hover{border-color:var(--glow);color:var(--glow);}
+@media(max-width:700px){.ir{grid-template-columns:1fr;}.panel{padding:16px 14px;}.brand .ti{font-size:19px;}}
+/* rest */
+.restfig{border:1px solid var(--line);background:#050f13;padding:6px;margin:10px 0;}
+.restfig svg{display:block;width:100%;height:auto;}
+.restfig .g{opacity:0;transition:opacity .7s;}.restfig .g.on{opacity:1;}
+.log p{opacity:0;transform:translateY(4px);transition:.5s;margin:6px 0;}.log p.on{opacity:1;transform:none;}
+/* intro & final */
+.boot{font-family:'VT323',monospace;font-size:19px;line-height:1.35;color:var(--term);white-space:pre-wrap;min-height:120px;text-shadow:0 0 6px rgba(141,255,180,.45);}
+.cursor{display:inline-block;width:9px;height:17px;background:var(--term);vertical-align:-2px;animation:blk 1s steps(1) infinite;}
+@keyframes blk{50%{opacity:0}}
+.big{font-family:'VT323',monospace;font-size:54px;line-height:1;color:var(--term);text-shadow:0 0 12px rgba(141,255,180,.5);}
+.stamp{display:inline-block;border:2px solid var(--term);color:var(--term);font-family:'Oswald';letter-spacing:.3em;padding:3px 12px;font-size:13px;transform:rotate(-3deg);}
+.lightning{display:block;width:100%;height:26px;margin:6px 0 2px;}
+.sum{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0;}
+.sum th,.sum td{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left;}
+.sum th{font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--ice2);font-weight:500;}
+.doorok{margin:14px 0 4px;padding:10px 14px;border:1px solid var(--term);color:var(--term);background:rgba(141,255,180,.07);display:none;letter-spacing:.05em;}
+.doorok.on{display:block;}
+input.nm{width:100%;max-width:340px;}
+#print-report{display:none;}
+@media print{
+  body{background:#fff!important;color:#000!important;padding:0;}
+  .w,#snow,.scan,.vig,.flash{display:none!important;}
+  #print-report{display:block;color:#000;font-family:Arial,sans-serif;font-size:12px;}
+  #print-report table{width:100%;border-collapse:collapse;margin-top:10px;}
+  #print-report th,#print-report td{border:1px solid #888;padding:4px 7px;text-align:left;}
+}
+@media(prefers-reduced-motion:reduce){#snow{display:none;}.cursor{animation:none;}body.glitch .w,body.glitch .flash{animation:none;}}
+</style>
+</head>
+<body>
+<canvas id="snow" aria-hidden="true"></canvas><div class="vig" aria-hidden="true"></div><div class="scan" aria-hidden="true"></div><div class="flash" aria-hidden="true"></div>
+<div class="w">
+  <header class="hud">
+    <div class="brand"><div class="eb">Estació Hèlios-7 · Antàrtida</div><div class="ti">La Nau sota el Gel<span class="tag">MODEL D · AMPLIACIÓ</span></div></div>
+    <div class="readouts">
+      <div><small>Exterior</small><span id="rd-temp">−41 °C</span></div>
+      <div><small id="rd-tlab">Temps</small><span id="rd-time">00:00</span></div>
+      <div><small>Puntuació</small><span id="rd-score">0,0</span></div>
+    </div>
+  </header>
+  <nav class="map" id="map" aria-label="Plànol de comportes"></nav>
+  <main id="stage"></main>
+</div>
+<div id="print-report">
+  <h1 style="font-size:18px;">Informe · La Nau sota el Gel · MODEL D · AMPLIACIÓ</h1>
+  <p style="margin-top:6px;">Alumne/a: <span id="rp-name"></span> &nbsp;·&nbsp; Data: <span id="rp-date"></span> &nbsp;·&nbsp; Temps: <span id="rp-time"></span></p>
+  <table><thead><tr><th>Comporta</th><th>Apartat</th><th>Punts màx.</th><th>Punts</th><th>Intents</th></tr></thead><tbody id="rp-rows"></tbody></table>
+  <p style="margin-top:12px;">Puntuació total: <b id="rp-total"></b> &nbsp;·&nbsp; Errors: <span id="rp-err"></span> &nbsp;·&nbsp; Pistes: <span id="rp-hints"></span></p>
+</div>
+<script>
+const MODEL = {"tag":"MODEL D · AMPLIACIÓ","max":10,"boot":["HÈLIOS-7 // TERMINAL 03","ENLLAÇ SATÈL·LIT .......... SENSE SENYAL","GENERADOR ................. 54 %","TEMPERATURA EXTERIOR ...... −41 °C","","> RADAR DE GEL: ANOMALIA METÀL·LICA A 60 m","> ESTRUCTURA NO CATALOGADA. ORIGEN: DESCONEGUT","> ACCÉS: 6 COMPORTES AMB BLOQUEIG NUMÈRIC","> FINESTRA DE CALMA: 55 MIN","> MODE AMPLIACIÓ: OPERACIONS COMBINADES",""],"intro":"Estació Hèlios-7, Antàrtida. Fa quatre dies que la tempesta us ha aïllat del món: la ràdio només emet soroll i el generador funciona a mitges. Aquesta nit, el radar de gel ha detectat sota la glacera una estructura metàl·lica que no és natural: una nau d’origen desconegut, enterrada a 60 m de profunditat. Ningú no sap què és ni des de quan és allà. Només hi ha una hora de calma abans que la ventada torni i el gel es tanqui sobre ella. Amb la glaciòloga Núria Casals i l’enginyer Marc Ferrer, has de travessar sis comportes segellades amb bloquejos numèrics i arribar al nucli de dades de la nau. Cada error activa un protocol de seguretat; cada encert, una comporta més.","restAfter":-1,"epilogue":"El pedestal s’obre amb un clic. Marc s’enduu el nucli de dades, Núria t’estira del braç i correu cap al trineu mentre el gel es tanca sobre la nau. Darrere vostre, a la foscor de la bodega, s’encén una llum que no hauria de ser-hi. Missió complerta.","rest":null,"doors":[{"id":"c1","n":1,"name":"La comporta exterior","story":"Una comporta de metall negre bloqueja l’accés al casc de la nau. Un panell il·lumina xifres i només s’obre si assignes cada una als conjunts que li corresponen.","items":[{"label":"a)","pts":0.4,"type":"classify","dlg":[["Marc","Quatre xifres, quatre caselles... Això està fet!"],["Núria","Compte: una mateixa xifra pot encaixar en més d’una casella, i alguna arrel té truc."]],"prompt":"Marca tots els conjunts als quals pertany cada xifra.","rows":["−6","5/8","√18","√(49/4)"],"ans":[["Z","Q"],["Q"],["I"],["Q"]],"hint":"49/4 és el quadrat d’una fracció: quina?","solution":"−6: ℤ ℚ · 5/8: ℚ · √18: irracional · √(49/4) = 7/2: ℚ."},{"label":"b)","pts":0.6,"type":"multi","pre":"Dins del sas, un emissor de la nau repeteix tres senyals:  A = 3/11 = 0,272727…   B = √3   C = (√3)².","dlg":[["Núria","Mira, A...! Sembla seguir un patró establert, no et sembla?"],["Marc","I C és un nombre irracional elevat al quadrat... Sembla clar!"]],"prompt":"Classifica cada senyal i justifica-ho.","parts":[{"kind":"mcq","q":"<b>A = 3/11</b> és…","opts":["Racional","Irracional"],"ans":0},{"kind":"mcq","q":"…perquè","opts":["és un decimal periòdic (es repeteix un grup de xifres)","és un decimal infinit sense període (no es repeteix)","és un nombre enter","cap de les anteriors"],"ans":0},{"kind":"mcq","q":"<b>B = √3</b> és…","opts":["Racional","Irracional"],"ans":1},{"kind":"mcq","q":"…perquè","opts":["és un decimal periòdic (es repeteix un grup de xifres)","és un decimal infinit sense període (no es repeteix)","és un nombre enter","cap de les anteriors"],"ans":1},{"kind":"mcq","q":"<b>C = (√3)²</b> és…","opts":["Racional","Irracional"],"ans":0},{"kind":"mcq","q":"…perquè","opts":["és un decimal periòdic (es repeteix un grup de xifres)","és un decimal infinit sense període (no es repeteix)","és un nombre enter","cap de les anteriors"],"ans":2}],"hint":"Opera abans de classificar: (√3)² = ?","solution":"A: racional (periòdic). B: irracional. C = (√3)² = 3: racional (enter)."}]},{"id":"c2","n":2,"name":"La passarel·la","story":"Una passarel·la de gel i metall travessa una bodega immensa. Cada placa porta un nombre il·luminat i només aguanta si la col·loques al lloc exacte de la recta.","items":[{"label":"a)","pts":0.5,"type":"numline","dlg":[["Marc","Mira el dibuix: aquest quadrat de costat 1 amaga una diagonal que sembla apuntar cap a l’eix..."],["Núria","I el rectangle de 2 per 1 també. Què mesuren aquestes diagonals? I com les portem a l’eix?"]],"prompt":"Arrossega cada placa al seu lloc exacte de la recta.","geo":{"min":-2,"max":4,"square":true,"rect":2},"plaques":[{"id":"A","label":"−1/2","val":-0.5,"tol":0.15},{"id":"B","label":"√2","val":1.4142135623730951,"tol":0.15},{"id":"C","label":"√5","val":2.23606797749979,"tol":0.15}],"hint":"Pitàgores: √2 i √5. Observa l’arc que abat les diagonals.","solution":"A = −0,5 · B ≈ 1,41 · C ≈ 2,24."},{"label":"b)","pts":0.3,"type":"order","prompt":"Ordena les tres plaques de menor a major.","items":["−1/2","√2","√5"],"hint":"Mira les posicions a la recta.","solution":"−1/2 < √2 < √5"}]},{"id":"c3","n":3,"name":"Les sondes","story":"Per saber si pots fiar-te dels aparells, els proves amb mesures que ja coneixes. La sonda A mesura l’amplada de la bodega, que és de 20 m, i marca 19,5 m. La sonda B mesura el diàmetre del casc d’una escotilla, que és de 4 m, i marca 3,9 m.","items":[{"label":"a)","pts":0.4,"type":"multi","dlg":[["Marc","L’A s’equivoca 0,5 m i la B només 0,1 m. Està clar: la B és més precisa!"],["Núria","Comparem-ho amb la mida de cada cosa abans de decidir."]],"prompt":"Calcula l’error relatiu de cada sonda (en %).","parts":[{"kind":"num","label":"Er de la sonda A =","ans":2.5,"suf":"%"},{"kind":"num","label":"Er de la sonda B =","ans":2.5,"suf":"%"}],"hint":"Er = error absolut ÷ valor real. A: 0,5 ÷ 20. B: 0,1 ÷ 4.","solution":"Er(A) = 0,5/20 = 2,5 %; Er(B) = 0,1/4 = 2,5 %."},{"label":"b)","pts":0.3,"type":"multi","prompt":"Conclusió","parts":[{"kind":"mcq","q":"Què podem dir?","opts":["Marc té raó: la B és més precisa","Núria té raó: la A és més precisa","Cap sonda és més precisa que l’altra"],"ans":2}],"solution":"Tenen el mateix error relatiu (2,5 %): són igual de precises."},{"label":"c)","pts":0.3,"type":"multi","prompt":"On s’equivoca Marc?","parts":[{"kind":"mcq","q":"Marc s’equivoca perquè…","opts":["compara errors absoluts sense tenir en compte la mida mesurada","la B té l’error més gran","la A mesura una cosa més gran i això no importa"],"ans":0}],"solution":"Compara errors absoluts en lloc d’errors relatius."}]},{"id":"c4","n":4,"name":"La sala dels tres llenguatges","story":"La paret de la sala de control de la nau mostra tres columnes de símbols: un idioma de signes (desigualtats), un de claus (intervals) i un de dibuixos (la recta). El bloqueig només cedeix si completes cada fila amb els tres idiomes.","items":[{"type":"introw","label":"Fila 1","pts":0.4,"prompt":"Reactor (temperatura T, en °C)","ticks":[-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10],"labelStep":5,"ineq":{"given":"−6 < T ≤ 9"},"interval":{"given":null},"line":{"given":null},"ans":{"lo":-6,"loI":false,"hi":9,"hiI":true},"fillIneq":"(-6, 9]","fillInterval":"(-6, 9]","solution":"(−6, 9]; ○ en −6 i ● en 9.","hint":"< → ○ i parèntesi; ≤ → ● i corxet.","dlg":[["Núria","Una mateixa franja de valors es pot dir de tres maneres: amb una desigualtat, amb un interval o dibuixada a la recta."],["Marc","I els extrems? Si hi són inclosos o no, s’ha de notar en els tres idiomes!"]]},{"type":"introw","label":"Fila 2","pts":0.4,"prompt":"Pressió (P, en bar)","ticks":[0,10,20,30,40,50,60,70,80,90,100],"labelStep":10,"ineq":{"given":null},"interval":{"given":"[50, +∞)"},"line":{"given":null},"ans":{"lo":50,"loI":true,"hi":Infinity,"hiI":false},"fillIneq":"P >= 50","fillInterval":"[50, +∞)","solution":"P ≥ 50; ● en 50 i fletxa cap a +∞.","hint":"Usa «+∞ →» i clica el 50 de nou per fer-lo tancat."},{"type":"introw","label":"Fila 3","pts":0.4,"prompt":"Vàlvula (valor x)","ticks":[-3,-2,-1,0,1,2,3,4,5,6],"labelStep":1,"ineq":{"given":null},"interval":{"given":null},"line":{"given":{"lo":-1,"loI":false,"hi":4,"hiI":true}},"ans":{"lo":-1,"loI":false,"hi":4,"hiI":true},"fillIneq":"-1 < x <= 4","fillInterval":"(-1, 4]","solution":"−1 < x ≤ 4 ; (−1, 4].","hint":"Llegeix la recta: ○ en −1 i ● en 4."}]},{"id":"c5","n":5,"name":"La cambra criogènica","story":"Una consola plena de dades de la glacera tanca un passadís. Només accepta xifres en notació científica, i els resultats també han de tenir aquest format.","items":[{"label":"a)","pts":0.3,"dlg":[["Marc","Quants zeros! Em perdo..."],["Núria","Reescriu-ho amb una sola xifra davant la coma i compta quants llocs has mogut la coma."]],"prompt":"Escriu en notació científica la massa de gel de la glacera, 3 600 000 000 kg.","type":"multi","parts":[{"kind":"sci","label":"Massa =","ans":3600000000,"suf":"kg"}],"solution":"3,6·10⁹ kg.","hint":"Compta quants llocs mous la coma cap a l’esquerra."},{"label":"b)","pts":0.6,"dlg":[["Núria","Un sensor registra 2,5·10^4 dades per segon durant 6·10^3 segons."],["Marc","Multiplico coeficients per un costat i potències per l’altre. I reviso que el resultat sigui notació científica!"]],"prompt":"Quantes dades ha registrat el sensor? Notació científica.","type":"multi","parts":[{"kind":"sci","label":"Dades =","ans":150000000}],"solution":"(2,5·10⁴)·(6·10³) = 15·10⁷ = 1,5·10⁸.","hint":"2,5·6 = 15; després normalitza."},{"label":"c)","pts":0.6,"dlg":[["Núria","Cal bombejar 6·10^8 litres a un ritme de 1,5·10^3 litres per segon. El temps és la quantitat dividida pel ritme."],["Marc","Divideixo coeficients i potències. I no oblidis arreglar el resultat final!"]],"prompt":"Quants segons es trigarà? Notació científica.","type":"multi","parts":[{"kind":"sci","label":"Temps =","ans":400000,"suf":"s"}],"solution":"(6·10⁸)÷(1,5·10³) = 4·10⁵ s.","hint":"6 ÷ 1,5 = 4 i 10⁸ ÷ 10³ = 10⁵."}]},{"id":"c6","n":6,"name":"El nucli de dades","story":"El nucli de dades de la nau descansa sobre un pedestal protegit per cinc blocatges. Els codis combinen fraccions i potències: perquè cedeixin, cal simplificar cada expressió aplicant les propietats de les potències i donar el resultat com a fracció irreductible o nombre enter.","items":[{"label":"a)","pts":0.8,"type":"multi","dlg":[["Marc","Una fracció elevada a un exponent... i dues potències amb la mateixa base."],["Núria","Si la base és la mateixa, els exponents es deixen manejar molt bé."]],"prompt":"({2|3})^5 ÷ ({2|3})^3","parts":[{"kind":"props","groups":[["quocient"]],"allowed":["quocient"]},{"kind":"num","label":"Resultat (fracció) =","ans":0.4444444444444444,"suf":"(escriu-ho com a fracció, p. ex. 3/5)"}],"hint":"Mateixa base 2/3: es resten els exponents. Després eleva numerador i denominador.","solution":"(2/3)^(5−3) = (2/3)² = 4/9."},{"label":"b)","pts":0.9,"type":"multi","dlg":[["Núria","Aquí hi ha una potència dins d’una altra. I fixa’t en les dues fraccions: una és la inversa de l’altra."],["Marc","Llavors potser puc escriure-ho tot amb la mateixa base..."]],"prompt":"[({3|5})^2]^2 · ({5|3})^3","parts":[{"kind":"props","groups":[["potpot"],["expneg"],["producte"]],"allowed":["potpot","expneg","producte","quocient","potquoc"]},{"kind":"num","label":"Resultat (fracció) =","ans":0.6,"suf":"(escriu-ho com a fracció, p. ex. 3/5)"}],"hint":"(5/3)³ = (3/5)^−3. Després: (3/5)⁴ · (3/5)^−3 = (3/5)^(4−3).","solution":"[(3/5)²]²·(5/3)³ = (3/5)⁴·(3/5)^−3 = (3/5)¹ = 3/5."},{"label":"c)","pts":0.9,"type":"multi","dlg":[["Marc","Un exponent negatiu en una fracció... això em fa por."],["Núria","Una potència negativa inverteix la fracció. I mira l’altre sumand: els exponents són iguals."]],"prompt":"({1|2})^−3 + ({2|3})^2 · ({3|2})^2","parts":[{"kind":"props","groups":[["expneg"],["potprod","producte"]],"allowed":["expneg","potprod","producte","exp0"]},{"kind":"num","label":"Resultat =","ans":9}],"hint":"(1/2)^−3 = 2³ = 8. I (2/3)²·(3/2)² = [(2/3)·(3/2)]² = 1.","solution":"(1/2)^−3 = 8; (2/3)²·(3/2)² = 1; total 9."},{"label":"d)","pts":1,"type":"multi","dlg":[["Núria","Aquí cal respectar l’ordre de les operacions: primer, el parèntesi."],["Marc","Fraccions amb denominadors diferents... i després una divisió de potències."]],"prompt":"({1|2} + {1|3})^2 ÷ ({5|6})^3","parts":[{"kind":"props","groups":[["quocient"]],"allowed":["quocient","expneg"]},{"kind":"num","label":"Resultat (fracció) =","ans":1.2,"suf":"(escriu-ho com a fracció, p. ex. 3/5)"}],"hint":"1/2 + 1/3 = 5/6. Després: (5/6)² ÷ (5/6)³ = (5/6)^−1.","solution":"1/2 + 1/3 = 5/6; (5/6)²÷(5/6)³ = (5/6)^−1 = 6/5."},{"label":"e)","pts":0.9,"type":"multi","dlg":[["Marc","Tres termes amb potències de fraccions: no sé per on començar!"],["Núria","Resol cada potència per separat, i després ja pots sumar i restar."]],"prompt":"({1|3})^−2 − 2 · ({1|3})^0 + 3^−1","parts":[{"kind":"props","groups":[["expneg"],["exp0"]],"allowed":["expneg","exp0"]},{"kind":"num","label":"Resultat (fracció) =","ans":7.333333333333333,"suf":"(escriu-ho com a fracció, p. ex. 3/5)"}],"hint":"(1/3)^−2 = 9; (1/3)⁰ = 1; 3^−1 = 1/3. Després: 9 − 2 + 1/3.","solution":"9 − 2 + 1/3 = 22/3."}]}]};
+/* ═════ utils ═════ */
+const $ = (s, r = document) => r.querySelector(s);
+const mk = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; };
+let uid = 0;
+function fmt(s) {
+  return String(s)
+    .replace(/\{([^{}|]+)\|([^{}|]+)\}/g, '<span class="fr"><i>$1</i><i>$2</i></span>')
+    .replace(/\^\(([^)]*)\)/g, '<sup>$1</sup>')
+    .replace(/\^(−?\d+)/g, '<sup>$1</sup>');
+}
+const fp = x => { let s = (Math.round(x * 100) / 100).toFixed(2).replace(/0+$/, '').replace(/\.$/, ''); return s.replace('.', ',') || '0'; };
+function normS(s) { return String(s).replace(/[−–—]/g, '-').replace(/[\s  ]/g, ''); }
+function parseNum(s) {
+  s = normS(s).replace('%', '');
+  if (!s) return NaN;
+  if (s.includes('/')) { const p = s.split('/'); if (p.length !== 2) return NaN; const a = parseNum(p[0]), b = parseNum(p[1]); return b === 0 ? NaN : a / b; }
+  s = s.replace(',', '.');
+  if (!/^[+-]?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
+  return parseFloat(s);
+}
+const near = (a, b, tol) => Math.abs(a - b) <= (tol != null ? tol : 1e-9 * Math.max(1, Math.abs(b)));
+function parseIneq(str) {
+  const s = String(str).replace(/[−–—]/g, '-').replace(/[\s ]/g, '').replace(/<=|=<|⩽/g, '≤').replace(/>=|=>|⩾/g, '≥').replace(/,/g, '.');
+  const N = '([+-]?\\d+(?:\\.\\d+)?(?:/\\d+(?:\\.\\d+)?)?)', V = '([A-Za-z])';
+  let m; const n = parseNum;
+  if (m = s.match(new RegExp('^' + N + '([<≤])' + V + '([<≤])' + N + '$'))) return { lo: n(m[1]), loI: m[2] === '≤', hi: n(m[5]), hiI: m[4] === '≤' };
+  if (m = s.match(new RegExp('^' + N + '([>≥])' + V + '([>≥])' + N + '$'))) return { lo: n(m[5]), loI: m[4] === '≥', hi: n(m[1]), hiI: m[2] === '≥' };
+  if (m = s.match(new RegExp('^' + V + '([<≤])' + N + '$'))) return { lo: -Infinity, loI: false, hi: n(m[3]), hiI: m[2] === '≤' };
+  if (m = s.match(new RegExp('^' + V + '([>≥])' + N + '$'))) return { lo: n(m[3]), loI: m[2] === '≥', hi: Infinity, hiI: false };
+  if (m = s.match(new RegExp('^' + N + '([<≤])' + V + '$'))) return { lo: n(m[1]), loI: m[2] === '≤', hi: Infinity, hiI: false };
+  if (m = s.match(new RegExp('^' + N + '([>≥])' + V + '$'))) return { lo: -Infinity, loI: false, hi: n(m[1]), hiI: m[2] === '≥' };
+  return null;
+}
+function parseIntv(str) {
+  let s = String(str).replace(/[−–—]/g, '-').replace(/[\s ]/g, '').replace(/∞/g, 'Infinity').replace(/inf(inity)?/gi, 'Infinity');
+  if (s.length < 5) return null;
+  const f = s[0], l = s[s.length - 1];
+  if (!'([]'.includes(f) || !')[]'.includes(l)) return null;
+  const inner = s.slice(1, -1);
+  const parts = inner.includes(';') ? inner.split(';') : inner.split(',');
+  if (parts.length !== 2) return null;
+  const pv = v => /^[+-]?Infinity$/.test(v) ? (v[0] === '-' ? -Infinity : Infinity) : parseNum(v);
+  const lo = pv(parts[0]), hi = pv(parts[1]);
+  if (isNaN(lo) || isNaN(hi) || lo > hi) return null;
+  const loI = f === '[', hiI = l === ']';
+  return { lo, hi, loI, hiI, badInf: (!isFinite(lo) && loI) || (!isFinite(hi) && hiI) };
+}
+function intvEq(a, b) {
+  if (!a || !b) return false;
+  const e = (x, y) => (!isFinite(x) || !isFinite(y)) ? x === y : near(x, y, 1e-9);
+  if (!e(a.lo, b.lo) || !e(a.hi, b.hi)) return false;
+  if (isFinite(a.lo) && a.loI !== b.loI) return false;
+  if (isFinite(a.hi) && a.hiI !== b.hiI) return false;
+  return true;
+}
+const PROPS = {
+  producte: ['Producte de potències', 'a<sup>m</sup>·a<sup>n</sup> = a<sup>m+n</sup>'],
+  quocient: ['Quocient de potències', 'a<sup>m</sup>÷a<sup>n</sup> = a<sup>m−n</sup>'],
+  potpot: ['Potència d’una potència', '(a<sup>m</sup>)<sup>n</sup> = a<sup>m·n</sup>'],
+  potprod: ['Potència d’un producte', '(a·b)<sup>n</sup> = a<sup>n</sup>·b<sup>n</sup>'],
+  potquoc: ['Potència d’un quocient', '(a÷b)<sup>n</sup> = a<sup>n</sup>÷b<sup>n</sup>'],
+  expneg: ['Exponent negatiu', 'a<sup>−n</sup> = 1÷a<sup>n</sup>'],
+  exp0: ['Exponent zero', 'a<sup>0</sup> = 1']
+};
+/* ═════ state ═════ */
+const S = { idx: 0, reached: 0, items: {}, errors: 0, hints: 0, t0: null, name: '', countdown: false, stages: [], els: [], nodes: [] };
+const FACT = [1, .6, .3];
+function totalPts() { return Object.values(S.items).reduce((a, i) => a + (i.pts || 0), 0); }
+function updScore() { $('#rd-score').textContent = fp(totalPts()); }
+function glitch() { document.body.classList.remove('glitch'); void document.body.offsetWidth; document.body.classList.add('glitch'); setTimeout(() => document.body.classList.remove('glitch'), 500); }
+/* ═════ parts ═════ */
+function mark(r, ok) { r.classList.remove('ok', 'bad'); r.classList.add(ok ? 'ok' : 'bad'); }
+function pMcq(p) {
+  const r = mk('div', 'part'), g = 'g' + (++uid);
+  r.append(mk('div', 'pq', fmt(p.q)));
+  const box = mk('div', 'opts');
+  p.opts.forEach((o, i) => box.append(mk('label', 'opt', `<input type="radio" name="${g}" value="${i}"><span>${fmt(o)}</span>`)));
+  r.append(box);
+  return {
+    root: r,
+    check() { const v = r.querySelector('input:checked'); const ok = !!v && +v.value === p.ans; mark(r, ok); return ok; },
+    lock() { r.querySelectorAll('input').forEach(i => i.disabled = true); },
+    fill() { r.querySelector(`input[value="${p.ans}"]`).click(); },
+    wrong() { const v = r.querySelector('input:checked'); if (v) v.checked = false; }
+  };
+}
+function pNum(p) {
+  const r = mk('div', 'part');
+  r.append(mk('div', 'nl', `<span class="lab">${fmt(p.label || '')}</span><input type="text" inputmode="decimal" autocomplete="off" class="${p.wide ? '' : ''}"><span class="suf">${fmt(p.suf || '')}</span>`));
+  const inp = $('input', r);
+  const answers = Array.isArray(p.ans) ? p.ans : [p.ans];
+  return {
+    root: r,
+    check() { const v = parseNum(inp.value); const ok = !isNaN(v) && answers.some(a => near(v, a, p.tol)); mark(r, ok); return ok; },
+    lock() { inp.disabled = true; },
+    fill() { inp.value = String(answers[0]).replace('.', ','); },
+    wrong() { }
+  };
+}
+function pSci(p) {
+  const r = mk('div', 'part');
+  r.append(mk('div', 'nl', `<span class="lab">${fmt(p.label || '')}</span><span class="sci"><input type="text" class="sm" inputmode="decimal" placeholder="a" autocomplete="off"> · 10<sup><input type="text" class="tiny" inputmode="numeric" placeholder="n" autocomplete="off"></sup></span><span class="suf">${fmt(p.suf || '')}</span>`));
+  const [c, e] = r.querySelectorAll('input');
+  return {
+    root: r,
+    check() {
+      const a = parseNum(c.value), n = parseNum(e.value);
+      if (isNaN(a) || isNaN(n) || !Number.isInteger(n)) { mark(r, false); return false; }
+      const val = a * Math.pow(10, n);
+      if (!near(val, p.ans, 1e-9 * Math.abs(p.ans))) { mark(r, false); return false; }
+      if (Math.abs(a) < 1 || Math.abs(a) >= 10) { r.classList.remove('ok'); r.classList.add('bad'); return 'El valor és bo, però no és notació científica: el coeficient ha de ser un nombre entre 1 i 10.'; }
+      mark(r, true); return true;
+    },
+    lock() { c.disabled = e.disabled = true; },
+    fill() { const ex = Math.floor(Math.log10(Math.abs(p.ans)) + 1e-12); const co = Math.round(p.ans / Math.pow(10, ex) * 1e9) / 1e9; c.value = String(co).replace('.', ','); e.value = String(ex); },
+    wrong() { }
+  };
+}
+function pProps(p) {
+  const r = mk('div', 'part');
+  r.append(mk('div', 'pq', 'Quines propietats fas servir? <span style="color:var(--dim)">(marca-les totes)</span>'));
+  const box = mk('div', 'props');
+  Object.keys(PROPS).forEach(k => box.append(mk('label', '', `<input type="checkbox" value="${k}"><span><b>${PROPS[k][0]}</b> <span style="color:var(--dim)">${PROPS[k][1]}</span></span>`)));
+  r.append(box);
+  return {
+    root: r,
+    check() {
+      const sel = [...r.querySelectorAll('input:checked')].map(i => i.value);
+      const okAll = sel.every(s => p.allowed.includes(s)) && p.groups.every(g => g.some(x => sel.includes(x)));
+      mark(r, okAll); return okAll;
+    },
+    lock() { r.querySelectorAll('input').forEach(i => i.disabled = true); },
+    fill() { p.groups.forEach(g => r.querySelector(`input[value="${g[0]}"]`).click()); },
+    wrong() { }
+  };
+}
+function pPower(p) {
+  const r = mk('div', 'part');
+  r.append(mk('div', 'nl', `<span class="lab">${fmt(p.label || 'Una sola potència:')}</span><input type="text" class="sm" inputmode="decimal" placeholder="base" autocomplete="off"><span>^</span><input type="text" class="sm" inputmode="decimal" placeholder="exp." autocomplete="off">`));
+  const [b, e] = r.querySelectorAll('input');
+  return {
+    root: r,
+    check() { const ok = near(parseNum(b.value), p.base) && near(parseNum(e.value), p.exp); mark(r, ok); return ok; },
+    lock() { b.disabled = e.disabled = true; },
+    fill() { b.value = p.base; e.value = String(p.exp).replace('-', '−'); },
+    wrong() { }
+  };
+}
+function pIntv(p) {
+  const r = mk('div', 'part');
+  r.append(mk('div', 'nl', `<span class="lab">${fmt(p.label || '')}</span><input type="text" class="wide" autocomplete="off" placeholder="p. ex. (a ; b]"><span class="suf">${fmt(p.suf || '')}</span>`));
+  const inp = $('input', r);
+  return {
+    root: r, soft: null,
+    check() {
+      const v = parseIntv(inp.value);
+      if (v && v.badInf) { mark(r, false); return 'L’infinit (+∞ o −∞) sempre s’escriu amb parèntesi.'; }
+      const ok = intvEq(v, p.ans); mark(r, ok); return ok;
+    },
+    lock() { inp.disabled = true; },
+    fill() { inp.value = p.fillText; },
+    wrong() { }
+  };
+}
+function pTpl(p) {
+  const r = mk('div', 'part');
+  const html = fmt(p.html).replace(/\{(\w+)\}/g, (m, k) => `<input type="text" class="sm" data-k="${k}" inputmode="decimal" autocomplete="off">`);
+  r.append(mk('div', 'tpl', html));
+  const ins = [...r.querySelectorAll('input')];
+  return {
+    root: r,
+    check() {
+      let all = true;
+      ins.forEach(i => {
+        const a = p.blanks[i.dataset.k]; const v = parseNum(i.value);
+        const arr = Array.isArray(a) ? a : [a];
+        const ok = !isNaN(v) && arr.some(x => near(v, x, 1e-9));
+        i.style.borderColor = ok ? 'var(--term)' : 'var(--alert)';
+        if (!ok) all = false;
+      });
+      mark(r, all); return all;
+    },
+    lock() { ins.forEach(i => i.disabled = true); },
+    fill() { ins.forEach(i => { const a = p.blanks[i.dataset.k]; i.value = String(Array.isArray(a) ? a[0] : a).replace('.', ',').replace('-', '−'); }); },
+    wrong() { }
+  };
+}
+const PART = { mcq: pMcq, num: pNum, sci: pSci, props: pProps, power: pPower, interval: pIntv, tpl: pTpl };
+/* ═════ widgets ═════ */
+function wMulti(it) {
+  const root = mk('div'); const parts = it.parts.map(p => PART[p.kind](p));
+  parts.forEach(p => root.append(p.root));
+  return {
+    root,
+    check() {
+      let ok = true, soft = null;
+      parts.forEach(p => { if (p.done) return; const r = p.check(); if (r === true) { p.done = true; p.lock(); } else if (typeof r === 'string') { soft = r; } else ok = false; });
+      if (!ok) return { ok: false };
+      if (soft) return { ok: false, soft };
+      return { ok: true };
+    },
+    fill() { parts.forEach(p => { if (!p.done) p.fill(); }); }
+  };
+}
+function wClassify(it) {
+  const root = mk('div'); const t = mk('table', 'cl');
+  t.innerHTML = '<thead><tr><th>Xifra</th><th>Natural<br>ℕ</th><th>Enter<br>ℤ</th><th>Racional<br>ℚ</th><th>Irracional<br>𝕀</th></tr></thead>';
+  const tb = mk('tbody'); const keys = ['N', 'Z', 'Q', 'I'];
+  it.rows.forEach((r, i) => { const tr = mk('tr'); tr.innerHTML = `<td>${fmt(r)}</td>` + keys.map(k => `<td><input type="checkbox" data-k="${k}"></td>`).join(''); tb.append(tr); });
+  t.append(tb); root.append(t);
+  const trs = [...tb.children];
+  return {
+    root,
+    check() {
+      let ok = true;
+      trs.forEach((tr, i) => {
+        if (tr.dataset.done) return;
+        const sel = [...tr.querySelectorAll('input:checked')].map(x => x.dataset.k).sort().join('');
+        const good = it.ans[i].slice().sort().join('') === sel;
+        tr.classList.remove('ok', 'bad'); tr.classList.add(good ? 'ok' : 'bad');
+        if (good) { tr.dataset.done = 1; tr.querySelectorAll('input').forEach(x => x.disabled = true); } else ok = false;
+      });
+      return { ok };
+    },
+    fill() { trs.forEach((tr, i) => { if (tr.dataset.done) return; it.ans[i].forEach(k => tr.querySelector(`input[data-k="${k}"]`).click()); }); }
+  };
+}
+function wOrder(it) {
+  const root = mk('div'); const picked = []; const pool = mk('div', 'chips'); const slotsEl = mk('div', 'slots');
+  const order = it.items.map((x, i) => i).sort((a, b) => ((a * 7 + 3) % it.items.length) - ((b * 7 + 3) % it.items.length));
+  const chips = order.map(i => { const c = mk('div', 'chip', fmt(it.items[i])); c.onclick = () => { if (locked) return; picked.push(i); c.classList.add('used'); draw(); }; pool.append(c); return c; });
+  let locked = false;
+  function draw() {
+    slotsEl.innerHTML = '';
+    for (let k = 0; k < it.items.length; k++) {
+      if (k) slotsEl.append(mk('span', '', '&lt;'));
+      const s = mk('div', 'slot' + (picked[k] != null ? ' f' : ''), picked[k] != null ? fmt(it.items[picked[k]]) : '&nbsp;');
+      s.onclick = () => { if (locked || picked[k] == null) return; const [x] = picked.splice(k, 1); chips[order.indexOf(x)].classList.remove('used'); draw(); };
+      slotsEl.append(s);
+    }
+  }
+  root.append(mk('div', 'pq', 'Clica les xifres de menor a major (clica una casella per treure-la):'), pool, slotsEl); draw();
+  return {
+    root,
+    check() { const ok = picked.length === it.items.length && picked.every((x, k) => x === k); if (ok) locked = true; slotsEl.style.outline = ok ? '1px solid var(--term)' : '1px solid var(--alert)'; return { ok }; },
+    fill() { picked.length = 0; it.items.forEach((x, i) => picked.push(i)); chips.forEach(c => c.classList.add('used')); draw(); }
+  };
+}
+function wNumline(it) {
+  const g = it.geo, Wd = 720, mL = 44, mR = 44, s = (Wd - mL - mR) / (g.max - g.min);
+  const X = v => mL + (v - g.min) * s, fromX = x => g.min + (x - mL) / s;
+  const trayY = 24, axisY = 52 + s + 8, H = axisY + (g.rect ? s : 0) + 44;
+  const NS = 'http://www.w3.org/2000/svg';
+  const root = mk('div');
+  root.append(mk('div', 'legend', 'Plaques: ' + it.plaques.map(p => `<b>${p.id}</b> = ${fmt(p.label)}`).join(' &nbsp;·&nbsp; ')));
+  const box = mk('div', 'nlbox');
+  let svgH = `<svg viewBox="0 0 ${Wd} ${H}" xmlns="${NS}" role="img" aria-label="Recta real amb figures geomètriques">`;
+  svgH += `<line x1="${mL - 20}" y1="${axisY}" x2="${Wd - mR + 22}" y2="${axisY}" stroke="#d3e8ef" stroke-width="2"/><path d="M${Wd - mR + 22} ${axisY} l-10 -5 v10z" fill="#d3e8ef"/>`;
+  svgH += `<line x1="${mL - 6}" y1="${trayY + 22}" x2="${Wd - mR + 6}" y2="${trayY + 22}" stroke="rgba(143,183,198,.25)" stroke-dasharray="3 5"/>`;
+  svgH += `<text x="${mL - 20}" y="${trayY - 8}" fill="#8fb7c6" font-size="10" letter-spacing="2">PLAQUES SENSE COL·LOCAR — ARROSSEGA-LES A LA RECTA</text>`;
+  if (g.square) {
+    svgH += `<rect x="${X(0)}" y="${axisY - s}" width="${s}" height="${s}" fill="rgba(127,214,255,.1)" stroke="#7fd6ff" stroke-width="1.5"/>`;
+    svgH += `<line x1="${X(0)}" y1="${axisY}" x2="${X(0) + s}" y2="${axisY - s}" stroke="#ff7a62" stroke-width="2" stroke-dasharray="6 5"/>`;
+    svgH += `<text x="${X(0) + s / 2}" y="${axisY - s - 6}" fill="#7fd6ff" font-size="13" text-anchor="middle">1</text><text x="${X(0) + s + 10}" y="${axisY - s / 2 + 4}" fill="#7fd6ff" font-size="13">1</text>`;
+  }
+  if (g.rect) {
+    const w = g.rect;
+    svgH += `<rect x="${X(0)}" y="${axisY}" width="${s * w}" height="${s}" fill="rgba(127,214,255,.07)" stroke="#7fd6ff" stroke-width="1.5"/>`;
+    svgH += `<line x1="${X(0)}" y1="${axisY}" x2="${X(0) + s * w}" y2="${axisY + s}" stroke="#ff7a62" stroke-width="2" stroke-dasharray="6 5"/>`;
+    svgH += `<text x="${X(0) + s * w / 2}" y="${axisY + s + 16}" fill="#7fd6ff" font-size="13" text-anchor="middle">${w}</text><text x="${X(0) + s * w + 10}" y="${axisY + s / 2 + 4}" fill="#7fd6ff" font-size="13">1</text>`;
+  }
+  for (let t = Math.ceil(g.min); t <= Math.floor(g.max); t++) svgH += `<line x1="${X(t)}" y1="${axisY - 6}" x2="${X(t)}" y2="${axisY + 6}" stroke="#d3e8ef" stroke-width="1.6"/><text x="${X(t)}" y="${axisY + 22}" fill="#d3e8ef" font-size="14" text-anchor="middle">${String(t).replace('-', '−')}</text>`;
+  svgH += `<g id="arcs-${++uid}" class="arcs" opacity="0"></g><g class="toks"></g></svg>`;
+  box.innerHTML = svgH; root.append(box);
+  const svg = $('svg', box), toks = $('.toks', svg), arcs = $('.arcs', svg);
+  const n = it.plaques.length, slotX = i => mL + (i + .5) * (Wd - mL - mR) / n;
+  const st = it.plaques.map((p, i) => ({ p, i, x: slotX(i), y: trayY + 22, placed: false, val: null, locked: false }));
+  const gEls = st.map(o => {
+    const e = document.createElementNS(NS, 'g'); e.style.cursor = 'grab';
+    e.innerHTML = `<circle r="16" fill="#08202a" stroke="#ffb454" stroke-width="2"/><text y="5" text-anchor="middle" fill="#fff" font-size="15" font-weight="600">${o.p.id}</text><text class="vl" y="-22" text-anchor="middle" fill="#8dffb4" font-size="11"></text>`;
+    toks.append(e); o.e = e; place(o); return e;
+  });
+  function place(o) { o.e.setAttribute('transform', `translate(${o.x},${o.y})`); const vl = $('.vl', o.e); vl.textContent = o.placed ? '≈ ' + fp(o.val).replace(/^(-?)/, m => m ? '−' : '') : ''; }
+  function pt(ev) { const P = svg.createSVGPoint(); P.x = ev.clientX; P.y = ev.clientY; return P.matrixTransform(svg.getScreenCTM().inverse()); }
+  st.forEach(o => {
+    let drag = false;
+    o.e.addEventListener('pointerdown', ev => { if (o.locked) return; drag = true; o.e.setPointerCapture(ev.pointerId); o.e.style.cursor = 'grabbing'; toks.append(o.e); ev.preventDefault(); });
+    o.e.addEventListener('pointermove', ev => { if (!drag) return; const q = pt(ev); o.x = Math.max(mL - 14, Math.min(Wd - mR + 14, q.x)); o.y = Math.max(14, Math.min(H - 14, q.y)); o.placed = false; place(o); });
+    const end = () => {
+      if (!drag) return; drag = false; o.e.style.cursor = 'grab';
+      if (Math.abs(o.y - axisY) <= 34) { o.y = axisY; o.val = Math.round(Math.max(g.min, Math.min(g.max, fromX(o.x))) * 100) / 100; o.x = X(o.val); o.placed = true; }
+      else { o.x = slotX(o.i); o.y = trayY + 22; o.placed = false; }
+      place(o);
+    };
+    o.e.addEventListener('pointerup', end); o.e.addEventListener('pointercancel', end);
+  });
+  function drawArcs() {
+    let h = '';
+    const r1 = s * Math.SQRT2, cx = X(0);
+    if (g.square) h += `<path d="M${cx + r1 * Math.SQRT1_2} ${axisY - r1 * Math.SQRT1_2} A ${r1} ${r1} 0 0 1 ${cx + r1} ${axisY}" fill="none" stroke="#ffb454" stroke-width="2" stroke-dasharray="4 4"/><circle cx="${cx + r1}" cy="${axisY}" r="4" fill="#ffb454"/>`;
+    if (g.rect) { const w = g.rect, r2 = s * Math.sqrt(w * w + 1); h += `<path d="M${cx + s * w} ${axisY + s} A ${r2} ${r2} 0 0 0 ${cx + r2} ${axisY}" fill="none" stroke="#ffb454" stroke-width="2" stroke-dasharray="4 4"/><circle cx="${cx + r2}" cy="${axisY}" r="4" fill="#ffb454"/>`; }
+    arcs.innerHTML = h; arcs.setAttribute('opacity', '1');
+  }
+  return {
+    root,
+    onHint() { drawArcs(); },
+    check() {
+      if (st.some(o => !o.placed && !o.locked)) return { ok: false, soft: 'Col·loca totes les plaques a la recta abans de verificar.' };
+      let ok = true;
+      st.forEach(o => {
+        if (o.locked) return;
+        const good = Math.abs(o.val - o.p.val) <= (o.p.tol || .12);
+        o.e.querySelector('circle').setAttribute('stroke', good ? '#8dffb4' : '#ff3b1d');
+        if (good) { o.locked = true; o.e.style.cursor = 'default'; } else { ok = false; }
+      });
+      return { ok };
+    },
+    fill() { st.forEach(o => { if (o.locked) return; o.val = o.p.val; o.x = X(o.p.val); o.y = axisY; o.placed = true; place(o); }); }
+  };
+}
+/* number line for intervals */
+function lineSVG(spec, o) {
+  const NS = 'http://www.w3.org/2000/svg', W = 520, H = 66, m = 30, t0 = spec.ticks[0], t1 = spec.ticks[spec.ticks.length - 1];
+  const X = v => m + (v - t0) / (t1 - t0) * (W - 2 * m), ay = 30;
+  const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.style.width = '100%';
+  const st = o.state; let h = `<line x1="8" y1="${ay}" x2="${W - 10}" y2="${ay}" stroke="#d3e8ef" stroke-width="1.8"/><path d="M${W - 8} ${ay} l-9 -4.5 v9z" fill="#d3e8ef"/>`;
+  spec.ticks.forEach(t => { const lab = (t - t0) % (spec.labelStep || 1) === 0; h += `<line x1="${X(t)}" y1="${ay - 5}" x2="${X(t)}" y2="${ay + 5}" stroke="#d3e8ef"/>` + (lab ? `<text x="${X(t)}" y="${ay + 22}" font-size="12" fill="#d3e8ef" text-anchor="middle">${String(t).replace('-', '−')}</text>` : ''); });
+  const has = st.lo != null && st.hi != null;
+  if (has) {
+    const xa = isFinite(st.lo) ? X(st.lo) : 8, xb = isFinite(st.hi) ? X(st.hi) : W - 10;
+    h += `<line x1="${xa}" y1="${ay}" x2="${xb}" y2="${ay}" stroke="#7fd6ff" stroke-width="5"/>`;
+    if (!isFinite(st.lo)) h += `<path d="M6 ${ay} l10 -6 v12z" fill="#7fd6ff"/>`;
+    if (!isFinite(st.hi)) h += `<path d="M${W - 6} ${ay} l-10 -6 v12z" fill="#7fd6ff"/>`;
+  }
+  const dot = (v, inc) => `<circle cx="${X(v)}" cy="${ay}" r="7" fill="${inc ? '#7fd6ff' : '#050f13'}" stroke="#7fd6ff" stroke-width="2.4"/>`;
+  if (st.lo != null && isFinite(st.lo)) h += dot(st.lo, st.loI);
+  if (st.hi != null && isFinite(st.hi)) h += dot(st.hi, st.hiI);
+  if (o.interactive) spec.ticks.forEach(t => h += `<circle class="hit" data-v="${t}" cx="${X(t)}" cy="${ay}" r="11" fill="transparent" style="cursor:pointer"/>`);
+  svg.innerHTML = h;
+  if (o.interactive) svg.querySelectorAll('.hit').forEach(c => c.addEventListener('click', () => o.onClick(parseFloat(c.dataset.v))));
+  return svg;
+}
+function wIntRow(it) {
+  const root = mk('div', 'ir' + (it.example ? ' ex' : ''));
+  const parts = {};
+  const colI = mk('div'), colV = mk('div'), colL = mk('div');
+  colI.innerHTML = '<div class="h">Desigualtat</div>'; colV.innerHTML = '<div class="h">Interval</div>'; colL.innerHTML = '<div class="h">A la recta</div>';
+  root.append(colI, colV, colL);
+  const ans = it.ans;
+  const ineqSrc = it.ineq, intSrc = it.interval;
+  let inpI, inpV, state = { lo: null, loI: false, hi: null, hiI: false }, lineHost, msgEl;
+  if (it.ineq.given) colI.append(mk('div', 'given', fmt(it.ineq.given))); else { inpI = mk('input'); inpI.type = 'text'; inpI.className = 'wide'; inpI.style.width = '100%'; inpI.placeholder = 'p. ex. 2 ≤ x < 7'; inpI.autocomplete = 'off'; colI.append(inpI, mk('div', 'mini', 'Pots escriure ≤ com a <=')); }
+  if (it.interval.given) colV.append(mk('div', 'given', fmt(it.interval.given))); else { inpV = mk('input'); inpV.type = 'text'; inpV.style.width = '100%'; inpV.placeholder = 'p. ex. [2, 7)'; inpV.autocomplete = 'off'; colV.append(inpV, mk('div', 'mini', 'Infinit: +∞ o inf')); }
+  lineHost = mk('div');
+  if (it.line.given) { const sp = it.line.given; lineHost.append(lineSVG(it, { state: { lo: sp.lo, loI: sp.loI, hi: sp.hi, hiI: sp.hiI } })); }
+  else {
+    const redraw = () => { lineHost.querySelector('svg')?.remove(); lineHost.prepend(lineSVG(it, { state, interactive: !lockedLine, onClick })); };
+    let lockedLine = false;
+    const onClick = v => {
+      const { lo, hi } = state;
+      if (lo == null && hi == null) { state.lo = v; state.loI = false; }
+      else if (hi == null && lo != null && v !== lo) { if (v > lo) { state.hi = v; state.hiI = false; } else { state.hi = lo; state.hiI = state.loI; state.lo = v; state.loI = false; } }
+      else if (v === lo) state.loI = !state.loI;
+      else if (v === hi) state.hiI = !state.hiI;
+      else if (lo === -Infinity) { state.hi = v; }
+      else if (hi === Infinity) { state.lo = v; }
+      else if (lo != null && hi != null) { if (Math.abs(v - lo) <= Math.abs(v - hi)) state.lo = Math.min(v, hi - 1e-9); else state.hi = Math.max(v, lo + 1e-9); }
+      else if (lo == null && hi != null) { if (v < hi) state.lo = v; }
+      redraw();
+    };
+    const bt = mk('div', 'lnbtns');
+    const b1 = mk('button', '', '← −∞'), b2 = mk('button', '', '+∞ →'), b3 = mk('button', '', 'Esborra');
+    b1.type = b2.type = b3.type = 'button';
+    b1.onclick = () => { if (lockedLine) return; if (state.hi == null && state.lo != null && isFinite(state.lo)) { state.hi = state.lo; state.hiI = state.loI; } state.lo = -Infinity; state.loI = false; redraw(); };
+    b2.onclick = () => { if (lockedLine) return; if (state.lo == null && state.hi != null && isFinite(state.hi)) { state.lo = state.hi; state.loI = state.hiI; } state.hi = Infinity; state.hiI = false; redraw(); };
+    b3.onclick = () => { if (lockedLine) return; state = { lo: null, loI: false, hi: null, hiI: false }; redraw(); };
+    bt.append(b1, b2, b3); colL.append(lineHost, bt, mk('div', 'mini', 'Clica una marca per posar un extrem; clica’l de nou per canviar obert ○ / tancat ●.'));
+    redraw();
+    parts.line = { check() { const ok = state.lo != null && state.hi != null && intvEq({ lo: state.lo, hi: state.hi, loI: state.loI, hiI: state.hiI }, ans); return ok; }, lock() { lockedLine = true; redraw(); }, fill() { state = { lo: ans.lo, loI: ans.loI, hi: ans.hi, hiI: ans.hiI }; redraw(); }, el: colL };
+  }
+  if (it.line.given) colL.append(lineHost);
+  if (inpI) parts.ineq = { check() { const v = parseIneq(inpI.value); return intvEq(v, ans); }, lock() { inpI.disabled = true; }, fill() { inpI.value = it.fillIneq; }, el: colI };
+  if (inpV) parts.interval = { check() { const v = parseIntv(inpV.value); if (v && v.badInf) { parts.interval.msg = 'L’infinit sempre s’escriu amb parèntesi.'; return false; } parts.interval.msg = null; return intvEq(v, ans); }, lock() { inpV.disabled = true; }, fill() { inpV.value = it.fillInterval; }, el: colV };
+  return {
+    root,
+    check() {
+      let ok = true, msg = null;
+      Object.values(parts).forEach(p => { if (p.done) return; const r = p.check(); p.el.style.outline = r ? '1px solid var(--term)' : '1px solid var(--alert)'; if (r) { p.done = true; p.lock(); } else { ok = false; if (p.msg) msg = p.msg; } });
+      return { ok, hintMsg: msg };
+    },
+    fill() { Object.values(parts).forEach(p => { if (!p.done) p.fill(); }); }
+  };
+}
+const WIDGETS = { multi: wMulti, classify: wClassify, order: wOrder, numline: wNumline, introw: wIntRow };
+/* ═════ item card ═════ */
+function buildItem(door, it, idx, onDone) {
+  const id = door.id + '.' + idx; const st = S.items[id] = { id, door: door.name, label: it.label || '', max: it.pts, attempts: 0, pts: 0, done: false, revealed: false };
+  const card = mk('div', 'item locked');
+  card.append(mk('div', 'ihead', `<span>${it.label || ''}</span><span class="pill">${fp(it.pts)} pts</span>`));
+  if (it.pre) card.append(mk('div', 'tx', fmt(it.pre)));
+  if (it.dlg && it.dlg.length) { const c = mk('div', 'comms'); it.dlg.forEach(([w, t]) => c.append(mk('p', '', `<span class="who ${w[0] === 'N' ? 'n' : 'm'}">${w.toUpperCase()}:</span>${fmt(t)}`))); card.append(c); }
+  if (it.prompt) card.append(mk('div', 'prompt', fmt(it.prompt)));
+  if (it.example) card.append(mk('div', 'prompt', fmt(it.exampleLabel || '')));
+  const w = WIDGETS[it.type](it); card.append(w.root); it.__w = w;
+  const fb = mk('div', 'fb'), hb = mk('div', 'hintbox'), rv = mk('div', 'reveal');
+  const acts = mk('div', 'acts');
+  const bv = mk('button', 'btn main', 'Aplica el filament'); bv.type = 'button';
+  const bh = mk('button', 'btn ghost', 'Necessites una pista?'); bh.type = 'button';
+  acts.append(bv); if (it.hint) acts.append(bh);
+  card.append(acts, fb, hb, rv);
+  bh.onclick = () => { if (!hb.classList.contains('on')) { S.hints++; st.hints = (st.hints || 0) + 1; } hb.innerHTML = fmt(it.hint); hb.classList.add('on'); if (w.onHint) w.onHint(); };
+  bv.onclick = () => {
+    if (st.done) return;
+    const r = w.check();
+    if (r.ok) {
+      st.done = true; st.pts = Math.round(it.pts * FACT[Math.min(st.attempts, 2)] * 100) / 100;
+      fb.className = 'fb ok'; fb.textContent = 'MOSTRA NETA — correcte' + (st.attempts ? ` (a l’intent ${st.attempts + 1}: ${fp(st.pts)} de ${fp(it.pts)} punts)` : ` (+${fp(st.pts)} punts)`);
+      card.classList.add('done'); bv.disabled = true; bh.disabled = true; updScore(); onDone();
+    } else if (r.soft) { fb.className = 'fb soft'; fb.textContent = r.soft; }
+    else {
+      st.attempts++; S.errors++; glitch();
+      fb.className = 'fb bad'; fb.textContent = 'REACCIÓ DETECTADA — alguna cosa no quadra' + (r.hintMsg ? '. ' + r.hintMsg : '') + `. Intents: ${st.attempts}/3`;
+      if (st.attempts >= 3) {
+        st.done = true; st.revealed = true; st.pts = 0; card.classList.add('fail'); bv.disabled = true; bh.disabled = true;
+        rv.innerHTML = '<b>Protocol de seguretat activat. Solució:</b><br>' + fmt(it.solution || ''); rv.classList.add('on'); fb.textContent = 'Has esgotat els intents. Consulta la solució i continua.'; updScore(); onDone();
+      }
+    }
+  };
+  card.__unlock = () => card.classList.remove('locked');
+  return card;
+}
+/* ═════ stages ═════ */
+function buildStages() {
+  const st = [{ type: 'intro', name: 'Inici', short: 'Inici' }];
+  MODEL.doors.forEach((d, i) => {
+    st.push({ type: 'door', door: d, name: d.name, short: 'Comporta ' + d.n, n: d.n });
+    if (MODEL.restAfter === i) st.push({ type: 'rest', name: 'Descans', short: 'Descans' });
+  });
+  if (MODEL.extra) { st.push({ type: 'gate', name: 'Porta secreta', short: 'Extra', extra: true }); st.push({ type: 'door', door: MODEL.extra, name: MODEL.extra.name, short: 'Comporta 7', n: 7, extra: true, optional: true }); }
+  st.push({ type: 'final', name: 'Final', short: 'Final' });
+  return st;
+}
+function plate(d) { return mk('div', 'plate', `<span class="n">Comporta ${d.n} · ${d.name}</span><span class="pts">${d.extra ? 'EXTRA · ' : ''}${fp(d.items.reduce((a, i) => a + (i.pts || 0), 0))} punts</span>`); }
+function buildDoor(stage) {
+  const d = stage.door, root = mk('section', 'panel');
+  const dd = { ...d, extra: stage.extra };
+  root.append(plate(dd), mk('div', 'tx', fmt(d.story)));
+  if (d.remind) root.append(mk('div', 'remind', '<b>Placa de recordatori</b>' + fmt(d.remind)));
+  const list = mk('div'); root.append(list);
+  const ok = mk('div', 'doorok', '▸ COMPORTA OBERTA — el panell s’il·lumina en verd.'), nx = mk('button', 'btn main', 'Següent →'); nx.type = 'button'; nx.style.marginTop = '8px';
+  const real = d.items.filter(it => !it.example); d.__real = real;
+  const cards = []; let k = 0;
+  const done = () => {
+    k++; if (k < real.length) { cards[k].__unlock(); setTimeout(() => cards[k].scrollIntoView({ behavior: 'smooth', block: 'center' }), 120); }
+    else { ok.classList.add('on'); nx.style.display = 'inline-block'; stage.done = true; refreshMap(); }
+  };
+  d.items.filter(it => it.example).forEach(it => { const c = mk('div', 'item ex'); c.append(mk('div', 'ihead', '<span>Exemple resolt</span><span class="pill">per orientar-te</span>')); c.append(mk('div', 'prompt', fmt(it.prompt || ''))); c.append(WIDGETS[it.type](it).root); list.append(c); });
+  real.forEach((it, i) => { const c = buildItem(d, it, i, done); cards.push(c); list.append(c); });
+  cards[0].__unlock();
+  nx.style.display = 'none'; nx.onclick = () => go(S.idx + 1);
+  root.append(ok, nx);
+  if (stage.optional) { const sk = mk('button', 'btn ghost', 'Salta l’extra i ves a l’epíleg'); sk.type = 'button'; sk.style.margin = '8px 0 0 10px'; sk.onclick = () => go(S.idx + 1); root.append(sk); }
+  return root;
+}
+function buildRest(stage) {
+  const R = MODEL.rest, root = mk('section', 'panel');
+  root.append(mk('div', 'plate', '<span class="n">Descans · ' + R.place + '</span><span class="pts">no puntua · només per llegir</span>'));
+  const log = mk('div', 'log comms'); root.append(log);
+  const fig = mk('div', 'restfig');
+  const { a, r, out } = R.fig, Wd = 720, H = 190, m = 70, span = 2 * (Math.abs(out - a) + r * 0.8); const X = v => m + (v - (a - span / 2)) / span * (Wd - 2 * m), ay = 110, f = v => v.toFixed(2).replace('.', ',');
+  let h = `<svg viewBox="0 0 ${Wd} ${H}"><line x1="20" y1="${ay}" x2="${Wd - 20}" y2="${ay}" stroke="#d3e8ef" stroke-width="2"/><path d="M${Wd - 20} ${ay} l-10 -5 v10z" fill="#d3e8ef"/>`;
+  [a - r, a, a + r, out].forEach(v => h += `<line x1="${X(v)}" y1="${ay - 6}" x2="${X(v)}" y2="${ay + 6}" stroke="#d3e8ef"/><text x="${X(v)}" y="${ay + 24}" fill="#d3e8ef" font-size="14" text-anchor="middle">${f(v)}</text>`);
+  h += `<g class="g" data-g="center"><circle cx="${X(a)}" cy="${ay}" r="7" fill="#ff7a62"/><text x="${X(a)}" y="40" fill="#ff7a62" font-size="15" text-anchor="middle">centre a = ${f(a)}</text></g>`;
+  h += `<g class="g" data-g="radius"><line x1="${X(a)}" y1="70" x2="${X(a + r)}" y2="70" stroke="#7fd6ff" stroke-width="1.6"/><line x1="${X(a)}" y1="70" x2="${X(a - r)}" y2="70" stroke="#7fd6ff" stroke-width="1.6"/><path d="M${X(a + r)} 70 l-8 -4 v8z M${X(a - r)} 70 l8 -4 v8z" fill="#7fd6ff"/><text x="${(X(a) + X(a + r)) / 2}" y="62" fill="#7fd6ff" font-size="13" text-anchor="middle">r = ${f(r)}</text><text x="${(X(a) + X(a - r)) / 2}" y="62" fill="#7fd6ff" font-size="13" text-anchor="middle">r = ${f(r)}</text></g>`;
+  h += `<g class="g" data-g="interval"><line x1="${X(a - r)}" y1="${ay}" x2="${X(a + r)}" y2="${ay}" stroke="#7fd6ff" stroke-width="6"/><circle cx="${X(a - r)}" cy="${ay}" r="8" fill="#050f13" stroke="#7fd6ff" stroke-width="2.6"/><circle cx="${X(a + r)}" cy="${ay}" r="8" fill="#050f13" stroke="#7fd6ff" stroke-width="2.6"/><text x="${X(a)}" y="165" fill="#7fd6ff" font-size="16" text-anchor="middle" font-weight="600">E(${f(a)} ; ${f(r)}) = (${f(a - r)} ; ${f(a + r)})</text></g>`;
+  h += `<g class="g" data-g="out"><path d="M${X(out) - 7} ${ay - 7} l14 14 M${X(out) + 7} ${ay - 7} l-14 14" stroke="#ff3b1d" stroke-width="2.6"/><text x="${X(out)}" y="${ay - 18}" fill="#ff7a62" font-size="13" text-anchor="middle">fora!</text></g></svg>`;
+  fig.innerHTML = h; root.append(fig);
+  const lines = []; R.dlg.forEach(([w, t, g]) => { const p = mk('p', '', `<span class="who ${w[0] === 'N' ? 'n' : 'm'}">${w.toUpperCase()}:</span>${fmt(t)}`); p.__g = g; log.append(p); lines.push(p); });
+  let k = 0; const btn = mk('button', 'btn', 'Escolta el següent missatge ▸'); btn.type = 'button';
+  const nx = mk('button', 'btn main', 'Torna a la missió →'); nx.type = 'button'; nx.style.display = 'none'; nx.onclick = () => go(S.idx + 1);
+  const step = () => { const p = lines[k]; p.classList.add('on'); if (p.__g) fig.querySelectorAll('[data-g="' + p.__g + '"]').forEach(g => g.classList.add('on')); k++; if (k >= lines.length) { btn.style.display = 'none'; nx.style.display = 'inline-block'; stage.done = true; refreshMap(); } };
+  btn.onclick = step; root.append(btn, nx); stage.__skipAll = () => { while (k < lines.length) step(); };
+  root.append(mk('div', 'fb soft', 'Aquest tractament d’entorn et servirà més endavant.'));
+  return root;
+}
+function buildIntro(stage) {
+  const root = mk('section', 'panel');
+  root.append(mk('div', 'plate', '<span class="n">Informe d’incident · Hèlios-7</span><span class="pts">' + MODEL.tag + '</span>'));
+  const boot = mk('div', 'boot'); root.append(boot);
+  const body = mk('div'); body.style.display = 'none';
+  body.append(mk('div', 'tx', fmt(MODEL.intro)));
+  body.append(mk('p', '', 'Cada comporta és una trampa numèrica. Resol els apartats per ordre: <b style="color:var(--term)">«Aplica el filament»</b> comprova la teva resposta. Tens 3 intents per apartat; cada error activa un protocol de seguretat i rebaixa la puntuació.'));
+  const nm = mk('input'); nm.type = 'text'; nm.className = 'nm'; nm.placeholder = 'Nom i cognoms (per a l’informe)'; nm.style.margin = '14px 0 10px'; nm.style.display = 'block'; nm.autocomplete = 'off';
+  const cd = mk('label', 'opt', '<input type="checkbox" id="cdown"><span>Mode examen: compte enrere de 55 minuts (la ventada s’apropa)</span>'); cd.style.padding = '2px 0'; cd.style.marginBottom = '14px';
+  const go1 = mk('button', 'btn main', 'Entra a l’estació →'); go1.type = 'button';
+  body.append(nm, cd, go1); root.append(body);
+  const text = MODEL.boot.join('\n'); let i = 0, timer; const cur = '<span class="cursor"></span>';
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reveal = () => { clearInterval(timer); boot.innerHTML = text.replace(/</g, '&lt;'); body.style.display = 'block'; };
+  if (reduce) reveal(); else { timer = setInterval(() => { i += 2; boot.innerHTML = text.slice(0, i).replace(/</g, '&lt;') + cur; if (i >= text.length) reveal(); }, 18); boot.onclick = reveal; }
+  go1.onclick = () => { S.name = nm.value.trim(); S.countdown = $('#cdown', root).checked; S.t0 = Date.now(); if (S.countdown) $('#rd-tlab').textContent = 'Calma restant'; clearInterval(timer); go(1); };
+  stage.__skipAll = reveal; stage.__go = go1;
+  return root;
+}
+function buildGate(stage) {
+  const root = mk('section', 'panel');
+  root.append(mk('div', 'plate', '<span class="n">Nucli de dades obtingut</span><span class="pts">fi del recorregut principal</span>'));
+  root.append(mk('div', 'tx', fmt(MODEL.gate)));
+  const a = mk('button', 'btn main', 'Intenta la comporta d’emergència (extra) →'), b = mk('button', 'btn ghost', 'Surt de la nau →');
+  a.type = b.type = 'button'; a.onclick = () => go(S.idx + 1); b.onclick = () => go(S.idx + 2); b.style.marginLeft = '10px';
+  root.append(a, b); stage.done = true; return root;
+}
+function buildFinal(stage) {
+  const root = mk('section', 'panel');
+  root.append(mk('div', 'plate', '<span class="n">Epíleg · Hèlios-7</span><span class="pts"><span class="stamp">MISSIÓ COMPLERTA</span></span>'));
+  const lt = `<svg class="lightning" viewBox="0 0 700 26" preserveAspectRatio="none"><polyline fill="none" stroke="#7fd6ff" stroke-width="1.4" points="0,13 60,10 85,17 140,8 190,16 215,5 270,19 330,9 380,15 420,6 470,18 520,10 560,16 620,8 700,13"/><polyline fill="none" stroke="#ff3b1d" stroke-width="1" opacity=".7" points="0,14 70,12 100,19 150,10 205,17 230,8 280,20 340,11 390,16 430,9 480,19 530,12 575,17 630,10 700,14"/></svg>`;
+  root.append(mk('div', 'tx', fmt(MODEL.epilogue)), mk('div', '', lt));
+  const sum = mk('div'); sum.innerHTML = '<div class="big" id="fin-score"></div><div style="color:var(--ice2);font-size:12px;letter-spacing:.2em;text-transform:uppercase;">punts · <span id="fin-detail"></span></div>';
+  root.append(sum);
+  const tbl = mk('table', 'sum'); tbl.innerHTML = '<thead><tr><th>Comporta</th><th>Apartat</th><th>Punts</th><th>Intents</th></tr></thead><tbody id="fin-rows"></tbody>'; root.append(tbl);
+  const nm = mk('input'); nm.type = 'text'; nm.className = 'nm'; nm.placeholder = 'Nom i cognoms'; nm.id = 'fin-name'; nm.style.display = 'block'; nm.style.margin = '10px 0'; nm.autocomplete = 'off';
+  const rp = mk('button', 'btn main', 'Genera l’informe (PDF) →'), rs = mk('button', 'btn ghost', 'Reinicia l’activitat'); rp.type = rs.type = 'button'; rs.style.marginLeft = '10px';
+  rp.onclick = report; rs.onclick = () => location.reload();
+  root.append(nm, rp, rs);
+  stage.__refresh = () => {
+    $('#fin-score').textContent = fp(totalPts()) + ' / ' + fp(MODEL.max);
+    const sec = Math.floor((Date.now() - S.t0) / 1000);
+    $('#fin-detail').textContent = 'errors: ' + S.errors + ' · pistes: ' + S.hints + ' · temps: ' + mmss(sec);
+    $('#fin-name').value = S.name;
+    $('#fin-rows').innerHTML = Object.values(S.items).map(i => `<tr><td>${i.door}</td><td>${i.label}</td><td>${fp(i.pts)} / ${fp(i.max)}</td><td>${i.done ? (i.revealed ? 'solució' : i.attempts + 1) : '—'}</td></tr>`).join('');
+  };
+  return root;
+}
+function mmss(s) { s = Math.max(0, s); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+function report() {
+  const nameIn = $('#fin-name').value.trim() || S.name; S.name = nameIn;
+  $('#rp-name').textContent = nameIn || '—'; $('#rp-date').textContent = new Date().toLocaleDateString('ca-ES');
+  $('#rp-time').textContent = mmss(Math.floor((Date.now() - S.t0) / 1000));
+  $('#rp-rows').innerHTML = Object.values(S.items).map(i => `<tr><td>${i.door}</td><td>${i.label}</td><td>${fp(i.max)}</td><td>${fp(i.pts)}</td><td>${i.done ? (i.revealed ? 'solució' : i.attempts + 1) : '—'}</td></tr>`).join('');
+  $('#rp-total').textContent = fp(totalPts()) + ' / ' + fp(MODEL.max); $('#rp-err').textContent = S.errors; $('#rp-hints').textContent = S.hints;
+  window.print();
+}
+/* ═════ nav ═════ */
+function buildMap() {
+  const m = $('#map'); m.innerHTML = '';
+  S.stages.forEach((s, i) => {
+    if (s.type === 'intro' || s.type === 'gate') return;
+    const n = mk('div', 'node' + (s.type === 'rest' ? ' rest' : '') + (s.extra ? ' extra' : ''), `<b>${s.type === 'door' ? s.n : s.type === 'rest' ? '☾' : '✓'}</b>${s.type === 'door' ? s.door.name : s.name}`);
+    n.onclick = () => { if (i <= S.reached) go(i); };
+    m.append(n); s.node = n;
+  });
+}
+function refreshMap() { S.stages.forEach((s, i) => { if (!s.node) return; s.node.className = s.node.className.replace(/\b(reach|cur|done)\b/g, '').trim(); if (i === S.idx) s.node.classList.add('cur'); else if (s.done && i <= S.reached) s.node.classList.add('done'); else if (i <= S.reached) s.node.classList.add('reach'); }); }
+function go(i) {
+  if (i > S.stages.length - 1) return;
+  S.idx = i; S.reached = Math.max(S.reached, i);
+  const host = $('#stage'); host.innerHTML = '';
+  const s = S.stages[i];
+  if (!s.el) s.el = ({ intro: buildIntro, door: buildDoor, rest: buildRest, gate: buildGate, final: buildFinal })[s.type](s);
+  host.append(s.el);
+  if (s.type === 'final') { s.done = true; s.__refresh(); }
+  refreshMap(); window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+/* ═════ HUD: temp, timer, snow ═════ */
+setInterval(() => {
+  $('#rd-temp').textContent = '−' + (39 + Math.floor(Math.random() * 7)) + ' °C';
+  if (!S.t0) return; const el = Math.floor((Date.now() - S.t0) / 1000);
+  if (S.countdown) { const left = 55 * 60 - el; const t = $('#rd-time'); t.textContent = mmss(left); t.className = left < 300 ? 'warn' : ''; }
+  else $('#rd-time').textContent = mmss(el);
+}, 1000);
+(function snow() {
+  const c = $('#snow'), x = c.getContext('2d'); if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let W, H, P = [];
+  const rs = () => { W = c.width = innerWidth; H = c.height = innerHeight; P = Array.from({ length: Math.round(W * H / 14000) }, () => ({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.8 + .4, v: Math.random() * .8 + .3, d: Math.random() * 6 })); };
+  rs(); addEventListener('resize', rs);
+  (function f() { x.clearRect(0, 0, W, H); x.fillStyle = '#e4f3f8'; P.forEach(p => { p.y += p.v; p.x += 1.1 + Math.sin(p.d += .01) * .6; if (p.y > H) { p.y = -5; p.x = Math.random() * W; } if (p.x > W) p.x = 0; x.globalAlpha = .35 + p.r * .2; x.beginPath(); x.arc(p.x, p.y, p.r, 0, 7); x.fill(); }); requestAnimationFrame(f); })();
+})();
+S.stages = buildStages(); buildMap(); go(0);
+
+
+</script>
+</body>
+</html>
