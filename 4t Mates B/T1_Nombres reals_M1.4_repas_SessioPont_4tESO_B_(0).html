@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matemàtiques B · Nombres reals · Resum visual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#13151f;--bg2:#1c1f2e;--bg3:#252839;--surface:#1e2133;
+  --border:rgba(255,255,255,.08);--text:#ffffff;--text2:rgba(255,255,255,.78);--text3:rgba(255,255,255,.45);
+  --pink:#e91e8c;--purple:#7c3aed;--cyan:#06b6d4;--orange:#f59e0b;--green:#10b981;
+  --g1:linear-gradient(135deg,#e91e8c,#7c3aed);--g2:linear-gradient(135deg,#06b6d4,#7c3aed);
+  --g3:linear-gradient(135deg,#f59e0b,#e91e8c);--g4:linear-gradient(135deg,#10b981,#06b6d4);
+  --g5:linear-gradient(135deg,#7c3aed,#06b6d4);--font:'Outfit',sans-serif;--r:12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);}
+body{font-family:var(--font);font-size:14px;color:var(--text);}
+#slides{width:100%;height:100vh;position:relative;}
+.slide{position:absolute;inset:0;display:none;flex-direction:column;opacity:0;transition:opacity .3s;}
+.slide.active{display:flex;opacity:1;}
+.topbar{height:46px;display:flex;align-items:center;padding:0 36px;gap:10px;flex-shrink:0;border-bottom:1px solid var(--border);}
+.topbar-brand{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);}
+.topbar-sep{width:1px;height:16px;background:var(--border);}
+.topbar-title{font-size:12px;font-weight:500;color:var(--text2);}
+.topbar-right{flex:1;text-align:right;font-size:11px;color:var(--text3);}
+.badge{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:3px 10px;border-radius:20px;color:#fff;}
+.badge-pink{background:var(--g1);}.badge-cyan{background:var(--g2);}.badge-orange{background:var(--g3);}
+.badge-green{background:var(--g4);}.badge-purple{background:var(--g5);}
+.prog{height:2px;background:var(--border);flex-shrink:0;}
+.prog-fill{height:100%;background:var(--g2);transition:width .3s;}
+.main{flex:1;overflow:hidden;padding:14px 32px 0;display:flex;flex-direction:column;gap:10px;min-height:0;}
+.grid{display:grid;gap:10px;flex:1;min-height:0;}
+.g2c{grid-template-columns:1fr 1fr;}
+.grid>*{min-height:0;}
+.slide-h{display:flex;align-items:center;gap:14px;flex-shrink:0;}
+.slide-h-icon{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;flex-shrink:0;}
+.slide-h h1{font-size:21px;font-weight:800;color:#fff;line-height:1.2;}
+.slide-h p{font-size:12px;color:var(--text3);margin-top:2px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 22px;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+.card.sc{overflow-y:auto;overflow-x:hidden;}
+.card.sc::-webkit-scrollbar{width:3px;}
+.card.sc::-webkit-scrollbar-track{background:transparent;}
+.card.sc::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:2px;}
+.card.gline{position:relative;}
+.card.gline::before{content:'';position:absolute;inset:0;border-radius:var(--r);padding:1px;background:var(--g1);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+.card.gline-cyan::before{background:var(--g2);}.card.gline-orange::before{background:var(--g3);}
+.card.gline-green::before{background:var(--g4);}.card.gline-purple::before{background:var(--g5);}
+.card.dark{background:var(--bg2);}
+.card p{font-size:14px;color:var(--text2);line-height:1.7;}
+.lbl{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;flex-shrink:0;}
+.lbl-pink{color:var(--pink);}.lbl-cyan{color:var(--cyan);}.lbl-orange{color:var(--orange);}
+.lbl-green{color:var(--green);}.lbl-purple{color:#a78bfa;}
+.gt1{background:var(--g1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;}
+.gt2{background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;}
+.formula{font-family:'Courier New',monospace;font-size:13px;background:var(--bg3);color:var(--cyan);border:1px solid var(--border);border-radius:8px;padding:9px 13px;margin:6px 0;line-height:1.6;flex-shrink:0;}
+.formula.hero{font-size:20px;padding:14px;text-align:center;background:var(--bg);color:#fff;border-color:var(--border);}
+.formula.hero span{background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.dt{width:100%;border-collapse:collapse;font-size:12.5px;flex-shrink:0;}
+.dt th{background:var(--bg3);padding:7px 9px;text-align:center;font-weight:700;color:rgba(255,255,255,.6);border:1px solid var(--border);font-size:10.5px;letter-spacing:.05em;}
+.dt td{padding:7px 9px;text-align:center;border:1px solid var(--border);color:var(--text2);line-height:1.5;}
+.dt td.tl{text-align:left;}
+.dt tr:hover td{background:var(--bg3);}
+.dt td.hl{color:var(--pink);font-weight:700;}.dt td.hlb{color:var(--cyan);font-weight:700;}
+.steps{display:flex;flex-direction:column;gap:9px;flex-shrink:0;}
+.step{display:flex;gap:12px;align-items:flex-start;font-size:13.5px;color:var(--text2);line-height:1.65;}
+.step-n{min-width:26px;height:26px;border-radius:50%;background:var(--g1);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.step-n.s2{background:var(--g2);}.step-n.s3{background:var(--g3);}.step-n.s4{background:var(--g4);}
+.keybox{border-radius:var(--r);padding:12px 15px;font-size:13.5px;line-height:1.7;flex-shrink:0;border:1px solid var(--border);background:var(--bg3);}
+.keybox strong{color:#fff;}
+.nav-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 36px;flex-shrink:0;border-top:1px solid var(--border);}
+.nbtn{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 18px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font);transition:all .18s;font-weight:600;}
+.nbtn:hover{border-color:rgba(6,182,212,.5);color:#fff;}
+.nbtn.primary{background:var(--g2);color:#fff;border:none;padding:8px 20px;}
+.nbtn.primary:hover{opacity:.9;}.nbtn:disabled{opacity:.25;cursor:not-allowed;}
+.sc-num{font-size:11px;color:var(--text3);font-weight:600;letter-spacing:.08em;}
+.svg-box{background:var(--bg3);border-radius:10px;padding:12px 16px;margin:8px 0;flex-shrink:0;}
+.cover{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;gap:0;}
+.cover-eye{font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--text3);margin-bottom:24px;}
+.cover-title{font-size:64px;font-weight:800;line-height:1;background:linear-gradient(135deg,#fff 0%,rgba(255,255,255,.6) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;}
+.cover-bar{width:60px;height:3px;background:var(--g2);border-radius:2px;margin:18px auto;}
+.cover-sub{font-size:19px;font-weight:600;background:var(--g2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:14px;}
+.cover-desc{font-size:13px;color:var(--text3);line-height:1.8;}
+.cover-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:24px;max-width:640px;}
+.cover-tag{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 16px;font-size:11px;font-weight:600;color:var(--text2);}
+.fi-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:16px;min-height:0;overflow:hidden;}
+.fi-check{width:60px;height:60px;border-radius:50%;background:var(--g2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.fi-title{font-size:34px;font-weight:800;}
+.fi-desc{font-size:13px;color:var(--text3);line-height:1.8;max-width:600px;}
+.fi-next{font-size:11px;color:var(--text3);}
+.callout{border-left:3px solid var(--cyan);padding:9px 13px;background:rgba(6,182,212,.07);border-radius:0 8px 8px 0;font-size:13.5px;color:var(--text2);line-height:1.7;flex-shrink:0;}
+.callout strong{color:#fff;}
+.callout.orange{border-left-color:var(--orange);background:rgba(245,158,11,.07);}
+.callout.green{border-left-color:var(--green);background:rgba(16,185,129,.07);}
+.callout.pink{border-left-color:var(--pink);background:rgba(233,30,140,.07);}
+.callout.purple{border-left-color:#a78bfa;background:rgba(124,58,237,.09);}
+/* image placeholder box, for when a real photo/illustration should go here later */
+.imgph{border:2px dashed rgba(255,255,255,.22);border-radius:10px;padding:14px 16px;display:flex;gap:12px;align-items:center;background:rgba(255,255,255,.02);flex-shrink:0;margin:8px 0;}
+.imgph-icon{width:38px;height:38px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;}
+.imgph-txt{font-size:12.5px;color:var(--text3);line-height:1.6;}
+.imgph-txt strong{color:var(--text2);}
+</style>
+</head>
+<body>
+<div id="slides">
+
+<!-- ═══ S0 · PORTADA ═══ -->
+<div class="slide active" id="s0">
+  <div class="topbar">
+    <span class="topbar-brand">Matemàtiques B · 4t ESO</span>
+    <div class="topbar-sep"></div>
+    <span class="topbar-title">Bloc B1 · Nombres reals</span>
+    <span class="badge badge-purple" style="margin-left:10px;">Sessió pont</span>
+    <div class="topbar-right">Resum visual · 4t ESO</div>
+  </div>
+  <div class="prog"><div class="prog-fill" style="width:0%"></div></div>
+  <div class="cover">
+    <div class="cover-eye">Matemàtiques B · 4t ESO · Bloc B1</div>
+    <div class="cover-title">Nombres reals</div>
+    <div class="cover-bar"></div>
+    <div class="cover-sub">Sessió pont · Resum visual de tot el bloc</div>
+    <div class="cover-desc">Repassem d'un cop d'ull tot el que hem après fins ara,<br>abans de continuar amb notació científica aplicada.</div>
+    <div class="cover-tags">
+      <span class="cover-tag">Conjunts de nombres</span>
+      <span class="cover-tag">Recta real</span>
+      <span class="cover-tag">Control de l'error</span>
+      <span class="cover-tag">Intervals</span>
+      <span class="cover-tag">Potències</span>
+      <span class="cover-tag">Notació científica</span>
+    </div>
+  </div>
+  <div class="nav-bar">
+    <div></div>
+    <span class="sc-num">1 / 8</span>
+    <button class="nbtn primary" onclick="next()">Endavant →</button>
+  </div>
+</div>
+
+<!-- ═══ S1 · CONJUNTS DE NOMBRES ═══ -->
+<div class="slide" id="s1">
+  <div class="topbar">
+    <span class="topbar-brand">Resum visual · Sessió pont</span>
+    <div class="topbar-sep"></div>
+    <span class="topbar-title">Conjunts de nombres</span>
+    <span class="badge badge-cyan" style="margin-left:10px;">Repàs</span>
+    <div class="topbar-right">Sessió pont</div>
+  </div>
+  <div class="prog"><div class="prog-fill" style="width:12.5%"></div></div>
+  <div class="main">
+    <div class="slide-h">
+      <div class="slide-h-icon" style="background:var(--g2);">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <circle cx="9" cy="11" r="8" stroke="white" stroke-width="1.5" fill="none"/>
+          <circle cx="13" cy="11" r="4" stroke="white" stroke-width="1.5" fill="none"/>
+        </svg>
+      </div>
+      <div>
+        <h1>N ⊂ Z ⊂ Q ⊂ R, i els irracionals a part</h1>
+        <p>Cada conjunt «engloba» l'anterior. Els irracionals són reals que no es poden escriure com a fracció — mai toquen els racionals.</p>
+      </div>
+    </div>
+    <div class="card gline gline-cyan sc" style="flex:1;justify-content:center;">
+      <div class="svg-box" style="display:flex;align-items:center;justify-content:center;">
+        <svg viewBox="0 0 900 490" width="100%" height="460" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="max-height:460px;">
+          <rect x="12" y="12" width="876" height="466" rx="24" fill="rgba(124,58,237,.07)" stroke="#a78bfa" stroke-width="3"/>
+          <text x="40" y="54" fill="#a78bfa" font-size="30" font-weight="800" font-family="Outfit,sans-serif">R</text>
+          <text x="40" y="78" fill="rgba(167,139,250,.75)" font-size="16" font-family="Outfit,sans-serif">nombres reals</text>
+
+          <rect x="50" y="100" width="470" height="352" rx="20" fill="rgba(6,182,212,.08)" stroke="#06b6d4" stroke-width="3"/>
+          <text x="78" y="136" fill="#06b6d4" font-size="26" font-weight="800" font-family="Outfit,sans-serif">Q</text>
+          <text x="78" y="161" fill="rgba(6,182,212,.75)" font-size="15.5" font-family="Outfit,sans-serif">racionals: a/b</text>
+
+          <rect x="95" y="178" width="300" height="230" rx="18" fill="rgba(16,185,129,.09)" stroke="#10b981" stroke-width="3"/>
+          <text x="123" y="214" fill="#10b981" font-size="23" font-weight="800" font-family="Outfit,sans-serif">Z</text>
+          <text x="123" y="237" fill="rgba(16,185,129,.75)" font-size="14.5" font-family="Outfit,sans-serif">enters: ...,-1,0,1,...</text>
+
+          <rect x="143" y="253" width="195" height="140" rx="16" fill="rgba(245,158,11,.13)" stroke="#f59e0b" stroke-width="3"/>
+          <text x="168" y="286" fill="#f59e0b" font-size="21" font-weight="800" font-family="Outfit,sans-serif">N</text>
+          <text x="168" y="307" fill="rgba(245,158,11,.8)" font-size="13.5" font-family="Outfit,sans-serif">naturals</text>
+          <text x="168" y="330" fill="rgba(245,158,11,.95)" font-size="15.5" font-weight="700" font-family="Outfit,sans-serif">0, 1, 2, 3...</text>
+
+          <text x="123" y="403" fill="rgba(16,185,129,.9)" font-size="15" font-weight="600" font-family="Outfit,sans-serif">-2, -1</text>
+          <text x="95" y="434" fill="rgba(6,182,212,.9)" font-size="14.5" font-weight="600" font-family="Outfit,sans-serif">1/2, 0,75, -3/4...</text>
+
+          <ellipse cx="705" cy="245" rx="155" ry="145" fill="rgba(233,30,140,.1)" stroke="#e91e8c" stroke-width="3"/>
+          <text x="640" y="180" fill="#e91e8c" font-size="28" font-weight="800" font-family="Outfit,sans-serif">I</text>
+          <text x="595" y="212" fill="rgba(233,30,140,.8)" font-size="15.5" font-family="Outfit,sans-serif">irracionals</text>
+          <text x="595" y="234" fill="rgba(233,30,140,.8)" font-size="15.5" font-family="Outfit,sans-serif">(no es poden escriure</text>
+          <text x="595" y="256" fill="rgba(233,30,140,.8)" font-size="15.5" font-family="Outfit,sans-serif">com a fracció)</text>
+          <text x="640" y="298" fill="rgba(233,30,140,.98)" font-size="19" font-weight="700" font-family="Outfit,sans-serif">√2, π, e...</text>
+        </svg>
+      </div>
+      <div class="callout" style="margin-top:2px;">
+        <strong>Idea clau:</strong> tot nombre real és racional <em>o</em> irracional — mai les dues coses alhora. R = Q ∪ I.
+      </div>
+    </div>
+  </div>
+  <div class="nav-bar">
+    <button class="nbtn" onclick="prev()">← Enrere</button>
+    <span class="sc-num">2 / 8</span>
+    <button class="nbtn primary" onclick="next()">Endavant →</button>
+  </div>
+</div>
+
+<!-- ═══ S2 · RECTA REAL ═══ -->
+<div class="slide" id="s2">
+  <div class="topbar">
+    <span class="topbar-brand">Resum visual · Sessió pont</span>
+    <div class="topbar-sep"></div>
+    <span class="topbar-title">La recta real</span>
+    <span class="badge badge-orange" style="margin-left:10px;">Repàs</span>
+    <div class="topbar-right">Sessió pont</div>
+  </div>
+  <div class="prog"><div class="prog-fill" style="width:25%"></div></div>
+  <div class="main">
+    <div class="slide-h">
+      <div class="slide-h-icon" style="background:var(--g3);">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><line x1="2" y1="11" x2="20" y2="11" stroke="white" stroke-width="1.5"/><circle cx="7" cy="11" r="2" fill="white"/><circle cx="15" cy="11" r="2" fill="white"/></svg>
+      </div>
+      <div>
+        <h1>Cada nombre real té el seu lloc exacte</h1>
+        <p>Enters, racionals i irracionals conviuen tots a la mateixa recta — sense buits.</p>
+      </div>
+    </div>
+    <div class="card gline gline-orange sc" style="flex:1;justify-content:center;">
+      <div class="svg-box" style="display:flex;align-items:center;justify-content:center;">
+        <svg viewBox="0 0 900 325" width="100%" height="320" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="max-height:320px;">
+          <line x1="50" y1="175" x2="838" y2="175" stroke="rgba(255,255,255,.4)" stroke-width="3"/>
+          <polygon points="838,161 863,175 838,189" fill="rgba(255,255,255,.4)"/>
+          <!-- ticks -3..3 -->
+          <g font-family="Outfit,sans-serif" font-size="19" fill="rgba(255,255,255,.45)">
+          <line x1="100" y1="161" x2="100" y2="189" stroke="rgba(255,255,255,.35)" stroke-width="2.5"/><text x="100" y="226" text-anchor="middle">-3</text>
+          <line x1="212" y1="161" x2="212" y2="189" stroke="rgba(255,255,255,.35)" stroke-width="2.5"/><text x="212" y="226" text-anchor="middle">-2</text>
+          <line x1="325" y1="161" x2="325" y2="189" stroke="rgba(255,255,255,.35)" stroke-width="2.5"/><text x="325" y="226" text-anchor="middle">-1</text>
+          <line x1="438" y1="161" x2="438" y2="189" stroke="rgba(255,255,255,.35)" stroke-width="2.5"/><text x="438" y="226" text-anchor="middle">0</text>
+          <line x1="550" y1="161" x2="550" y2="189" stroke="rgba(255,255,255,.35)" stroke-width="2.5"/><text x="550" y="226" text-anchor="middle">1</text>
+          <line x1="663" y1="161" x2="663" y2="189" stroke="rgba(255,255,255,.35)" stroke-width="2.5"/><text x="663" y="226" text-anchor="middle">2</text>
+          <line x1="775" y1="161" x2="775" y2="189" stroke="rgba(255,255,255,.35)" stroke-width="2.5"/><text x="775" y="226" text-anchor="middle">3</text>
+          </g>
+          <!-- points: labels alternate above/below to avoid overlap -->
+          <circle cx="212" cy="175" r="11" fill="#10b981"/><text x="212" y="122" text-anchor="middle" fill="#10b981" font-size="21" font-weight="700" font-family="Outfit,sans-serif">-2 (Z)</text>
+          <line x1="212" y1="138" x2="212" y2="163" stroke="#10b981" stroke-width="2" stroke-dasharray="2,4"/>
+
+          <circle cx="381" cy="175" r="11" fill="#06b6d4"/><text x="381" y="270" text-anchor="middle" fill="#06b6d4" font-size="21" font-weight="700" font-family="Outfit,sans-serif">-1/2 (Q)</text>
+          <line x1="381" y1="187" x2="381" y2="253" stroke="#06b6d4" stroke-width="2" stroke-dasharray="2,4"/>
+
+          <circle cx="663" cy="175" r="11" fill="#f59e0b"/><text x="663" y="122" text-anchor="middle" fill="#f59e0b" font-size="21" font-weight="700" font-family="Outfit,sans-serif">2 (N)</text>
+          <line x1="663" y1="138" x2="663" y2="163" stroke="#f59e0b" stroke-width="2" stroke-dasharray="2,4"/>
+
+          <circle cx="721" cy="175" r="11" fill="#e91e8c"/><text x="721" y="270" text-anchor="middle" fill="#e91e8c" font-size="21" font-weight="700" font-family="Outfit,sans-serif">√2 ≈ 1,41 (I)</text>
+          <line x1="721" y1="187" x2="721" y2="253" stroke="#e91e8c" stroke-width="2" stroke-dasharray="2,4"/>
+        </svg>
+      </div>
+      <div class="callout orange" style="margin-top:2px;">
+        <strong>Per ordenar-los</strong> a la recta: si cal, passa'ls tots a forma decimal (les fraccions es divideixen, els irracionals s'aproximen) i compara.
+      </div>
+    </div>
+  </div>
+  <div class="nav-bar">
+    <button class="nbtn" onclick="prev()">← Enrere</button>
+    <span class="sc-num">3 / 8</span>
+    <button class="nbtn primary" onclick="next()">Endavant →</button>
+  </div>
+</div>
+
+<!-- ═══ S3 · CONTROL DE L'ERROR (MOLT RESUMIT) ═══ -->
+<div class="slide" id="s3">
+  <div class="topbar">
+    <span class="topbar-brand">Resum visual · Sessió pont</span>
+    <div class="topbar-sep"></div>
+    <span class="topbar-title">Control de l'error · Resum</span>
+    <span class="badge badge-pink" style="margin-left:10px;">Repàs</span>
+    <div class="topbar-right">Sessió pont</div>
+  </div>
+  <div class="prog"><div class="prog-fill" style="width:37.5%"></div></div>
+  <div class="main">
+    <div class="slide-h">
+      <div class="slide-h-icon" style="background:var(--g1);"><span style="font-size:18px;">±</span></div>
+      <div>
+        <h1>Quan aproximem, sempre hi ha un error</h1>
+        <p>Tres idees clau, ja treballades a la sessió anterior: quant val l'error, quant «pesa» i com arrodonim.</p>
+      </div>
+    </div>
+    <div class="card gline sc" style="flex:1;justify-content:center;">
+      <div class="grid g2c" style="flex:none;">
+        <div class="keybox">
+          <div class="lbl lbl-pink">Error absolut</div>
+          <div class="formula" style="margin:4px 0;">Eₐ = |valor real − aproximat|</div>
+          <span style="font-size:12.5px;color:var(--text3);">Mateixes unitats que la mesura.</span>
+        </div>
+        <div class="keybox">
+          <div class="lbl lbl-cyan">Error relatiu</div>
+          <div class="formula" style="margin:4px 0;">Eᵣ = Eₐ ÷ |valor real|</div>
+          <span style="font-size:12.5px;color:var(--text3);">Sense unitats; compara errors entre mesures diferents.</span>
+        </div>
+      </div>
+      <div class="grid g2c" style="flex:none;margin-top:10px;">
+        <div class="keybox">
+          <div class="lbl lbl-green">Arrodoniment</div>
+          <span style="font-size:12.5px;">Mira la xifra següent: si és ≥5, puja la darrera; si és &lt;5, la deixa igual.</span>
+        </div>
+        <div class="keybox">
+          <div class="lbl lbl-orange">Trencament (truncament)</div>
+          <span style="font-size:12.5px;">Simplement «talles» les xifres sobrants, sense mirar la següent ni arrodonir.</span>
+        </div>
+      </div>
+      <div class="svg-box" style="margin-top:10px;">
+        <svg viewBox="0 0 900 190" width="100%" height="188" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+          <text x="25" y="30" fill="rgba(255,255,255,.5)" font-size="17" font-family="Outfit,sans-serif">Exemple: valor real = 7,386 → dècimes</text>
+          <!-- number line -->
+          <line x1="50" y1="100" x2="850" y2="100" stroke="rgba(255,255,255,.3)" stroke-width="2.5"/>
+          <!-- real value -->
+          <circle cx="375" cy="100" r="10" fill="#fff"/>
+          <text x="375" y="75" text-anchor="middle" fill="#fff" font-size="19" font-weight="700" font-family="Outfit,sans-serif">7,386 (real)</text>
+          <!-- trencament point (left, lower) -->
+          <circle cx="188" cy="100" r="10" fill="#f59e0b"/>
+          <text x="188" y="140" text-anchor="middle" fill="#f59e0b" font-size="20" font-weight="700" font-family="Outfit,sans-serif">7,3</text>
+          <text x="188" y="165" text-anchor="middle" fill="rgba(245,158,11,.75)" font-size="14.5" font-family="Outfit,sans-serif">trencament</text>
+          <!-- arrodoniment point (right, higher) -->
+          <circle cx="688" cy="100" r="10" fill="#10b981"/>
+          <text x="688" y="140" text-anchor="middle" fill="#10b981" font-size="20" font-weight="700" font-family="Outfit,sans-serif">7,4</text>
+          <text x="688" y="165" text-anchor="middle" fill="rgba(16,185,129,.75)" font-size="14.5" font-family="Outfit,sans-serif">arrodoniment</text>
+          <!-- Ea bracket real -> arrodoniment -->
+          <path d="M 375 115 Q 531 135 688 115" stroke="#e91e8c" stroke-width="2.5" fill="none"/>
+          <text x="531" y="160" text-anchor="middle" fill="#e91e8c" font-size="17" font-weight="700" font-family="Outfit,sans-serif">Eₐ = 0,014</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div class="nav-bar">
+    <button class="nbtn" onclick="prev()">← Enrere</button>
+    <span class="sc-num">4 / 8</span>
+    <button class="nbtn primary" onclick="next()">Endavant →</button>
+  </div>
+</div>
+
+<!-- ═══ S4 · INTERVALS ═══ -->
+<div class="slide" id="s4">
+  <div class="topbar">
+    <span class="topbar-brand">Resum visual · Sessió pont</span>
+    <div class="topbar-sep"></div>
+    <span class="topbar-title">Intervals · Totes les notacions</span>
+    <span class="badge badge-cyan" style="margin-left:10px;">Repàs</span>
+    <div class="topbar-right">Sessió pont</div>
+  </div>
+  <div class="prog"><div class="prog-fill" style="width:50%"></div></div>
+  <div class="main">
+    <div class="slide-h">
+      <div class="slide-h-icon" style="background:var(--g2);"><span style="font-size:16px;">[a,b]</span></div>
+      <div>
+        <h1>Un tros de la recta real, escrit de moltes maneres</h1>
+        <p>La mateixa idea es pot expressar amb claudàtors, amb una desigualtat o descrivint el conjunt.</p>
+      </div>
+    </div>
+    <div class="card gline gline-cyan sc" style="flex:1;justify-content:center;">
+      <table class="dt">
+        <tr><th>Nom</th><th>Notació interval</th><th>Desigualtat</th><th>Recta</th></tr>
+        <tr><td class="tl">Tancat</td><td class="hlb">[a, b]</td><td>a ≤ x ≤ b</td><td>●━━━●</td></tr>
+        <tr><td class="tl">Obert</td><td class="hlb">(a, b)</td><td>a &lt; x &lt; b</td><td>○━━━○</td></tr>
+        <tr><td class="tl">Semiobert (dreta)</td><td class="hlb">[a, b)</td><td>a ≤ x &lt; b</td><td>●━━━○</td></tr>
+        <tr><td class="tl">Semiobert (esquerra)</td><td class="hlb">(a, b]</td><td>a &lt; x ≤ b</td><td>○━━━●</td></tr>
+        <tr><td class="tl">Semirecta dreta</td><td class="hlb">(−∞, a]</td><td>x ≤ a</td><td>←━━━●</td></tr>
+        <tr><td class="tl">Semirecta esquerra</td><td class="hlb">[a, +∞)</td><td>x ≥ a</td><td>●━━━→</td></tr>
+      </table>
+      <div class="callout" style="margin-top:8px;">
+        <strong>Claudàtor tancat [ ] = inclou l'extrem</strong> (cercle ple). <strong>Parèntesi obert ( ) = no l'inclou</strong> (cercle buit).
+      </div>
+      <div class="callout purple" style="margin-top:6px;display:flex;gap:12px;align-items:center;">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" style="flex-shrink:0;">
+          <circle cx="13" cy="10" r="7.5" fill="none" stroke="#a78bfa" stroke-width="2"/>
+          <path d="M9.5 16.5h7M10.5 19h5" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"/>
+          <path d="M13 5.5v1.5M13 3v0" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span><strong>Apunt:</strong> un <em>entorn</em> de centre a i radi r és l'interval obert E(a,r) = (a−r, a+r). Exemple: E(3, 0,5) = (2,5, 3,5).</span>
+      </div>
+    </div>
+  </div>
+  <div class="nav-bar">
+    <button class="nbtn" onclick="prev()">← Enrere</button>
+    <span class="sc-num">5 / 8</span>
+    <button class="nbtn primary" onclick="next()">Endavant →</button>
+  </div>
+</div>
+
+<!-- ═══ S5 · POTÈNCIES (RESUM) ═══ -->
+<div class="slide" id="s5">
+  <div class="topbar">
+    <span class="topbar-brand">Resum visual · Sessió pont</span>
+    <div class="topbar-sep"></div>
+    <span class="topbar-title">Propietats de les potències · Resum</span>
+    <span class="badge badge-purple" style="margin-left:10px;">Repàs</span>
+    <div class="topbar-right">Sessió pont</div>
+  </div>
+  <div class="prog"><div class="prog-fill" style="width:62.5%"></div></div>
+  <div class="main">
+    <div class="slide-h">
+      <div class="slide-h-icon" style="background:var(--g5);"><span style="font-size:16px;">aⁿ</span></div>
+      <div>
+        <h1>Set propietats, d'un cop d'ull</h1>
+        <p>Tot el que vam veure a la Sessió 4, en una sola taula.</p>
+      </div>
+    </div>
+    <div class="card gline gline-purple sc" style="flex:1;justify-content:center;">
+      <table class="dt">
+        <tr><th>Propietat</th><th>Fórmula</th><th>Exemple</th></tr>
+        <tr><td class="tl">Producte, mateixa base</td><td class="hlb">aᵐ × aⁿ = aᵐ⁺ⁿ</td><td class="hl">2³×2⁴=2⁷</td></tr>
+        <tr><td class="tl">Quocient, mateixa base</td><td class="hlb">aᵐ ÷ aⁿ = aᵐ⁻ⁿ</td><td class="hl">5⁶÷5²=5⁴</td></tr>
+        <tr><td class="tl">Potència d'una potència</td><td class="hlb">(aᵐ)ⁿ = aᵐ·ⁿ</td><td class="hl">(3²)⁴=3⁸</td></tr>
+        <tr><td class="tl">Potència d'un producte</td><td class="hlb">(a·b)ⁿ = aⁿ·bⁿ</td><td class="hl">(2·5)³=1000</td></tr>
+        <tr><td class="tl">Potència d'un quocient</td><td class="hlb">(a÷b)ⁿ = aⁿ÷bⁿ</td><td class="hl">(10÷2)³=125</td></tr>
+        <tr><td class="tl">Exponent negatiu</td><td class="hlb">a⁻ⁿ = 1 ÷ aⁿ</td><td class="hl">2⁻³=0,125</td></tr>
+        <tr><td class="tl">Exponent zero</td><td class="hlb">a⁰ = 1</td><td class="hl">7⁰=1</td></tr>
+      </table>
+      <div class="callout" style="margin-top:8px;">
+        <strong>Recorda:</strong> per sumar/restar exponents, les <strong style="color:#fff">bases han de ser iguals</strong>.
+      </div>
+    </div>
+  </div>
+  <div class="nav-bar">
+    <button class="nbtn" onclick="prev()">← Enrere</button>
+    <span class="sc-num">6 / 8</span>
+    <button class="nbtn primary" onclick="next()">Endavant →</button>
+  </div>
+</div>
+
+<!-- ═══ S6 · NOTACIÓ CIENTÍFICA (RESUM) ═══ -->
+<div class="slide" id="s6">
+  <div class="topbar">
+    <span class="topbar-brand">Resum visual · Sessió pont</span>
+    <div class="topbar-sep"></div>
+    <span class="topbar-title">Notació científica · Resum</span>
+    <span class="badge badge-green" style="margin-left:10px;">Repàs</span>
+    <div class="topbar-right">Sessió pont</div>
+  </div>
+  <div class="prog"><div class="prog-fill" style="width:75%"></div></div>
+  <div class="main">
+    <div class="slide-h">
+      <div class="slide-h-icon" style="background:var(--g4);"><span style="font-size:14px;">a·10ⁿ</span></div>
+      <div>
+        <h1>Números grans i petits, comprimits</h1>
+        <p>La forma i les tres operacions que vam treballar a la Sessió 5.</p>
+      </div>
+    </div>
+    <div class="card gline gline-green sc" style="flex:1;justify-content:center;">
+      <div class="formula hero"><span>a × 10ⁿ</span> &nbsp;<span style="color:var(--text3);font-size:14px;">(1 ≤ a &lt; 10)</span></div>
+      <table class="dt" style="margin-top:8px;">
+        <tr><th>Operació</th><th>Regla</th><th>Exemple</th></tr>
+        <tr><td class="tl">Multiplicar</td><td class="hlb">Multiplica coeficients, SUMA exponents</td><td class="hl">(3×10⁵)×(2×10³)=6×10⁸</td></tr>
+        <tr><td class="tl">Dividir</td><td class="hlb">Divideix coeficients, RESTA exponents</td><td class="hl">(8×10⁷)÷(4×10²)=2×10⁵</td></tr>
+        <tr><td class="tl">Sumar / restar</td><td class="hlb">Iguala exponents abans d'operar</td><td class="hl">5×10⁴+3×10³=5,3×10⁴</td></tr>
+      </table>
+      <div class="callout green" style="margin-top:8px;">
+        <strong>Calculadora:</strong> tecla EXP (o ×10ˣ) — ja inclou el ×10, no l'escriguis tu.
+      </div>
+    </div>
+  </div>
+  <div class="nav-bar">
+    <button class="nbtn" onclick="prev()">← Enrere</button>
+    <span class="sc-num">7 / 8</span>
+    <button class="nbtn primary" onclick="next()">Endavant →</button>
+  </div>
+</div>
+
+<!-- ═══ S7 · FI ═══ -->
+<div class="slide" id="s7">
+  <div class="topbar">
+    <span class="topbar-brand">Resum visual · Sessió pont</span>
+    <div class="topbar-sep"></div>
+    <span class="topbar-title">Fi de la sessió pont</span>
+    <span class="badge badge-green" style="margin-left:10px;">Fi</span>
+    <div class="topbar-right">Sessió pont</div>
+  </div>
+  <div class="prog"><div class="prog-fill" style="width:100%"></div></div>
+  <div class="fi-wrap">
+    <div class="fi-check">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none"><polyline points="7,15 13,21 23,9" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="fi-title">Bloc B1 repassat</div>
+    <div class="fi-desc">Conjunts de nombres, recta real, control de l'error, intervals, propietats de les potències i notació científica — tot el bloc en un sol cop d'ull.</div>
+    <div class="fi-next">Següent sessió: Notació científica — aplicacions a problemes reals.</div>
+  </div>
+  <div class="nav-bar">
+    <button class="nbtn" onclick="prev()">← Enrere</button>
+    <span class="sc-num">8 / 8</span>
+    <button class="nbtn" disabled>Endavant →</button>
+  </div>
+</div>
+
+</div><!-- /slides -->
+
+<script>
+let cur=0;
+const slides=document.querySelectorAll('.slide');
+const total=slides.length;
+function go(n){
+  slides[cur].classList.remove('active');
+  cur=Math.max(0,Math.min(n,total-1));
+  slides[cur].classList.add('active');
+  setTimeout(()=>{slides[cur].style.opacity=1;},10);
+}
+function next(){go(cur+1);}
+function prev(){go(cur-1);}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown')next();
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp')prev();
+});
+</script>
+</body>
+</html>
