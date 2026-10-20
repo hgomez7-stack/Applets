@@ -1,0 +1,392 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Corregim la prova</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600&display=swap">
+<style>
+/* Layout: lámina centrada; a l'esquerra el pas de la correcció (enunciat, resposta, pistes), a la dreta la taula de multiplicar com a eina d'ajuda; en mòbil s'apilen */
+:root{
+  --paper:#ffffff; --ink:#1d1d1b; --ink-soft:#5f5f58; --line:#1d1d1b; --mute:#c9c9c0;
+  --c1:#FCEB9E; --c2:#F4F4D6; --c3:#BFE1F6; --c4:#B5E0D6; --c5:#F9D3D9;
+  --ok:#1f7a55; --bad:#b4233a; --focus:#1F5FAD; --blue:#1F497D;
+  --f-display:'Fredoka',ui-rounded,system-ui,sans-serif;
+  --f-body:'Andika','Trebuchet MS',system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{background:var(--paper);color:var(--ink)}
+body{font-family:var(--f-body);font-size:17px;padding-inline:16px;padding-block:24px 40px}
+.wrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{text-align:center;display:flex;flex-direction:column;gap:2px}
+.eyebrow{font-family:var(--f-display);font-size:clamp(17px,4vw,22px);font-weight:500}
+h1{margin:0;font-family:var(--f-display);font-weight:600;font-size:clamp(34px,8vw,56px);line-height:1.05}
+h2{margin:0;font-family:var(--f-display);font-weight:600;font-size:24px;text-wrap:balance}
+p{margin:0;line-height:1.5}
+b.k{color:var(--blue)} b.r{color:var(--bad)}
+button{font:inherit;font-weight:700;font-size:16px;color:var(--ink);background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:9px 16px;cursor:pointer;min-height:44px}
+button:hover{background:var(--c2)}
+button.primary{background:var(--c1)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+button:disabled{opacity:.5;cursor:default}
+input[type=text]{font:inherit;font-family:var(--f-display);font-size:26px;text-align:center;border:2px solid var(--line);border-radius:10px;padding:4px 6px;background:var(--paper);color:var(--ink);width:3.6ch}
+input.wide{width:4.6ch}
+input#name{font-family:var(--f-body);font-size:19px;text-align:left;width:min(320px,100%)}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.chip{min-width:44px;height:30px;padding:0 8px;border:2px solid var(--line);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:var(--paper);font-variant-numeric:tabular-nums}
+.chip.now{background:var(--c1)} .chip.first{background:var(--c4)} .chip.help{background:var(--c3)} .chip.shown{background:var(--c5)}
+
+.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:860px){.layout{grid-template-columns:minmax(0,1fr)}}
+.card{border:2px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.tag{align-self:flex-start;font-family:var(--f-display);font-weight:600;font-size:14px;padding:3px 10px;border:2px solid var(--line);border-radius:8px;background:var(--c2)}
+.ctx{background:#f2f2f2;border:1.5px solid #bfbfbf;border-radius:10px;padding:10px 14px;line-height:1.55}
+.prompt{font-weight:700;font-size:19px;line-height:1.5}
+.answer{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.unit{font-family:var(--f-display);font-size:24px;font-weight:600}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.15;margin:0 2px;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 5px}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.fr.big{font-family:var(--f-display);font-size:26px;font-weight:600}
+.fr.in>span:first-child{border-bottom-width:3px;padding-bottom:4px}
+.fr.in>span:last-child{padding-top:4px}
+.op{font-family:var(--f-display);font-size:26px;font-weight:600}
+.choices{display:flex;gap:10px;flex-wrap:wrap}
+.choices button[aria-pressed="true"]{background:var(--c3)}
+.fb{font-weight:700;min-height:1.5em}
+.fb.ok{color:var(--ok)} .fb.bad{color:var(--bad)}
+.hints{display:flex;flex-direction:column;gap:8px}
+.hint{background:var(--c2);border:2px solid var(--line);border-radius:12px;padding:10px 14px;line-height:1.5}
+.hint .lab{font-family:var(--f-display);font-weight:600;margin-right:6px}
+.explain{background:var(--c4);border:2px solid var(--line);border-radius:12px;padding:10px 14px;line-height:1.5}
+.bar{display:flex;gap:10px;flex-wrap:wrap}
+
+/* taula */
+.tablecard{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}
+@media (max-width:860px){.tablecard{position:static}}
+.task{min-height:3em;line-height:1.5;padding:10px 14px;border-radius:12px;background:var(--c2);border:2px solid var(--line)}
+.task.idle{background:var(--paper);border-style:dashed;color:var(--ink-soft)}
+.board{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));gap:clamp(2px,.7vw,5px)}
+.cell{aspect-ratio:1;max-width:100%;display:flex;align-items:center;justify-content:center;font-family:var(--f-body);font-size:clamp(11px,2.6vw,17px);font-variant-numeric:tabular-nums;border:2px solid var(--line);border-radius:3px;padding:0;min-height:0;color:var(--ink);font-weight:400;transition:opacity .2s}
+.cell.h{border:0;background:transparent;font-weight:700;cursor:default}
+.cell.h:hover{background:transparent}
+.cell.k1{background:var(--c1)} .cell.k2{background:var(--c2)} .cell.k3{background:var(--c3)} .cell.k4{background:var(--c4)} .cell.k5{background:var(--c5)}
+.board.focus .cell:not(.h):not(.lit){opacity:.28}
+.cell.h.lit{background:var(--c1);border-radius:6px}
+.cell.found{box-shadow:0 0 0 3px var(--ink) inset;font-weight:700;opacity:1}
+.cell.peek{color:var(--bad);font-weight:700}
+.pop{animation:pop .35s ease} .shake{animation:shake .35s ease}
+@keyframes pop{0%{transform:scale(.8)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+.summary{display:flex;flex-direction:column;gap:12px}
+.srow{display:grid;grid-template-columns:120px minmax(0,1fr);gap:10px;align-items:start;padding:8px 0;border-top:1.5px solid var(--line)}
+.srow .steps{display:flex;flex-wrap:wrap;gap:6px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:15px;color:var(--ink-soft)}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.sw{width:18px;height:18px;border:2px solid var(--line);border-radius:4px;display:inline-block}
+.big-score{font-family:var(--f-display);font-weight:600;font-size:36px}
+@media (prefers-reduced-motion:reduce){.pop,.shake{animation:none}.cell{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Prova Unitat 1 · Operacions i fraccions</span>
+    <h1>Corregim la prova</h1>
+  </header>
+
+  <section class="card" id="intro" style="max-width:720px;align-self:center">
+    <h2>Com funciona</h2>
+    <p>Tornarem a fer la prova <b>pas a pas</b>. Escriu la resposta i prem <b>Comprova</b>. Si t'equivoques, tindràs pistes i la <b>taula de multiplicar</b> t'ajudarà a trobar-la. No passa res per equivocar-se: es tracta d'entendre on era l'error.</p>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <label for="name" style="font-weight:700">El teu nom</label>
+      <input type="text" id="name" autocomplete="off" maxlength="30" placeholder="Escriu el teu nom">
+    </div>
+    <label style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="withVol" checked style="width:22px;height:22px"> Inclou la pregunta voluntària</label>
+    <button class="primary" id="go" style="align-self:flex-start">Comença la correcció</button>
+  </section>
+
+  <div id="game" hidden style="display:flex;flex-direction:column;gap:16px">
+    <div class="chips" id="chips" aria-label="Passos de la correcció"></div>
+    <div class="layout">
+      <section class="card" id="stepCard">
+        <span class="tag" id="tag">Pregunta 1</span>
+        <div class="ctx" id="ctx"></div>
+        <p class="prompt" id="prompt"></p>
+        <form class="answer" id="form" autocomplete="off"></form>
+        <p class="fb" id="fb" aria-live="polite"></p>
+        <div class="hints" id="hints"></div>
+        <div class="explain" id="explain" hidden></div>
+        <div class="bar">
+          <button class="primary" type="button" id="check">Comprova</button>
+          <button type="button" id="helpBtn" hidden>Ajuda amb la taula</button>
+          <button type="button" id="showBtn" hidden>Veure la solució</button>
+          <button class="primary" type="button" id="next" hidden>Següent</button>
+        </div>
+      </section>
+      <section class="card tablecard">
+        <h2 style="font-size:20px">La taula, per ajudar-te</h2>
+        <p class="task idle" id="task" aria-live="polite">Quan demanis ajuda, aquí et dirà on has de mirar.</p>
+        <div class="board" id="board" aria-label="Taula de multiplicar"></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="card summary" id="end" hidden style="max-width:760px;align-self:center;width:100%;box-sizing:border-box">
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px 20px">
+      <h2 id="who">Resum de la correcció</h2>
+      <span class="big-score" id="score"></span>
+    </div>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--c4)"></i>A la primera</span>
+      <span><i class="sw" style="background:var(--c3)"></i>Amb ajuda</span>
+      <span><i class="sw" style="background:var(--c5)"></i>He vist la solució</span>
+    </div>
+    <div id="srows"></div>
+    <p class="hint" id="advice"></p>
+    <div class="bar"><button class="primary" id="again">Torna a començar</button></div>
+  </section>
+</div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const fr=(n,d,big)=>`<span class="fr${big?' big':''}"><span>${n}</span><span>${d}</span></span>`;
+  const colorOf=(r,c)=>'k'+(((Math.max(r,c)-1)%5)+1);
+
+  const STEPS=[
+    {q:'1',label:'1',ctx:'Per pagar l’autocar, cada alumne porta <b class="k">8 €</b>. Hi van <b class="k">27 alumnes</b>. Els professors <b class="r">no paguen</b>.',
+     prompt:'Quants diners es recullen per a l’autocar?',kind:'num',answer:216,unit:'€',
+     errors:{240:'Has comptat també els 3 professors? Ells no paguen: només compten els 27 alumnes.',35:'Has sumat 27 + 8. Cada alumne paga 8 €: és una multiplicació.',19:'Has restat. Cada alumne paga 8 €: és una multiplicació.'},
+     hints:['Cada un dels 27 alumnes paga 8 €. L’operació és <b>27 × 8</b>.','Truc: 27 × 8 = <b>20 × 8</b> + <b>7 × 8</b>. Busca 7 × 8 a la taula.'],
+     table:{type:'find',rows:[7],target:[7,8],ask:'Busca <b>7 × 8</b>: fila del 7, columna del 8. Toca la casella.',after:'7 × 8 = <b>56</b>. I 20 × 8 = <b>160</b> (2 × 8 = 16 i hi afegim un 0). Ara suma: 160 + 56.'},
+     explain:'27 × 8 = 20 × 8 + 7 × 8 = 160 + 56 = <b>216 €</b>.'},
+    {q:'2',label:'2',ctx:'L’entrada al planetari costa <b class="k">7 €</b> per alumne. Els professors <b class="r">no paguen entrada</b>. El grup té <b class="k">63 €</b>.',
+     prompt:'Quants alumnes poden entrar al planetari?',kind:'num',answer:9,unit:'alumnes',
+     errors:{70:'Has sumat 63 + 7. Aquí repartim 63 € en entrades de 7 €: és una divisió.',56:'Has restat 63 − 7. Aquí repartim 63 € en entrades de 7 €: és una divisió.',441:'Has multiplicat. Aquí repartim 63 € en entrades de 7 €: és una divisió.'},
+     hints:['L’operació és <b>63 : 7</b>. Pensa-ho al revés: <b>7 × ___ = 63</b>.'],
+     table:{type:'find',rows:[7],target:[7,9],ask:'A la fila del 7, toca on hi ha el <b>63</b>.',after:'És a la columna del 9: 7 × 9 = 63. Per tant, <b>63 : 7 = 9</b>.'},
+     explain:'63 : 7 = <b>9 alumnes</b>, perquè 7 × 9 = 63.'},
+    {q:'3',label:'3a',ctx:'A l’auditori, les cadires estan en <b class="k">files de 9 cadires</b>. L’auditori té <b class="k">8 files</b>.',
+     prompt:'a) Quantes cadires hi ha en total?',kind:'num',answer:72,unit:'cadires',
+     errors:{17:'Has sumat 8 + 9. Hi ha 8 files i cada fila té 9 cadires: és una multiplicació.'},
+     hints:['Hi ha 8 files de 9 cadires: <b>8 × 9</b>.'],
+     table:{type:'find',rows:[8],target:[8,9],ask:'Busca <b>8 × 9</b>: fila del 8, columna del 9.',after:'8 × 9 = <b>72</b>.'},
+     explain:'8 × 9 = <b>72 cadires</b>.'},
+    {q:'3',label:'3b',ctx:'Els <b class="k">27 alumnes</b> s’asseuen omplint les <b class="k">files de 9 cadires</b>, <b class="r">sense deixar cap cadira buida</b>.',
+     prompt:'b) Quantes files ocupen?',kind:'num',answer:3,unit:'files',
+     errors:{18:'Has restat 27 − 9. Pensa quantes files de 9 necessites per fer 27.',36:'Has sumat 27 + 9. Pensa quantes files de 9 necessites per fer 27.',243:'Has multiplicat 27 × 9. Pensa quantes files de 9 necessites per fer 27.'},
+     hints:['Pensa quin nombre falta: <b>9 × ___ = 27</b>.'],
+     table:{type:'find',rows:[9],target:[9,3],ask:'A la fila del 9, toca on hi ha el <b>27</b>.',after:'És a la columna del 3: 9 × 3 = 27. Ocupen <b>3 files</b>.'},
+     explain:'9 × 3 = 27, així que 27 : 9 = <b>3 files</b>.'},
+    {q:'4',label:'4a',ctx:'La pizza de cartró té <b class="k">12 trossos iguals</b>. Un cartell diu que '+fr(3,4)+' de la pizza és de <b class="k">verdures</b>.',
+     prompt:'a) Completa la fracció equivalent. Quants trossos són de verdures?',kind:'fracNum',den:12,lead:fr(3,4,true)+'<span class="op">=</span>',answer:9,
+     errors:{11:'Has sumat 8 al 3? Per fer una fracció equivalent s’ha de <b>multiplicar</b> dalt i baix pel mateix nombre.',12:'El 12 és el denominador. Quants trossos de 12 són de verdures?'},
+     hints:['Per passar de 4 a 12, per quant multipliquem? El 3 s’ha de multiplicar pel <b>mateix nombre</b>.'],
+     table:{type:'find',rows:[3,4],target:[4,3],ask:'Les files del <b>3</b> i del <b>4</b> donen fraccions iguals a 3/4. A la fila del 4, toca el <b>12</b>.',after:'És a la columna del 3. A la mateixa columna, a la fila del 3, hi ha el <b>9</b>: 3/4 = 9/12.'},
+     explain:fr(3,4)+' = '+fr(9,12)+' (multipliquem dalt i baix per 3). Són <b>9 trossos</b> de verdures.'},
+    {q:'4',label:'4b',ctx:'Un altre cartell diu que '+fr(6,8)+' d’una altra pizza igual és de <b class="k">formatge</b>.',
+     prompt:'b) És la mateixa quantitat que 3/4?',kind:'choice',options:['Sí, són equivalents','No, no són equivalents'],answer:0,
+     hints:['Mira si 6/8 està a les <b>mateixes dues files</b> que 3/4 (les files del 3 i del 4).'],
+     table:{type:'show',rows:[3,4],cells:[[3,2],[4,2]],ask:'Mira la columna del 2:',after:'Fila del 3 → <b>6</b>. Fila del 4 → <b>8</b>. El 6/8 és a les files del 3 i del 4, igual que 3/4. Per tant, <b>sí</b> que són equivalents.'},
+     explain:'<b>Sí</b>. Si simplifiquem '+fr(6,8)+' (dividim dalt i baix per 2) surt '+fr(3,4)+'.'},
+    {q:'5',label:'5a·1',ctx:'La Marta es beu '+fr(1,4)+' de l’ampolla al matí i '+fr(3,8)+' a la tarda.',
+     prompt:'a) Per sumar, primer iguala els denominadors:',kind:'fracNum',den:8,lead:fr(1,4,true)+'<span class="op">=</span>',answer:2,
+     errors:{5:'Has sumat 4 al numerador? S’ha de <b>multiplicar</b> dalt i baix pel mateix nombre.'},
+     hints:['De 4 a 8 multipliquem per 2. Fes el mateix amb el numerador.'],
+     table:{type:'find',rows:[1,4],target:[4,2],ask:'Files del <b>1</b> i del <b>4</b>. A la fila del 4, toca el <b>8</b>.',after:'És a la columna del 2. A la fila del 1 hi ha el <b>2</b>: 1/4 = 2/8.'},
+     explain:fr(1,4)+' = '+fr(2,8)+' (multipliquem per 2).'},
+    {q:'5',label:'5a·2',ctx:'Ara les dues fraccions tenen el mateix denominador.',
+     prompt:'Suma:',kind:'frac',lead:fr(2,8,true)+'<span class="op">+</span>'+fr(3,8,true)+'<span class="op">=</span>',answer:[5,8],
+     fracErrors:[[5,16,'El denominador <b>no es suma</b>: es queda igual, 8. Només sumem els numeradors.'],[4,12,'Has sumat dalt i baix de 1/4 + 3/8. Primer hem igualat denominadors: ara fes 2/8 + 3/8.']],
+     hints:['Amb el mateix denominador, sumem només els numeradors: <b>2 + 3</b>. El denominador es queda <b>8</b>.'],
+     table:null,
+     explain:fr(1,4)+' + '+fr(3,8)+' = '+fr(2,8)+' + '+fr(3,8)+' = <b>'+fr(5,8)+'</b> de l’ampolla.'},
+    {q:'5',label:'5b',ctx:'La Marta s’ha begut '+fr(5,8)+' de l’ampolla.',
+     prompt:'b) Quina fracció de l’ampolla li queda?',kind:'frac',lead:'',answer:[3,8],
+     fracErrors:[[5,8,'Això és el que s’ha begut. Volem el que <b>queda</b>.'],[3,0,'El denominador no pot ser 0. L’ampolla sencera són 8/8.']],
+     hints:['L’ampolla sencera és '+fr(8,8)+'. Fes '+fr(8,8)+' − '+fr(5,8)+'.'],
+     table:null,
+     explain:fr(8,8)+' − '+fr(5,8)+' = <b>'+fr(3,8)+'</b> de l’ampolla.'},
+    {q:'V',label:'V·1',vol:true,ctx:'En Pau compra '+fr(2,3)+' de metre de corda vermella i '+fr(11,6)+' de metre de corda blava.',
+     prompt:'Primer, iguala els denominadors:',kind:'fracNum',den:6,lead:fr(2,3,true)+'<span class="op">=</span>',answer:4,
+     errors:{5:'Has sumat 3 al numerador? S’ha de <b>multiplicar</b> pel mateix nombre que el denominador.'},
+     hints:['De 3 a 6 multipliquem per 2.'],
+     table:{type:'find',rows:[2,3],target:[3,2],ask:'Files del <b>2</b> i del <b>3</b>. A la fila del 3, toca el <b>6</b>.',after:'És a la columna del 2. A la fila del 2 hi ha el <b>4</b>: 2/3 = 4/6.'},
+     explain:fr(2,3)+' = '+fr(4,6)+'.'},
+    {q:'V',label:'V·2',vol:true,ctx:'Ara les dues fraccions tenen denominador 6.',
+     prompt:'Suma:',kind:'frac',lead:fr(4,6,true)+'<span class="op">+</span>'+fr(11,6,true)+'<span class="op">=</span>',answer:[15,6],acceptEquiv:true,
+     fracErrors:[[15,12,'El denominador <b>no es suma</b>: es queda 6.'],[13,9,'Has sumat dalt i baix de 2/3 + 11/6. Fes 4/6 + 11/6.']],
+     hints:['Sumem els numeradors: <b>4 + 11</b>. El denominador es queda <b>6</b>.'],
+     table:null,
+     explain:fr(4,6)+' + '+fr(11,6)+' = <b>'+fr(15,6)+'</b>.'},
+    {q:'V',label:'V·3',vol:true,ctx:'Tenim '+fr(15,6)+' de metre de corda.',
+     prompt:'Simplifica la fracció tant com puguis:',kind:'frac',lead:fr(15,6,true)+'<span class="op">=</span>',answer:[5,2],
+     fracErrors:[[15,6,'Aquesta és la mateixa fracció. Busca un nombre que divideixi el 15 i el 6 alhora.']],
+     hints:['Busca el 15 i el 6 a la <b>mateixa columna</b> de la taula.'],
+     table:{type:'find',rows:[2,5],target:[5,3],ask:'Files del <b>5</b> i del <b>2</b>. A la fila del 5, toca el <b>15</b> que té un <b>6</b> a la mateixa columna, a la fila del 2.',after:'És a la columna del 3: 15 = 5 × 3 i 6 = 2 × 3. Per tant, 15/6 = <b>5/2</b>.'},
+     explain:fr(15,6)+' = <b>'+fr(5,2)+' m</b> (dividim dalt i baix per 3).'}
+  ];
+
+  let steps=[], idx=0, status=[], tries=0, helpUsed=false, choice=null, task=null, done=false;
+
+  // taula
+  const board=$('board'), cells={}, rowH={}, colH={};
+  const mk=(t,cls)=>{const d=document.createElement('div');d.className='cell '+cls;d.textContent=t;board.appendChild(d);return d;};
+  mk('×','h').style.border='2px solid var(--line)';
+  for(let c=1;c<=10;c++)colH[c]=mk(c,'h');
+  for(let r=1;r<=10;r++){rowH[r]=mk(r,'h');
+    for(let c=1;c<=10;c++){const b=document.createElement('button');b.type='button';b.className='cell '+colorOf(r,c);b.textContent=r*c;
+      b.setAttribute('aria-label',r+' per '+c+' és '+(r*c));b.onclick=()=>tapCell(r,c);cells[r+'-'+c]=b;board.appendChild(b);}}
+  function clearTable(){
+    board.classList.remove('focus');
+    Object.values(cells).forEach(e=>e.classList.remove('lit','found','peek','pop','shake'));
+    Object.values(rowH).concat(Object.values(colH)).forEach(h=>h.classList.remove('lit'));
+    $('task').className='task idle'; $('task').textContent='Quan demanis ajuda, aquí et dirà on has de mirar.'; task=null;
+  }
+  function anim(e,c){e.classList.remove(c);void e.offsetWidth;e.classList.add(c);}
+  function startTask(t){
+    clearTable(); task={...t,solved:false};
+    board.classList.add('focus');
+    t.rows.forEach(r=>{rowH[r].classList.add('lit');for(let c=1;c<=10;c++)cells[r+'-'+c].classList.add('lit');});
+    $('task').className='task';
+    if(t.type==='show'){
+      t.cells.forEach(([r,c])=>{cells[r+'-'+c].classList.add('found');anim(cells[r+'-'+c],'pop');});
+      colH[t.cells[0][1]].classList.add('lit');
+      $('task').innerHTML=t.ask+' '+t.after; task.solved=true;
+    }else{
+      $('task').innerHTML=t.ask;
+    }
+    if(window.innerWidth<=860) document.querySelector('.tablecard').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  function tapCell(r,c){
+    if(!task||task.type!=='find'||task.solved)return;
+    const e=cells[r+'-'+c];
+    if(r===task.target[0]&&c===task.target[1]){
+      task.solved=true; task.rows.forEach(rr=>{const x=cells[rr+'-'+c];x.classList.add('found');anim(x,'pop');}); e.classList.add('found'); colH[c].classList.add('lit');
+      $('task').innerHTML='<b style="color:var(--ok)">Molt bé!</b> '+task.after;
+    }else{
+      anim(e,'shake'); $('task').innerHTML=task.ask+'<br><span style="color:var(--bad);font-weight:700">Aquí hi ha '+r+' × '+c+' = '+(r*c)+'.</span>';
+    }
+  }
+
+  // passos
+  function chips(){
+    const ch=$('chips'); ch.innerHTML='';
+    steps.forEach((s,i)=>{const d=document.createElement('span');d.className='chip'+(i===idx&&!done?' now':'')+(status[i]?' '+status[i]:'');d.textContent=s.label;ch.appendChild(d);});
+  }
+  function buildForm(s){
+    const f=$('form'); f.innerHTML='';
+    if(s.kind==='num'){
+      f.innerHTML='<input type="text" class="wide" id="a1" inputmode="numeric" maxlength="4" aria-label="La teva resposta"><span class="unit">'+(s.unit||'')+'</span>';
+    }else if(s.kind==='fracNum'){
+      f.innerHTML=s.lead+'<span class="fr in big"><span><input type="text" id="a1" inputmode="numeric" maxlength="3" aria-label="Numerador"></span><span>'+s.den+'</span></span>';
+    }else if(s.kind==='frac'){
+      f.innerHTML=s.lead+'<span class="fr in big"><span><input type="text" id="a1" inputmode="numeric" maxlength="3" aria-label="Numerador"></span><span><input type="text" id="a2" inputmode="numeric" maxlength="3" aria-label="Denominador"></span></span>';
+    }else{
+      const box=document.createElement('div');box.className='choices';
+      s.options.forEach((o,k)=>{const b=document.createElement('button');b.type='button';b.textContent=o;b.setAttribute('aria-pressed','false');
+        b.onclick=()=>{choice=k;[...box.children].forEach((x,j)=>x.setAttribute('aria-pressed',j===k));};box.appendChild(b);});
+      f.appendChild(box);
+    }
+    f.querySelectorAll('input').forEach(inp=>{inp.addEventListener('input',()=>{inp.value=inp.value.replace(/\D/g,'');});});
+  }
+  function show(){
+    const s=steps[idx]; tries=0; helpUsed=false; choice=null;
+    $('tag').textContent=s.vol?'Pregunta voluntària':'Pregunta '+s.q;
+    $('ctx').innerHTML=s.ctx; $('prompt').innerHTML=s.prompt;
+    buildForm(s);
+    $('fb').textContent=''; $('fb').className='fb'; $('hints').innerHTML=''; $('explain').hidden=true;
+    $('check').hidden=false; $('check').disabled=false; $('helpBtn').hidden=true; $('showBtn').hidden=true; $('next').hidden=true;
+    clearTable(); chips();
+    const first=$('form').querySelector('input'); if(first) first.focus({preventScroll:true});
+  }
+  function addHint(){
+    const s=steps[idx], n=$('hints').children.length;
+    if(n<s.hints.length){const d=document.createElement('p');d.className='hint';d.innerHTML='<span class="lab">Pista '+(n+1)+'.</span>'+s.hints[n];$('hints').appendChild(d);}
+  }
+  function read(s){
+    if(s.kind==='choice') return choice;
+    const a=$('a1')?$('a1').value.trim():''; const b=$('a2')?$('a2').value.trim():'';
+    if(s.kind==='frac') return (a===''||b==='')?null:[Number(a),Number(b)];
+    return a===''?null:Number(a);
+  }
+  function judge(s,v){
+    if(s.kind==='frac'){
+      const [n,d]=v,[an,ad]=s.answer;
+      if(n===an&&d===ad) return {ok:true};
+      const e=(s.fracErrors||[]).find(x=>x[0]===n&&x[1]===d); if(e) return {ok:false,msg:e[2]};
+      if(d!==0&&n*ad===an*d){
+        if(s.acceptEquiv) return {ok:true,msg:'Correcte! I a més ja l’has simplificat.'};
+        if(s.answer[0]===5&&s.answer[1]===2) return {ok:false,msg:'És equivalent, però encara es pot simplificar més.'};
+        return {ok:false,msg:'Aquesta fracció és equivalent, però escriu-la amb el denominador '+ad+'.'};
+      }
+      return {ok:false};
+    }
+    if(v===s.answer) return {ok:true};
+    if(s.errors&&s.errors[v]) return {ok:false,msg:s.errors[v]};
+    return {ok:false};
+  }
+  function finishStep(kind){
+    const s=steps[idx]; status[idx]=kind;
+    $('check').hidden=true; $('helpBtn').hidden=true; $('showBtn').hidden=true;
+    $('explain').innerHTML='<b>Solució.</b> '+s.explain; $('explain').hidden=false;
+    $('form').querySelectorAll('input,button').forEach(x=>x.disabled=true);
+    $('next').textContent=idx+1<steps.length?'Següent':'Veure el resum'; $('next').hidden=false; $('next').focus({preventScroll:true});
+    chips();
+  }
+  $('check').onclick=()=>{
+    const s=steps[idx], v=read(s);
+    if(v===null){$('fb').textContent=s.kind==='choice'?'Tria una resposta.':'Escriu la teva resposta.';$('fb').className='fb';return;}
+    const r=judge(s,v);
+    if(r.ok){
+      $('fb').textContent=r.msg||(tries===0?'Molt bé, a la primera!':'Molt bé! Ara sí.'); $('fb').className='fb ok';
+      finishStep(tries===0&&!helpUsed?'first':'help');
+    }else{
+      tries++; helpUsed=true;
+      $('fb').innerHTML=r.msg||'Encara no. Mira la pista.'; $('fb').className='fb bad';
+      addHint();
+      if(s.table) $('helpBtn').hidden=false;
+      if(tries>=2) $('showBtn').hidden=false;
+      $('stepCard').classList.remove('shake');void $('stepCard').offsetWidth;$('stepCard').classList.add('shake');
+    }
+  };
+  $('form').addEventListener('submit',e=>{e.preventDefault();$('check').click();});
+  $('helpBtn').onclick=()=>{const s=steps[idx]; helpUsed=true; if(s.table) startTask(s.table);};
+  $('showBtn').onclick=()=>{$('fb').textContent='Aquesta és la solució. Llegeix-la bé!';$('fb').className='fb';finishStep('shown');};
+  $('next').onclick=()=>{idx++; if(idx<steps.length) show(); else summary();};
+
+  function summary(){
+    done=true; $('game').hidden=true; $('end').hidden=false; chips();
+    const name=$('name').value.trim();
+    $('who').textContent=name?'Resum de '+name:'Resum de la correcció';
+    const first=status.filter(x=>x==='first').length;
+    $('score').textContent=first+' / '+steps.length+' a la primera';
+    const groups=[['1','Pregunta 1'],['2','Pregunta 2'],['3','Pregunta 3'],['4','Pregunta 4'],['5','Pregunta 5'],['V','Voluntària']];
+    const rows=$('srows'); rows.innerHTML='';
+    groups.forEach(([q,lab])=>{
+      const idxs=steps.map((s,i)=>s.q===q?i:-1).filter(i=>i>=0); if(!idxs.length)return;
+      const r=document.createElement('div');r.className='srow';
+      r.innerHTML='<b>'+lab+'</b><div class="steps">'+idxs.map(i=>'<span class="chip '+status[i]+'">'+steps[i].label+'</span>').join('')+'</div>';
+      rows.appendChild(r);
+    });
+    const weak=steps.map((s,i)=>status[i]!=='first'?s:null).filter(Boolean);
+    const fracWeak=weak.some(s=>['4','5','V'].includes(s.q)), multWeak=weak.some(s=>['1','2','3'].includes(s.q));
+    let adv='<span class="lab" style="font-family:var(--f-display);font-weight:600">Què he de repassar?</span> ';
+    if(!weak.length) adv+='Res! Ho has fet tot a la primera. Enhorabona!';
+    else{
+      const parts=[];
+      if(multWeak) parts.push('les <b>taules de multiplicar</b> i quan cal multiplicar o dividir (applets de la taula)');
+      if(fracWeak) parts.push('les <b>fraccions equivalents</b> i <b>igualar denominadors</b> abans de sumar (truc de les dues files)');
+      adv+='Repassa '+parts.join(' i ')+'. Ensenya aquest resum al teu professor.';
+    }
+    $('advice').innerHTML=adv;
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function start(){
+    steps=STEPS.filter(s=>$('withVol').checked||!s.vol); idx=0; status=new Array(steps.length).fill(null); done=false;
+    $('intro').hidden=true; $('end').hidden=true; $('game').hidden=false; show();
+  }
+  $('go').onclick=start;
+  $('again').onclick=()=>{$('end').hidden=true;$('intro').hidden=false;};
+})();
+</script>
+
+</body></html>
