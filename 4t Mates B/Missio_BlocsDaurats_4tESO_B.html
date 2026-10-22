@@ -1,0 +1,996 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;font:14px sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>Missió Blocs Daurats</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Layout concept: an arcade cabinet screen. Neon HUD on top, one paged
+   "level card" at a time, a pixel platform scene at the foot of every world,
+   chunky arcade buttons + progress dots underneath (same paging as the
+   "Imatge i Firma" mission). Deliberately single-theme: a dark neon arcade. */
+:root{
+  --night:#12112A;   /* screen background */
+  --panel:#1C1A44;   /* level card */
+  --panel-2:#262260; /* inner panels */
+  --ink:#F4F1FF;     /* text */
+  --muted:#ADA7E0;   /* secondary text */
+  --black:#07061A;   /* outlines */
+  --red:#FF3B4E;
+  --green:#2BD46B;
+  --blue:#3D7BFF;
+  --yellow:#FFD23F;
+  --gold-hi:#FFF3A6; --gold-lo:#C58B00;
+  --brick:#B8492F; --brick-lo:#7A2A18;
+  --f-arcade:'Press Start 2P','Courier New',monospace;
+  --f-body:'VT323','Courier New',monospace;
+  --f-math:'Atkinson Hyperlegible','Arial',sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--night)}
+body{
+  color:var(--ink);
+  font-family:var(--f-body);
+  font-size:22px; line-height:1.25;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:20px 28px;
+  display:flex; justify-content:center;
+  background-image:
+    linear-gradient(rgba(61,123,255,.07) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(61,123,255,.07) 1px,transparent 1px);
+  background-size:28px 28px;
+}
+.app{width:100%; max-width:900px; display:flex; flex-direction:column; gap:14px}
+button{font:inherit; color:inherit}
+:focus-visible{outline:3px solid var(--yellow); outline-offset:3px}
+
+/* ---------- HUD ---------- */
+.hud{
+  display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px;
+  background:var(--black); border:4px solid var(--blue);
+  box-shadow:0 0 0 4px var(--black),0 0 22px rgba(61,123,255,.55);
+  padding:10px 14px;
+}
+.hud-cell{display:flex; flex-direction:column; gap:6px; min-width:0}
+.hud-k{font-family:var(--f-arcade); font-size:9px; letter-spacing:1px; color:var(--muted)}
+.hud-v{font-family:var(--f-arcade); font-size:13px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:6px}
+.hud-v.y{color:var(--yellow)} .hud-v.g{color:var(--green)} .hud-v.r{color:var(--red)}
+@media (max-width:560px){.hud{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ---------- Level card ---------- */
+.card{
+  background:var(--panel);
+  border:4px solid var(--black);
+  box-shadow:0 0 0 4px var(--ink),8px 8px 0 4px var(--black);
+  overflow:hidden;
+}
+.card-body{padding:24px 22px 22px; display:flex; flex-direction:column; gap:16px; min-height:440px}
+.screen{display:none; flex-direction:column; gap:16px; animation:fade .25s ease}
+.screen.active{display:flex}
+@keyframes fade{from{opacity:.2; transform:translateY(6px)}to{opacity:1; transform:none}}
+
+h1,h2,h3{font-family:var(--f-arcade); margin:0; line-height:1.35; text-wrap:balance}
+h1{font-size:clamp(20px,4.6vw,34px); color:var(--yellow); text-shadow:3px 3px 0 var(--red),6px 6px 0 var(--black)}
+h2{font-size:clamp(15px,3vw,20px); color:var(--ink); text-shadow:2px 2px 0 var(--black)}
+h3{font-size:12px; color:var(--yellow); letter-spacing:1px}
+p{margin:0; max-width:64ch}
+.muted{color:var(--muted)}
+.eyebrow{font-family:var(--f-arcade); font-size:10px; letter-spacing:1.5px; color:var(--green)}
+.row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+@media (max-width:640px){.grid-2{grid-template-columns:1fr}}
+.grid-2>*{min-width:0}
+
+.chip{display:inline-flex; align-items:center; gap:8px; font-family:var(--f-arcade); font-size:10px; letter-spacing:.5px;
+  padding:8px 10px; border:3px solid var(--black); background:var(--yellow); color:var(--black); box-shadow:3px 3px 0 var(--black)}
+.chip.red{background:var(--red); color:var(--ink)} .chip.green{background:var(--green)} .chip.blue{background:var(--blue); color:var(--ink)}
+
+.panel{background:var(--panel-2); border:3px solid var(--black); padding:16px; box-shadow:4px 4px 0 var(--black)}
+.panel.dark{background:var(--black)}
+.callout{display:flex; gap:12px; align-items:flex-start; background:var(--black); border:3px dashed var(--blue); padding:12px 14px}
+.callout.good{border-color:var(--green)} .callout.warn{border-color:var(--red)}
+.callout .ico{flex:0 0 auto; margin-top:2px}
+
+/* pipes as an ordered list (the order of operations) */
+.pipes{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; align-items:end}
+@media (max-width:640px){.pipes{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pipe-step{display:flex; flex-direction:column; align-items:center; gap:0}
+.pipe-cap{width:100%; background:linear-gradient(90deg,#1E8F48 0 12%,#5CF08F 12% 26%,var(--green) 26% 78%,#1E8F48 78%);
+  border:3px solid var(--black); padding:10px 6px; text-align:center; font-family:var(--f-arcade); font-size:16px; color:var(--black)}
+.pipe-body{width:84%; background:linear-gradient(90deg,#1E8F48 0 12%,#5CF08F 12% 24%,var(--green) 24% 80%,#1E8F48 80%);
+  border:3px solid var(--black); border-top:0; padding:12px 8px; text-align:center; font-size:20px; color:var(--black); line-height:1.1; flex:1}
+.pipe-step:nth-child(1) .pipe-body{min-height:150px} .pipe-step:nth-child(2) .pipe-body{min-height:120px}
+.pipe-step:nth-child(3) .pipe-body{min-height:96px} .pipe-step:nth-child(4) .pipe-body{min-height:74px}
+
+table.keys{width:100%; border-collapse:collapse}
+table.keys td{border-bottom:2px dashed rgba(173,167,224,.3); padding:8px 6px; vertical-align:middle}
+table.keys td:first-child{font-family:var(--f-math); font-size:20px; color:var(--yellow); white-space:nowrap}
+.tbl-wrap{overflow-x:auto}
+
+/* inputs */
+label.lab{display:block; font-family:var(--f-arcade); font-size:10px; color:var(--muted); margin-bottom:8px; letter-spacing:1px}
+input[type=text]{width:100%; font-family:var(--f-math); font-size:22px; padding:10px 12px; background:var(--black); color:var(--ink);
+  border:3px solid var(--blue); outline:none}
+input[type=text]:focus{border-color:var(--yellow); box-shadow:0 0 14px rgba(255,210,63,.4)}
+input::placeholder{color:#6E68A6}
+
+.btn{font-family:var(--f-arcade); font-size:12px; letter-spacing:.5px; padding:12px 16px; cursor:pointer;
+  background:var(--yellow); color:var(--black); border:3px solid var(--black); box-shadow:4px 4px 0 var(--black); user-select:none}
+.btn:active{transform:translate(3px,3px); box-shadow:1px 1px 0 var(--black)}
+.btn:disabled{opacity:.35; cursor:not-allowed; transform:none; box-shadow:4px 4px 0 var(--black)}
+.btn.red{background:var(--red); color:var(--ink)} .btn.green{background:var(--green)} .btn.blue{background:var(--blue); color:var(--ink)}
+.btn.ghost{background:var(--panel-2); color:var(--ink)}
+.btn.small{font-size:10px; padding:9px 11px}
+
+.heroes{display:flex; gap:12px; flex-wrap:wrap}
+.hero-pick{background:var(--black); border:3px solid var(--panel-2); padding:10px 12px 6px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:6px}
+.hero-pick span{font-family:var(--f-arcade); font-size:9px; color:var(--muted)}
+.hero-pick[aria-pressed="true"]{border-color:var(--yellow); box-shadow:0 0 14px rgba(255,210,63,.45)}
+
+/* ---------- Math rendering ---------- */
+.m{font-family:var(--f-math); color:var(--ink); line-height:1.15; white-space:nowrap}
+.m .v{font-style:italic}
+.m .op{margin:0 .22em}
+.m .fr{display:inline-block; vertical-align:middle; text-align:center; margin:0 .1em}
+.m .fr>span{display:block; padding:0 .14em}
+.m .fr>.n{border-bottom:.075em solid currentColor; padding-bottom:.05em}
+.m .fr>.d{padding-top:.05em}
+.m .pw{display:inline-block; white-space:nowrap}
+.m .pe{font-size:.6em; position:relative; top:-.85em; margin-left:.05em}
+.m .pw.tall>.pe{top:-1.75em}
+.m .slf{font-size:1em}
+.m .rad{display:inline-flex; align-items:flex-end; vertical-align:middle}
+.m .rs{font-size:1.12em; line-height:1}
+.m .rad.tall .rs{font-size:2.05em}
+.m .rad.tall>.rb{padding-top:.3em}
+.m .rb{border-top:.075em solid currentColor; padding:.06em .1em 0 .06em; margin-left:-.03em}
+.m .ri{font-size:.55em; align-self:center; margin-right:-.42em; transform:translateY(-.45em); position:relative; z-index:1}
+.m .rad.tall .ri{transform:translateY(-.9em); margin-right:-.6em}
+.m .par.tall>.pl,.m .par.tall>.pr{font-size:1.9em; font-weight:400; vertical-align:middle; line-height:1}
+.m .par>.pl,.m .par>.pr{font-weight:400}
+.m .blk{display:inline-block; vertical-align:middle; position:relative; background:var(--yellow); color:var(--black);
+  border:3px solid var(--black); padding:.14em .32em; margin:0 .06em;
+  box-shadow:inset 3px 3px 0 var(--gold-hi),inset -3px -3px 0 var(--gold-lo),0 0 18px rgba(255,210,63,.55);
+  animation:glow 1.4s ease-in-out infinite}
+.m .blk::after{content:"!"; position:absolute; top:-12px; right:-10px; width:20px; height:20px; display:grid; place-items:center;
+  font-family:var(--f-arcade); font-size:10px; background:var(--red); color:var(--ink); border:2px solid var(--black)}
+.m .okb{color:var(--green); text-shadow:0 0 10px rgba(43,212,107,.6)}
+@keyframes glow{50%{box-shadow:inset 3px 3px 0 var(--gold-hi),inset -3px -3px 0 var(--gold-lo),0 0 30px rgba(255,210,63,.9)}}
+.m .blk.shatter{animation:shat .45s ease forwards}
+@keyframes shat{30%{transform:translateY(-8px) scale(1.08)}100%{transform:scale(.2) rotate(8deg); opacity:0}}
+@media (prefers-reduced-motion:reduce){.m .blk{animation:none}.screen{animation:none}}
+
+/* ---------- World screen ---------- */
+.world-head{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap}
+.blocks-left{display:flex; gap:5px; align-items:center}
+.mini{width:16px; height:16px; border:2px solid var(--black); background:var(--yellow); box-shadow:inset 2px 2px 0 var(--gold-hi),inset -2px -2px 0 var(--gold-lo)}
+.mini.used{background:var(--brick-lo); box-shadow:none}
+.stage{background:var(--black); border:3px solid var(--blue); box-shadow:0 0 18px rgba(61,123,255,.35) inset; padding:30px 14px 22px; overflow-x:auto; text-align:center}
+.stage .m{font-size:clamp(22px,4.6vw,38px); display:inline-block; padding-inline:12px}
+.rule{font-family:var(--f-arcade); font-size:10px; color:var(--blue); letter-spacing:.5px; line-height:1.6}
+.answer-row{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:end}
+@media (max-width:520px){.answer-row{grid-template-columns:1fr}}
+.keypad{display:flex; gap:6px; flex-wrap:wrap}
+.kp{font-family:var(--f-math); font-size:20px; min-width:44px; padding:6px 10px; background:var(--panel-2); color:var(--ink); border:3px solid var(--black); box-shadow:3px 3px 0 var(--black); cursor:pointer}
+.kp:active{transform:translate(2px,2px); box-shadow:1px 1px 0 var(--black)}
+.preview{min-height:44px; display:flex; align-items:center; gap:10px; color:var(--muted); font-size:20px; overflow-x:auto}
+.preview .m{font-size:24px}
+.fb{min-height:30px; font-size:22px}
+.fb.ok{color:var(--green)} .fb.bad{color:var(--red)} .fb.form{color:var(--yellow)}
+.log{display:flex; flex-direction:column; gap:6px; margin:0; padding:0; list-style:none}
+.log li{display:flex; gap:10px; align-items:center; background:var(--black); border-left:6px solid var(--green); padding:6px 10px; overflow-x:auto}
+.log li .m{font-size:19px}
+.log .n{font-family:var(--f-arcade); font-size:9px; color:var(--green); flex:0 0 auto}
+.flag-panel{background:var(--black); border:4px solid var(--green); box-shadow:0 0 24px rgba(43,212,107,.45); padding:16px; display:flex; flex-direction:column; gap:10px; align-items:center; text-align:center}
+.flag-panel .m{font-size:clamp(26px,5vw,40px)}
+
+/* scene */
+.scene{position:relative; height:150px; border-top:4px solid var(--black); overflow:hidden; background:linear-gradient(var(--sky1),var(--sky2))}
+.scene .ground{position:absolute; left:0; right:0; bottom:0; height:34px; border-top:4px solid var(--black);
+  background-color:var(--ground);
+  background-image:
+    linear-gradient(var(--groundlo) 3px,transparent 3px),
+    linear-gradient(90deg,var(--groundlo) 3px,transparent 3px);
+  background-size:32px 17px,32px 17px;}
+.scene .sblk{position:absolute; top:28px; width:34px; height:34px; transform:translateX(-50%); background:var(--yellow);
+  border:3px solid var(--black); box-shadow:inset 4px 4px 0 var(--gold-hi),inset -4px -4px 0 var(--gold-lo);
+  display:grid; place-items:center; font-family:var(--f-arcade); font-size:13px; color:var(--black)}
+.scene .sblk.used{background:var(--brick-lo); box-shadow:inset 4px 4px 0 #9A4A33,inset -4px -4px 0 #4A160A; color:transparent}
+.scene .sblk.next{animation:bob 1s ease-in-out infinite}
+@keyframes bob{50%{transform:translateX(-50%) translateY(-4px)}}
+.scene .hero{position:absolute; bottom:34px; transform:translateX(-50%); transition:left .7s steps(7); z-index:3}
+.scene .hero.jump{animation:jump .45s ease}
+@keyframes jump{40%{transform:translateX(-50%) translateY(-40px)}}
+.scene .coinpop{position:absolute; top:0; transform:translateX(-50%); animation:coin .8s ease forwards; z-index:4}
+@keyframes coin{0%{top:30px; opacity:1}70%{top:-6px; opacity:1}100%{top:-10px; opacity:0}}
+.scene .pipe{position:absolute; bottom:34px; display:flex; flex-direction:column; align-items:center}
+.scene .pipe .t{width:52px; height:18px; border:3px solid var(--black); background:linear-gradient(90deg,#1E8F48 0 14%,#5CF08F 14% 30%,var(--green) 30% 80%,#1E8F48 80%)}
+.scene .pipe .b{width:42px; border:3px solid var(--black); border-top:0; background:linear-gradient(90deg,#1E8F48 0 14%,#5CF08F 14% 28%,var(--green) 28% 80%,#1E8F48 80%)}
+.scene .pole{position:absolute; bottom:34px; width:6px; height:104px; background:var(--ink); border:2px solid var(--black)}
+.scene .pole::before{content:""; position:absolute; top:-12px; left:-6px; width:14px; height:14px; background:var(--yellow); border:2px solid var(--black)}
+.scene .flag{position:absolute; left:4px; width:40px; height:26px; background:var(--red); border:2px solid var(--black); clip-path:polygon(0 0,100% 50%,0 100%); transition:top .9s steps(6)}
+.scene .cloud{position:absolute; opacity:.9}
+.scene .stars{position:absolute; inset:0; background-image:radial-gradient(var(--ink) 1px,transparent 1.5px); background-size:46px 38px; opacity:.35}
+.sc-w1{--sky1:#3D7BFF; --sky2:#8FC3FF; --ground:#B8492F; --groundlo:#7A2A18}
+.sc-w2{--sky1:#0B0A20; --sky2:#1E1B4C; --ground:#3D7BFF; --groundlo:#1A3C8C}
+.sc-w3{--sky1:#5AA0FF; --sky2:#D6ECFF; --ground:#2BD46B; --groundlo:#167A3A}
+.sc-w4{--sky1:#2A0B12; --sky2:#7A1E1E; --ground:#FF3B4E; --groundlo:#8F1525}
+.sc-w5{--sky1:#16153A; --sky2:#3A2E6E; --ground:#6E6A8E; --groundlo:#3B3858}
+
+/* ---------- Report / tasks ---------- */
+.report{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+@media (max-width:560px){.report{grid-template-columns:1fr}}
+.ri-box{background:var(--black); border:3px solid var(--panel-2); padding:10px 12px; min-width:0}
+.ri-box .k{font-family:var(--f-arcade); font-size:9px; color:var(--muted); letter-spacing:1px}
+.ri-box .v{font-size:24px; overflow-x:auto}
+.task{display:flex; gap:12px; align-items:center; padding:10px 12px; border:3px solid var(--black); background:var(--panel-2); cursor:pointer; text-align:left; width:100%}
+.task .box{width:28px; height:28px; flex:0 0 auto; border:3px solid var(--black); background:var(--black); display:grid; place-items:center; font-family:var(--f-arcade); font-size:12px; color:transparent}
+.task[aria-pressed="true"]{background:#14432A}
+.task[aria-pressed="true"] .box{background:var(--green); color:var(--black)}
+.wtable{width:100%; border-collapse:collapse; font-size:20px}
+.wtable th{font-family:var(--f-arcade); font-size:9px; color:var(--muted); text-align:left; padding:6px; letter-spacing:.5px}
+.wtable td{padding:8px 6px; border-top:2px dashed rgba(173,167,224,.25); white-space:nowrap}
+.wtable .m{font-size:20px}
+
+/* ---------- Print (standalone file only) ---------- */
+#print-report{display:none}
+@page{size:A4; margin:12mm}
+@media print{
+  :root{--night:#FFFFFF; background:#fff !important; color-scheme:light !important}
+  html,body{background:#fff !important; background-image:none !important; padding:0 !important; display:block !important}
+  body>*:not(#print-report){display:none !important}
+  #print-report{display:block}
+  #print-report .rep{padding:0; max-width:none}
+  #print-report .rblock{break-inside:avoid}
+  *{-webkit-print-color-adjust:exact; print-color-adjust:exact}
+}
+
+/* ---------- Give up ---------- */
+.giveup-row{margin-top:10px; gap:12px}
+.btn.giveup{background:var(--black); color:var(--red); border-color:var(--red); box-shadow:3px 3px 0 var(--red)}
+.btn.giveup[data-confirm]{background:var(--red); color:var(--ink); border-color:var(--black)}
+.flag-panel.lost{border-color:var(--red); box-shadow:0 0 24px rgba(255,59,78,.4)}
+.log li.gave{border-left-color:var(--red)}
+.log li.gave .n{color:var(--red)}
+
+/* ---------- Report paper ---------- */
+.paper-wrap{background:#E9E7F2; border:3px solid var(--black); padding:14px; overflow-x:auto}
+.paper-wrap .rep{min-width:640px; box-shadow:0 6px 0 rgba(7,6,26,.25)}
+.pdf-host{position:fixed; left:-10000px; top:0; width:760px; background:#fff}
+.btn.green:disabled,.btn.ghost:disabled{opacity:.5}
+
+/* ---------- Nav ---------- */
+.navbar{display:flex; align-items:center; justify-content:space-between; gap:10px}
+.dots{display:flex; gap:7px; flex-wrap:wrap; justify-content:center}
+.dot{width:14px; height:14px; padding:0; border:3px solid var(--black); background:var(--panel-2); cursor:pointer; box-shadow:0 0 0 2px var(--muted)}
+.dot.active{background:var(--yellow); box-shadow:0 0 0 2px var(--yellow)}
+.dot.done{background:var(--green)}
+.dot:disabled{opacity:.3; cursor:not-allowed}
+footer{text-align:center; font-family:var(--f-arcade); font-size:9px; color:var(--muted); letter-spacing:1px}
+
+/* ---------- Reward ---------- */
+.overlay{position:fixed; inset:0; background:rgba(7,6,26,.88); display:flex; align-items:center; justify-content:center; z-index:50; overflow:auto;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.overlay[hidden]{display:none}
+.reward{position:relative; overflow:hidden; background:var(--panel); border:4px solid var(--black); box-shadow:0 0 0 4px var(--yellow),10px 10px 0 4px var(--black);
+  padding:26px 22px; max-width:380px; width:100%; display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; animation:pop .35s cubic-bezier(.26,1.4,.4,1)}
+@keyframes pop{from{transform:scale(.7); opacity:0}to{transform:none; opacity:1}}
+.confetti{position:absolute; top:-12px; width:10px; height:10px; border:2px solid var(--black); animation:fall 1.8s linear forwards; pointer-events:none}
+@keyframes fall{to{transform:translateY(380px) rotate(300deg); opacity:0}}
+@media (prefers-reduced-motion:reduce){.confetti{display:none}.reward{animation:none}.scene .hero,.scene .flag{transition:none}}
+.medal-img{width:170px; height:auto; image-rendering:pixelated}
+</style>
+
+<div class="app">
+  <div class="hud" aria-live="polite">
+    <div class="hud-cell"><span class="hud-k">JUGADOR/A</span><span class="hud-v" id="hud-name">—</span></div>
+    <div class="hud-cell"><span class="hud-k">MONEDES</span><span class="hud-v y" id="hud-coins"></span></div>
+    <div class="hud-cell"><span class="hud-k">MÓN</span><span class="hud-v g" id="hud-world">INICI</span></div>
+    <div class="hud-cell"><span class="hud-k">BLOCS TRENCATS</span><span class="hud-v r" id="hud-blocks">0 / 24</span></div>
+  </div>
+
+  <div class="card"><div class="card-body" id="screens">
+
+    <!-- 0 · PORTADA -->
+    <section class="screen active" data-screen="0">
+      <div class="row" style="justify-content:space-between">
+        <span class="chip blue">MATEMÀTIQUES B · 4t ESO</span>
+        <span class="chip">POTÈNCIES · ARRELS · FRACCIONS</span>
+      </div>
+      <h1>MISSIÓ<br>BLOCS DAURATS</h1>
+      <p>Cada expressió està presonera dins de blocs daurats. Resol el bloc que brilla, trenca’l i allibera l’expressió pas a pas fins a la bandera. Al final hi trobaràs la solució: una fracció, una potència o una arrel.</p>
+      <div class="scene sc-w1" id="cover-scene" aria-hidden="true"></div>
+      <div class="callout"><span class="ico" id="ico-joy"></span><span>Fes servir <b>Enrere</b> i <b>Endavant</b> per moure’t. Els mons s’obren a mesura que els vas completant. També pots fer servir les fletxes del teclat.</span></div>
+    </section>
+
+    <!-- 1 · LA MISSIÓ -->
+    <section class="screen" data-screen="1">
+      <span class="eyebrow">LA MISSIÓ</span>
+      <h2>Què has de fer?</h2>
+      <div class="grid-2">
+        <div class="panel"><h3>BLOC DAURAT</h3><p style="margin-top:8px">A cada pas, una part de l’expressió brilla dins d’un bloc daurat. És el càlcul que toca fer segons l’ordre de les operacions. Escriu quant val i prem <b>Trenca!</b></p></div>
+        <div class="panel"><h3>BANDERA</h3><p style="margin-top:8px">Quan no queda cap bloc, escriu el resultat final en la forma que demana el món: <b>fracció irreductible</b>, <b>potència</b> o <b>radical simplificat</b>.</p></div>
+      </div>
+      <div class="panel dark">
+        <h3>MONEDES</h3>
+        <p style="margin-top:8px">Encert al primer intent: <b style="color:var(--yellow)">3 monedes</b>. Al segon: <b style="color:var(--yellow)">2</b>. Amb pista o més intents: <b style="color:var(--yellow)">1</b>. Cada bandera val <b style="color:var(--yellow)">5 monedes</b> més, i la del castell, 10.</p>
+        <p class="muted" style="margin-top:8px">Cada món té tres versions amb números diferents (A, B i C). El joc te n’assigna una a l’atzar, i en reiniciar la missió en tries de noves.</p>
+        <p class="muted" style="margin-top:8px">Si el valor és correcte però no està escrit en la forma demanada, el joc t’ho diu i no et resta res.</p>
+        <p style="margin-top:8px">Si et quedes encallat, el botó <b style="color:var(--red)">Em rendeixo!</b> mostra la solució del món i et deixa continuar, però el món compta com a <b style="color:var(--red)">no superat</b> i l’informe ho indica.</p>
+      </div>
+      <div class="callout good"><span class="ico" id="ico-flag"></span><span>4 mons obligatoris i un castell voluntari. Copia a la llibreta cada pas que alliberis. Al final podràs descarregar un informe en PDF amb els teus resultats i les solucions.</span></div>
+    </section>
+
+    <!-- 2 · MANUAL -->
+    <section class="screen" data-screen="2">
+      <span class="eyebrow">MANUAL DEL JUGADOR</span>
+      <h2>L’ordre de les canonades</h2>
+      <p class="muted">L’aigua baixa per les canonades d’esquerra a dreta. Les operacions també tenen un ordre:</p>
+      <div class="pipes">
+        <div class="pipe-step"><div class="pipe-cap">1</div><div class="pipe-body">Parèntesis i barres de fracció</div></div>
+        <div class="pipe-step"><div class="pipe-cap">2</div><div class="pipe-body">Potències i arrels</div></div>
+        <div class="pipe-step"><div class="pipe-cap">3</div><div class="pipe-body">Multiplicacions i divisions</div></div>
+        <div class="pipe-step"><div class="pipe-cap">4</div><div class="pipe-body">Sumes i restes</div></div>
+      </div>
+      <p class="muted">Dins d’un mateix nivell, d’esquerra a dreta.</p>
+      <h3>COM S’ESCRIUEN LES RESPOSTES</h3>
+      <div class="tbl-wrap"><table class="keys" id="keys-table"></table></div>
+    </section>
+
+    <!-- 3 · JUGADOR -->
+    <section class="screen" data-screen="3">
+      <span class="eyebrow">SELECCIÓ DE JUGADOR</span>
+      <h2>Qui juga?</h2>
+      <div class="panel">
+        <label class="lab" for="player-name">NOM I COGNOMS</label>
+        <input type="text" id="player-name" placeholder="p. ex. Laia Puig Soler" autocomplete="off">
+      </div>
+      <div class="panel">
+        <span class="lab">TRIA EL TEU ROBOT</span>
+        <div class="heroes" id="heroes"></div>
+      </div>
+      <div class="callout"><span class="ico" id="ico-coin"></span><span>El teu progrés es desa en aquest navegador. Si tornes a obrir la missió des del mateix ordinador, continuaràs on ho vas deixar.</span></div>
+    </section>
+
+    <!-- 4..8 · MONS (es generen) -->
+    <section class="screen" data-screen="4" data-world="0"></section>
+    <section class="screen" data-screen="5" data-world="1"></section>
+    <section class="screen" data-screen="6" data-world="2"></section>
+    <section class="screen" data-screen="7" data-world="3"></section>
+    <section class="screen" data-screen="8" data-world="4"></section>
+
+    <!-- 9 · INFORME -->
+    <section class="screen" data-screen="9">
+      <span class="eyebrow">MARCADOR FINAL</span>
+      <h2>Informe de la missió</h2>
+      <div class="report">
+        <div class="ri-box"><div class="k">JUGADOR/A</div><div class="v" id="sum-name">—</div></div>
+        <div class="ri-box"><div class="k">NOTA ORIENTATIVA</div><div class="v" id="sum-grade" style="color:var(--green)">0,0</div></div>
+        <div class="ri-box"><div class="k">MONEDES</div><div class="v" id="sum-coins" style="color:var(--yellow)">0</div></div>
+        <div class="ri-box"><div class="k">MONS COMPLETATS</div><div class="v" id="sum-worlds">0 / 4</div></div>
+      </div>
+      <h3>A LA LLIBRETA</h3>
+      <div id="tasks" style="display:flex; flex-direction:column; gap:8px"></div>
+      <div class="panel dark" style="display:flex; flex-direction:column; gap:12px">
+        <h3>DESCARREGA L’INFORME</h3>
+        <p>Resultats, passos que has fet, errors i procediment correcte de cada món. Serveix per lliurar-lo al professor/a i per estudiar.</p>
+        <div class="row" id="dl-row">
+          <button class="btn green" type="button" data-dl="pdf">⬇ Informe en PDF</button>
+          <button class="btn ghost" type="button" data-dl="html">⬇ Informe en HTML</button>
+          <button class="btn blue" type="button" data-dl="print" id="btn-print" hidden>🖨 Desa en PDF (imprimir)</button>
+        </div>
+        <p class="muted" id="dl-off" hidden>Les descàrregues no estan disponibles en aquesta vista. Ensenya aquesta pantalla al professor/a.</p>
+        <p class="muted" id="dl-hint" style="font-size:18px"></p>
+        <p class="fb form" id="dl-status" role="status"></p>
+      </div>
+      <div class="paper-wrap"><div id="paper"></div></div>
+      <div class="callout"><span class="ico" id="ico-joy2"></span><span>L’informe es pot generar en qualsevol moment, encara que no hagis acabat tots els mons.</span></div>
+    </section>
+
+    <!-- 10 · FINAL -->
+    <section class="screen" data-screen="10">
+      <div style="display:flex; justify-content:center" id="trophy-big"></div>
+      <h1 style="text-align:center" id="final-title">EXPRESSIONS<br>ALLIBERADES!</h1>
+      <div class="callout warn" id="final-note" hidden></div>
+      <div class="grid-2">
+        <div class="panel"><h3>ORDRE</h3><p style="margin-top:8px">Has seguit les canonades: parèntesis, potències i arrels, multiplicacions i divisions, sumes i restes.</p></div>
+        <div class="panel"><h3>POTÈNCIES</h3><p style="margin-top:8px">Mateixa base: al producte se sumen els exponents i al quocient es resten.</p></div>
+        <div class="panel"><h3>ARRELS</h3><p style="margin-top:8px">Una arrel és una potència d’exponent fraccionari. Extreure factors simplifica els radicals.</p></div>
+        <div class="panel"><h3>FRACCIONS</h3><p style="margin-top:8px">Un exponent negatiu gira la fracció. El resultat final sempre, irreductible.</p></div>
+      </div>
+      <div class="row" style="justify-content:center">
+        <button class="btn ghost small" id="btn-reset" type="button">↺ Reinicia la missió amb números nous</button>
+      </div>
+    </section>
+
+  </div></div>
+
+  <div class="navbar">
+    <button class="btn ghost" id="btn-back" type="button">◀ Enrere</button>
+    <div class="dots" id="dots"></div>
+    <button class="btn" id="btn-next" type="button">Endavant ▶</button>
+  </div>
+  <footer>MISSIÓ BLOCS DAURATS · MATEMÀTIQUES B · 4t ESO</footer>
+</div>
+
+<div id="print-report" aria-hidden="true"></div>
+<div class="overlay" id="overlay" hidden>
+  <div class="reward" id="reward" role="dialog" aria-modal="true" aria-labelledby="rw-title">
+    <span class="chip green" id="rw-chip">MISSIÓ COMPLETADA</span>
+    <img class="medal-img" id="medal-img" alt="Trofeu de la Missió Blocs Daurats">
+    <h2 id="rw-title"><span id="rw-lead">Bona feina, </span><span id="rw-name">jugador/a</span>!</h2>
+    <p class="muted" style="font-size:20px">Has alliberat les expressions el <span id="rw-date">—</span> amb <b style="color:var(--yellow)" id="rw-coins">0</b> monedes.</p>
+    <p class="muted" style="font-size:18px">Fes clic dret (o mantén premut al mòbil) sobre el trofeu i tria «Desa la imatge» per guardar-lo.</p>
+    <button class="btn" type="button" id="btn-close">Tanca</button>
+  </div>
+</div>
+
+<script>
+/* ==================== LOGIC (pure) ==================== */
+/* --- mini-TeX -> HTML (expressions) --- */
+var SYM={cdot:'·',times:'×',div:':',approx:'≈',le:'≤',ge:'≥',pi:'π',pm:'±',Rightarrow:'⇒',',':' ',';':' '};
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function texParse(s){
+  var i=0;
+  function seq(stop){var out=[];
+    while(i<s.length){var c=s[i];
+      if(stop&&c===stop){i++;return out}
+      if(c===' '){i++;continue}
+      if(c==='{'){i++;out.push({t:'g',c:seq('}')});continue}
+      if(c==='^'||c==='_'){i++;var a=arg();var base=out.pop()||{t:'r',x:''};out.push({t:'sup',b:base,a:a});continue}
+      if(c==='\\'){i++;var name='';
+        if(/[A-Za-z]/.test(s[i])){while(i<s.length&&/[A-Za-z]/.test(s[i]))name+=s[i++]}else name=s[i++];
+        if(name==='frac'||name==='sfrac'){var n=arg(),d=arg();out.push({t:'f',n:n,d:d,lin:name==='sfrac'});continue}
+        if(name==='sqrt'){var deg=null;if(s[i]==='['){i++;deg=seq(']')}out.push({t:'rad',deg:deg,e:arg()});continue}
+        if(name==='p'){out.push({t:'d',e:arg()});continue}
+        if(name==='hl'){out.push({t:'hl',e:arg()});continue}
+        if(name==='ok'){out.push({t:'ok',e:arg()});continue}
+        out.push({t:'o',x:SYM[name]||name});continue}
+      if(/[0-9]/.test(c)){var st=i;i++;while(i<s.length&&(/[0-9]/.test(s[i])||(s[i]===','&&/[0-9]/.test(s[i+1]||''))))i++;out.push({t:'r',x:s.slice(st,i)});continue}
+      if(c==='-'){i++;out.push({t:'o',x:'−'});continue}
+      if('+=:<>'.indexOf(c)>=0){i++;out.push({t:'o',x:c});continue}
+      if(/[A-Za-z]/.test(c)){i++;out.push({t:'v',x:c});continue}
+      out.push({t:'r',x:c});i++}
+    return out}
+  function arg(){while(s[i]===' ')i++;if(s[i]==='{'){i++;return seq('}')}
+    if(/[0-9]/.test(s[i])){return [{t:'r',x:s[i++]}]}
+    var c=s[i++];return [{t:c==='-'?'o':'r',x:c==='-'?'−':c}]}
+  return seq(null);
+}
+function hasFrac(nodes){return nodes.some(function(n){if(n.t==='f'&&!n.lin)return true;
+  var kids=[].concat(n.c||[],n.e||[],n.n||[],n.d||[],n.b?[n.b]:[]);return kids.length&&hasFrac(kids)})}
+function texHTML(nodes){var h='';nodes.forEach(function(n,k){
+  if(n.t==='g')h+=texHTML(n.c);
+  else if(n.t==='r')h+=esc(n.x);
+  else if(n.t==='v')h+='<span class="v">'+esc(n.x)+'</span>';
+  else if(n.t==='o'){var unary=(n.x==='−')&&(k===0||nodes[k-1].t==='o');h+=unary?'−':'<span class="op">'+esc(n.x)+'</span>'}
+  else if(n.t==='f')h+=n.lin?'<span class="slf">'+texHTML(n.n)+'/'+texHTML(n.d)+'</span>':'<span class="fr"><span class="n">'+texHTML(n.n)+'</span><span class="d">'+texHTML(n.d)+'</span></span>';
+  else if(n.t==='rad')h+='<span class="rad'+(hasFrac(n.e)?' tall':'')+'">'+(n.deg?'<span class="ri">'+texHTML(n.deg)+'</span>':'')+'<span class="rs">√</span><span class="rb">'+texHTML(n.e)+'</span></span>';
+  else if(n.t==='sup')h+='<span class="pw'+(hasFrac([n.b])?' tall':'')+'">'+texHTML([n.b])+'<span class="pe">'+texHTML(n.a)+'</span></span>';
+  else if(n.t==='d')h+='<span class="par'+(hasFrac(n.e)?' tall':'')+'"><span class="pl">(</span>'+texHTML(n.e)+'<span class="pr">)</span></span>';
+  else if(n.t==='hl')h+='<span class="blk">'+texHTML(n.e)+'</span>';
+  else if(n.t==='ok')h+='<span class="okb">'+texHTML(n.e)+'</span>';
+});return h}
+function tex(s){return '<span class="m">'+texHTML(texParse(s))+'</span>'}
+
+/* --- student input: clean, parse, evaluate, render --- */
+var SUPMAP={'⁰':'0','¹':'1','²':'2','³':'3','⁴':'4','⁵':'5','⁶':'6','⁷':'7','⁸':'8','⁹':'9','⁻':'-'};
+function clean(s){
+  s=String(s||'').replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/[*×x]/g,'·').replace(/,/g,'.').replace(/÷/g,':')
+    .replace(/arrel|sqrt/gi,'√');
+  s=s.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+/g,function(m){return '^'+m.split('').map(function(c){return SUPMAP[c]}).join('')});
+  return s}
+function tokenize(s){var t=[],i=0;
+  while(i<s.length){var c=s[i];
+    if(/[0-9.]/.test(c)){var st=i;while(i<s.length&&/[0-9.]/.test(s[i]))i++;var x=s.slice(st,i);if(!/^\d+(\.\d+)?$/.test(x))return null;t.push({k:'n',v:parseFloat(x),s:x});continue}
+    if('+-·/:^()'.indexOf(c)>=0){t.push({k:c==='·'?'*':(c===':'?'/':c),s:c});i++;continue}
+    if('√∛∜'.indexOf(c)>=0){t.push({k:'rt',v:c==='√'?2:(c==='∛'?3:4)});i++;continue}
+    return null}
+  return t}
+function parseInput(raw){
+  var t=tokenize(clean(raw));if(!t||!t.length)return null;var p=0;
+  function peek(){return t[p]&&t[p].k}
+  function expr(){var a=term();while(peek()==='+'||peek()==='-'){var op=t[p++].k;a={t:'b',op:op,a:a,b:term()}}return a}
+  function term(){var a=unary();for(;;){
+    if(peek()==='*'||peek()==='/'){var op=t[p++].s;a={t:'b',op:op==='·'?'*':op,a:a,b:unary()}}
+    else if(peek()==='('||peek()==='rt'){a={t:'b',op:'*',imp:true,a:a,b:unary()}}
+    else break}return a}
+  function unary(){if(peek()==='-'){p++;return {t:'neg',a:unary()}}return power()}
+  function power(){var a=primary();if(peek()==='^'){p++;return {t:'pow',a:a,b:unary()}}return a}
+  function primary(){var tk=t[p++];if(!tk)throw 0;
+    if(tk.k==='n')return {t:'n',v:tk.v,s:tk.s};
+    if(tk.k==='('){var e=expr();if(peek()!==')')throw 0;p++;return {t:'par',a:e}}
+    if(tk.k==='rt')return {t:'rt',k:tk.v,a:primary()};
+    throw 0}
+  try{var r=expr();if(p!==t.length)return null;return r}catch(e){return null}
+}
+function evalAst(n){switch(n.t){
+  case 'n':return n.v;
+  case 'par':return evalAst(n.a);
+  case 'neg':return -evalAst(n.a);
+  case 'rt':var x=evalAst(n.a);if(n.k===3)return Math.cbrt(x);return x<0?NaN:Math.pow(x,1/n.k);
+  case 'pow':return Math.pow(evalAst(n.a),evalAst(n.b));
+  case 'b':var a=evalAst(n.a),b=evalAst(n.b);
+    if(n.op==='+')return a+b;if(n.op==='-')return a-b;if(n.op==='*')return a*b;if(n.op==='/'||n.op===':')return a/b;}
+  return NaN}
+function valueOf(s){var a=parseInput(s);return a?evalAst(a):NaN}
+function strip(n){return n.t==='par'?n.a:n}
+function astHTML(n){switch(n.t){
+  case 'n':return esc(n.s.replace('.',','));
+  case 'par':return '<span class="par'+(containsDiv(n.a)?' tall':'')+'"><span class="pl">(</span>'+astHTML(n.a)+'<span class="pr">)</span></span>';
+  case 'neg':return '−'+astHTML(n.a);
+  case 'rt':return '<span class="rad'+(containsDiv(n.a)?' tall':'')+'">'+(n.k>2?'<span class="ri">'+n.k+'</span>':'')+'<span class="rs">√</span><span class="rb">'+astHTML(strip(n.a))+'</span></span>';
+  case 'pow':var e=strip(n.b);var eh=(e.t==='b'&&e.op==='/')?astHTML(e.a)+'/'+astHTML(e.b):astHTML(e);
+    return '<span class="pw'+(containsDiv(n.a)?' tall':'')+'">'+astHTML(n.a)+'<span class="pe">'+eh+'</span></span>';
+  case 'b':
+    if(n.op==='/')return '<span class="fr"><span class="n">'+astHTML(strip(n.a))+'</span><span class="d">'+astHTML(strip(n.b))+'</span></span>';
+    if(n.op===':')return astHTML(n.a)+'<span class="op">:</span>'+astHTML(n.b);
+    if(n.op==='*')return n.imp?astHTML(n.a)+astHTML(n.b):astHTML(n.a)+'<span class="op">·</span>'+astHTML(n.b);
+    return astHTML(n.a)+'<span class="op">'+(n.op==='-'?'−':'+')+'</span>'+astHTML(n.b);}
+  return ''}
+function containsDiv(n){if(!n)return false;if(n.t==='b'&&n.op==='/')return true;return ['a','b'].some(function(k){return n[k]&&typeof n[k]==='object'&&containsDiv(n[k])})}
+
+var RE_NUM=/^-?\d+(\/\d+)?$/;
+var RE_POW=/^(\(-?\d+(?:\/\d+)?\)|-?\d+)\^(\(-?\d+(?:\/\d+)?\)|-?\d+)$/;
+var RE_ROOT=/^(\d+)?·?([√∛∜])(\(\d+\)|\d+)(\/\d+)?$/;
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){var t=b;b=a%b;a=t}return a}
+function baseOf(c){var m=c.match(RE_POW);return m?m[1].replace(/[()]/g,''):null}
+function rootSimple(c){var m=c.match(RE_ROOT);if(!m)return false;var k=m[2]==='√'?2:(m[2]==='∛'?3:4),rad=+m[3].replace(/[()]/g,'');for(var f=2;Math.pow(f,k)<=rad;f++)if(rad%Math.pow(f,k)===0)return false;return true}
+function close(a,b){return isFinite(a)&&Math.abs(a-b)<=1e-9*Math.max(1,Math.abs(b))}
+var FORM_TXT={num:'un nombre o una fracció (sense decimals)',pow:'una sola potència',root:'un sol radical, com ara 5√2'};
+var GOAL_TXT={frac:'una fracció irreductible',pow:'una potència',root:'un radical simplificat'};
+/* returns {state:'ok'|'wrong'|'form'|'empty'|'syntax', msg} */
+function checkStep(step,raw){
+  var c=clean(raw);if(!c)return {state:'empty',msg:'Escriu una resposta abans de trencar el bloc.'};
+  var v=valueOf(raw);if(!isFinite(v))return {state:'syntax',msg:'No entenc l’expressió. Revisa els parèntesis i els símbols.'};
+  if(!close(v,valueOf(step.ans)))return {state:'wrong',msg:'Aquest no és el valor del bloc. Torna-ho a provar.'};
+  if(step.final){
+    var g=step.goal;
+    if(g==='frac'){if(!RE_NUM.test(c))return {state:'form',msg:'El valor és correcte. Ara escriu-lo com '+GOAL_TXT.frac+', per exemple 5/7.'};
+      var pr=c.replace('-','').split('/');if(pr[1]&&gcd(+pr[0],+pr[1])!==1)return {state:'form',msg:'El valor és correcte, però la fracció encara es pot simplificar.'};}
+    if(g==='pow'){if(!RE_POW.test(c))return {state:'form',msg:'El valor és correcte. Ara escriu-lo com una potència de base '+step.base+'.'};
+      if(baseOf(c)!==step.base)return {state:'form',msg:'El valor és correcte, però la base ha de ser '+step.base+'.'};}
+    if(g==='root'){var m=c.match(RE_ROOT);if(!m)return {state:'form',msg:'El valor és correcte. Ara escriu-lo com un sol radical, per exemple 3√5.'};
+      var k=m[2]==='√'?2:(m[2]==='∛'?3:4),rad=+m[3].replace(/[()]/g,'');
+      for(var f=2;Math.pow(f,k)<=rad;f++)if(rad%Math.pow(f,k)===0)return {state:'form',msg:'El valor és correcte, però encara pots extreure factors del radical.'};}
+    return {state:'ok',msg:'Bandera! Expressió alliberada.'};
+  }
+  var okForm=step.forms.some(function(f){
+    if(f==='num')return RE_NUM.test(c);
+    if(f==='pow')return RE_POW.test(c)&&(!step.base||baseOf(c)===step.base);
+    if(f==='root')return rootSimple(c);return false});
+  if(!okForm){var want=step.forms.map(function(f){return FORM_TXT[f]}).join(' o ');
+    if(step.forms.indexOf('root')>=0&&RE_ROOT.test(c))return {state:'form',msg:'El valor és correcte, però encara pots extreure factors del radical.'};
+    return {state:'form',msg:'El valor és correcte, però escriu-lo com '+want+(step.base?' de base '+step.base:'')+'.'}}
+  return {state:'ok',msg:'Bloc trencat!'};
+}
+
+/* --- exact fractions --- */
+function F(n,d){d=d==null?1:d;if(d<0){n=-n;d=-d}var g=gcd(n,d)||1;return {n:n/g,d:d/g}}
+function fadd(a,b){return F(a.n*b.d+b.n*a.d,a.d*b.d)}
+function fsub(a,b){return F(a.n*b.d-b.n*a.d,a.d*b.d)}
+function fmul(a,b){return F(a.n*b.n,a.d*b.d)}
+function fdiv(a,b){return F(a.n*b.d,a.d*b.n)}
+function lcm(a,b){return a/gcd(a,b)*b}
+function isqrt(x){var r=Math.round(Math.sqrt(x));if(r*r!==x)throw new Error('no quadrat '+x);return r}
+function iroot(x,k){var r=Math.round(Math.pow(x,1/k));if(Math.pow(r,k)!==x)throw new Error('no arrel '+x);return r}
+function ft(f){var s=f.n<0?'-':'',n=Math.abs(f.n);return f.d===1?s+n:s+'\\frac{'+n+'}{'+f.d+'}'}
+function fa(f){return f.d===1?String(f.n):f.n+'/'+f.d}
+function dec(x){return (Math.round(x*100)/100).toFixed(2).replace('.',',')}
+function co(x){return x===1?'':String(x)}
+
+/* --- world templates: same structure, different numbers --- */
+function world1(o){
+  var F1=F(Math.pow(o.a,o.n)),F2=F(o.b*o.b,o.c*o.c),F3=F(isqrt(o.d),isqrt(o.e)),F4=fmul(F1,F2),F5=fsub(F4,F3);
+  var P0='\\p{\\frac{1}{'+o.a+'}}^{-'+o.n+'}',P1='\\p{\\frac{'+o.b+'}{'+o.c+'}}^{2}',P2='\\sqrt{\\frac{'+o.d+'}{'+o.e+'}}';
+  var raw4='\\frac{'+(F1.n*F2.n)+'}{'+F2.d+'}';
+  var L=lcm(F4.d,F3.d),diff=F4.n*L/F4.d-F3.n*L/F3.d;
+  var why5=ft(F4)+' - '+ft(F3)+' = \\frac{'+(F4.n*L/F4.d)+'}{'+L+'} - \\frac{'+(F3.n*L/F3.d)+'}{'+L+'} = \\frac{'+diff+'}{'+L+'}'+((diff/L!==F5.n/F5.d||F5.d!==L)?' = '+ft(F5):'');
+  return {name:'PRATS DE PÍXEL',goal:'frac',scene:'sc-w1',extra:ft(F5)+' \\approx '+dec(F5.n/F5.d),
+   states:['\\hl{'+P0+'} \\cdot '+P1+' - '+P2,'\\ok{'+ft(F1)+'} \\cdot \\hl{'+P1+'} - '+P2,ft(F1)+' \\cdot \\ok{'+ft(F2)+'} - \\hl{'+P2+'}',
+     '\\hl{'+ft(F1)+' \\cdot '+ft(F2)+'} - \\ok{'+ft(F3)+'}','\\hl{'+ft(F4)+' - '+ft(F3)+'}','\\ok{'+ft(F5)+'}'],
+   steps:[
+    {ans:fa(F1),forms:['num'],rule:'Potències i arrels primer.',hint:'Exponent negatiu: gira la fracció i l’exponent passa a ser positiu: '+o.a+'^'+o.n+'.',why:P0+' = '+o.a+'^{'+o.n+'} = '+ft(F1)},
+    {ans:fa(F2),forms:['num'],rule:'Potències i arrels primer.',hint:'Eleva al quadrat el numerador i el denominador.',why:P1+' = \\frac{'+o.b+'^{2}}{'+o.c+'^{2}} = '+ft(F2)},
+    {ans:fa(F3),forms:['num'],rule:'Les arrels van al mateix nivell que les potències.',hint:'Fes l’arrel del numerador i l’arrel del denominador.',why:P2+' = \\frac{\\sqrt{'+o.d+'}}{\\sqrt{'+o.e+'}} = '+ft(F3)},
+    {ans:fa(F4),forms:['num'],rule:'Multiplicació abans que resta.',hint:'Multiplica '+F1.n+' pel numerador i després simplifica.',why:ft(F1)+' \\cdot '+ft(F2)+' = '+raw4+(raw4!==ft(F4)?' = '+ft(F4):'')},
+    {ans:fa(F5),final:true,goal:'frac',rule:'Última operació: la resta.',hint:'Posa les dues fraccions amb denominador '+L+', resta els numeradors i simplifica.',why:why5}]};
+}
+function world2(o){
+  var B=o.p+'/'+o.q,pw=function(e){return '\\p{\\frac{'+o.p+'}{'+o.q+'}}^{'+e+'}'},h=o.r/2,s=o.m+o.k,f=s-h;
+  return {name:'COVES DE CANONADES',goal:'pow',base:B,scene:'sc-w2',extra:pw(f)+' = \\frac{'+Math.pow(o.p,f)+'}{'+Math.pow(o.q,f)+'}',
+   states:[pw(o.m)+' \\cdot \\hl{\\p{\\frac{'+o.q+'}{'+o.p+'}}^{-'+o.k+'}} : \\sqrt{'+pw(o.r)+'}',
+     pw(o.m)+' \\cdot \\ok{'+pw(o.k)+'} : \\hl{\\sqrt{'+pw(o.r)+'}}','\\hl{'+pw(o.m)+' \\cdot '+pw(o.k)+'} : \\ok{'+pw(h)+'}',
+     '\\hl{'+pw(s)+' : '+pw(h)+'}','\\ok{'+pw(f)+'}'],
+   steps:[
+    {ans:'('+B+')^'+o.k,forms:['pow'],base:B,rule:'Potències i arrels primer. Tot ha de quedar en base '+B+'.',hint:'Exponent negatiu: gira la base '+o.q+'/'+o.p+' i canvia el signe de l’exponent. S’escriu ('+B+')^'+o.k+'.',why:'\\p{\\frac{'+o.q+'}{'+o.p+'}}^{-'+o.k+'} = '+pw(o.k)},
+    {ans:'('+B+')^'+h,forms:['pow'],base:B,rule:'Les arrels van al mateix nivell que les potències.',hint:'L’arrel quadrada és l’exponent 1/2: divideix l’exponent '+o.r+' entre 2.',why:'\\sqrt{'+pw(o.r)+'} = '+pw('\\sfrac{'+o.r+'}{2}')+' = '+pw(h)},
+    {ans:'('+B+')^'+s,forms:['pow'],base:B,rule:'Multiplicacions i divisions, d’esquerra a dreta.',hint:'Producte de potències de la mateixa base: se sumen els exponents.',why:pw(o.m)+' \\cdot '+pw(o.k)+' = '+pw(o.m+' + '+o.k)+' = '+pw(s)},
+    {ans:'('+B+')^'+f,final:true,goal:'pow',base:B,rule:'Última operació: la divisió.',hint:'Quocient de potències de la mateixa base: es resten els exponents.',why:pw(s)+' : '+pw(h)+' = '+pw(s+' - '+h)+' = '+pw(f)}]};
+}
+function world3(o){
+  var s=o.s,r=function(c){return co(c)+'\\sqrt{'+s+'}'},a2=o.a*o.a*s,b2=o.b*o.b*s,c2=o.c*o.c*s,h=o.c/2,f=o.a-o.b+h;
+  var ra=function(c){return co(c)+'√'+s};
+  return {name:'TORRES D’ARRELS',goal:'root',scene:'sc-w3',extra:r(f)+' \\approx '+dec(f*Math.sqrt(s)),
+   states:['\\hl{\\sqrt{'+a2+'}} - \\sqrt{'+b2+'} + \\frac{\\sqrt{'+c2+'}}{2}','\\ok{'+r(o.a)+'} - \\hl{\\sqrt{'+b2+'}} + \\frac{\\sqrt{'+c2+'}}{2}',
+     r(o.a)+' - \\ok{'+r(o.b)+'} + \\frac{\\hl{\\sqrt{'+c2+'}}}{2}',r(o.a)+' - '+r(o.b)+' + \\hl{\\frac{'+r(o.c)+'}{2}}',
+     '\\hl{'+r(o.a)+' - '+r(o.b)+' + '+r(h)+'}','\\ok{'+r(f)+'}'],
+   steps:[
+    {ans:ra(o.a),forms:['root'],rule:'Abans de sumar, simplifiquem cada radical.',hint:a2+' = '+(o.a*o.a)+' · '+s+' i √'+(o.a*o.a)+' = '+o.a+'.',why:'\\sqrt{'+a2+'} = \\sqrt{'+o.a+'^{2} \\cdot '+s+'} = '+r(o.a)},
+    {ans:ra(o.b),forms:['root'],rule:'Abans de sumar, simplifiquem cada radical.',hint:b2+' = '+(o.b*o.b)+' · '+s+' i √'+(o.b*o.b)+' = '+o.b+'.',why:'\\sqrt{'+b2+'} = \\sqrt{'+o.b+'^{2} \\cdot '+s+'} = '+r(o.b)},
+    {ans:ra(o.c),forms:['root'],rule:'La barra de fracció agrupa: primer el numerador.',hint:c2+' = '+(o.c*o.c)+' · '+s+' i √'+(o.c*o.c)+' = '+o.c+'.',why:'\\sqrt{'+c2+'} = \\sqrt{'+o.c+'^{2} \\cdot '+s+'} = '+r(o.c)},
+    {ans:ra(h),forms:['root'],rule:'Ara la fracció sencera, abans de sumar.',hint:'Divideix el coeficient '+o.c+' entre 2. L’arrel no canvia.',why:'\\frac{'+r(o.c)+'}{2} = '+r(h)},
+    {ans:ra(f),final:true,goal:'root',rule:'Última operació: sumes i restes.',hint:'Són radicals semblants: suma i resta només els coeficients.',why:r(o.a)+' - '+r(o.b)+' + '+r(h)+' = \\p{'+o.a+' - '+o.b+' + '+h+'}\\sqrt{'+s+'} = '+r(f)}]};
+}
+function world4(o){
+  var v1=F(Math.pow(o.a,o.n)),rt=iroot(o.X,o.qq),v2=F(Math.pow(rt,o.pp)),v4=fdiv(v1,v2),F3=F(isqrt(o.d),isqrt(o.e)),F5=fsub(v4,F3);
+  var P0='\\p{\\frac{1}{'+o.a+'}}^{-'+o.n+'}',P1=o.X+'^{\\sfrac{'+o.pp+'}{'+o.qq+'}}',P2='\\sqrt{\\frac{'+o.d+'}{'+o.e+'}}';
+  var rx=o.qq===2?'\\sqrt{'+o.X+'}':'\\sqrt['+o.qq+']{'+o.X+'}',L=lcm(v4.d,F3.d),diff=v4.n*L/v4.d-F3.n*L/F3.d;
+  var why5=ft(v4)+' - '+ft(F3)+' = \\frac{'+(v4.n*L/v4.d)+'}{'+L+'} - \\frac{'+(F3.n*L/F3.d)+'}{'+L+'} = \\frac{'+diff+'}{'+L+'}'+(F5.d!==L?' = '+ft(F5):'');
+  var ordinal={2:'quadrada',3:'cúbica',4:'quarta'}[o.qq];
+  return {name:'VOLCÀ DE LAVA',goal:'frac',scene:'sc-w4',extra:ft(F5)+' \\approx '+dec(F5.n/F5.d),
+   states:['\\hl{'+P0+'} : '+P1+' - '+P2,'\\ok{'+ft(v1)+'} : \\hl{'+P1+'} - '+P2,ft(v1)+' : \\ok{'+ft(v2)+'} - \\hl{'+P2+'}',
+     '\\hl{'+ft(v1)+' : '+ft(v2)+'} - \\ok{'+ft(F3)+'}','\\hl{'+ft(v4)+' - '+ft(F3)+'}','\\ok{'+ft(F5)+'}'],
+   steps:[
+    {ans:fa(v1),forms:['num'],rule:'Potències i arrels primer.',hint:'Gira la fracció: '+o.a+'^'+o.n+'.',why:P0+' = '+o.a+'^{'+o.n+'} = '+ft(v1)},
+    {ans:fa(v2),forms:['num'],rule:'Potències i arrels primer.',hint:'Exponent fraccionari: primer l’arrel '+ordinal+' de '+o.X+' i després eleva a '+o.pp+'.',why:P1+' = \\p{'+rx+'}^{'+o.pp+'} = '+rt+'^{'+o.pp+'} = '+ft(v2)},
+    {ans:fa(F3),forms:['num'],rule:'Potències i arrels primer.',hint:'√'+o.d+' = '+isqrt(o.d)+' i √'+o.e+' = '+isqrt(o.e)+'.',why:P2+' = \\frac{\\sqrt{'+o.d+'}}{\\sqrt{'+o.e+'}} = '+ft(F3)},
+    {ans:fa(v4),forms:['num'],rule:'Divisió abans que resta.',hint:'Divideix '+v1.n+' entre '+v2.n+'.',why:ft(v1)+' : '+ft(v2)+' = '+ft(v4)},
+    {ans:fa(F5),final:true,goal:'frac',rule:'Última operació: la resta.',hint:'Escriu '+fa(v4)+' amb denominador '+L+' i resta.',why:why5}]};
+}
+function castle(o){
+  var b=o.b,b2=b*b,b3=b*b*b,e1=-2*o.k,e4=o.m+e1,e5=e4-o.r,e6=e5-2;
+  var pw=function(e){return e===1?String(b):b+'^{'+e+'}'},pa=function(e){return b+'^'+e};
+  var den=Math.pow(b,-e6);
+  return {name:'CASTELL FINAL',goal:'pow',base:String(b),scene:'sc-w5',optional:true,extra:b+'^{'+e6+'} = \\frac{1}{'+den+'}',
+   states:['\\frac{'+b+'^{'+o.m+'} \\cdot \\hl{'+b2+'^{-'+o.k+'}}}{\\sqrt{'+b+'^{'+(2*o.r)+'}}} : '+b3+'^{\\sfrac{2}{3}}',
+     '\\frac{'+b+'^{'+o.m+'} \\cdot \\ok{'+b+'^{'+e1+'}}}{\\hl{\\sqrt{'+b+'^{'+(2*o.r)+'}}}} : '+b3+'^{\\sfrac{2}{3}}',
+     '\\frac{'+b+'^{'+o.m+'} \\cdot '+b+'^{'+e1+'}}{\\ok{'+pw(o.r)+'}} : \\hl{'+b3+'^{\\sfrac{2}{3}}}',
+     '\\frac{\\hl{'+b+'^{'+o.m+'} \\cdot '+b+'^{'+e1+'}}}{'+pw(o.r)+'} : \\ok{'+b+'^{2}}',
+     '\\hl{\\frac{'+pw(e4)+'}{'+pw(o.r)+'}} : '+b+'^{2}','\\hl{'+pw(e5)+' : '+b+'^{2}}','\\ok{'+b+'^{'+e6+'}}'],
+   steps:[
+    {ans:pa(e1),forms:['pow'],base:String(b),rule:'Potències i arrels primer. Tot ha de quedar en base '+b+'.',hint:b2+' = '+b+'^2, així que '+b2+'^−'+o.k+' = ('+b+'^2)^−'+o.k+'. Multiplica els exponents.',why:b2+'^{-'+o.k+'} = \\p{'+b+'^{2}}^{-'+o.k+'} = '+b+'^{'+e1+'}'},
+    {ans:pa(o.r),forms:o.r===1?['pow','num']:['pow'],base:String(b),rule:'Les arrels van al mateix nivell que les potències.',hint:'Arrel quadrada: divideix l’exponent '+(2*o.r)+' entre 2.',why:'\\sqrt{'+b+'^{'+(2*o.r)+'}} = '+b+'^{\\sfrac{'+(2*o.r)+'}{2}} = '+pw(o.r)},
+    {ans:pa(2),forms:['pow'],base:String(b),rule:'Potències i arrels primer.',hint:b3+' = '+b+'^3. Multiplica els exponents: 3 · 2/3.',why:b3+'^{\\sfrac{2}{3}} = \\p{'+b+'^{3}}^{\\sfrac{2}{3}} = '+b+'^{2}'},
+    {ans:pa(e4),forms:['pow','num'],base:String(b),rule:'La barra de fracció agrupa: primer el numerador.',hint:'Producte de potències de la mateixa base: suma '+o.m+' + ('+e1+').',why:b+'^{'+o.m+'} \\cdot '+b+'^{'+e1+'} = '+b+'^{'+o.m+' - '+(-e1)+'} = '+pw(e4)},
+    {ans:pa(e5),forms:(e5===1||e5===0)?['pow','num']:['pow'],base:String(b),rule:'Ara la fracció sencera.',hint:'Quocient de potències de la mateixa base: resta els exponents, '+e4+' − '+o.r+'.',why:'\\frac{'+pw(e4)+'}{'+pw(o.r)+'} = '+b+'^{'+e4+' - '+o.r+'} = '+pw(e5)},
+    {ans:pa(e6),final:true,goal:'pow',base:String(b),rule:'Última operació: la divisió.',hint:'Quocient de potències de la mateixa base: es resten els exponents.',why:pw(e5)+' : '+b+'^{2} = '+b+'^{'+e5+' - 2} = '+b+'^{'+e6+'}'}]};
+}
+var LETTERS=['A','B','C'];
+var VARIANTS=[
+  [world1({a:2,n:2,b:3,c:4,d:9,e:16}),world1({a:3,n:2,b:2,c:3,d:25,e:36}),world1({a:2,n:3,b:1,c:4,d:1,e:64})],
+  [world2({p:2,q:3,m:4,k:2,r:6}),world2({p:3,q:5,m:3,k:3,r:4}),world2({p:5,q:2,m:2,k:4,r:8})],
+  [world3({s:2,a:5,b:3,c:4}),world3({s:3,a:5,b:2,c:4}),world3({s:5,a:3,b:2,c:4})],
+  [world4({a:2,n:3,X:16,pp:3,qq:4,d:4,e:9}),world4({a:2,n:4,X:8,pp:4,qq:3,d:9,e:25}),world4({a:2,n:5,X:16,pp:3,qq:4,d:9,e:4})],
+  [castle({b:3,m:5,k:2,r:3}),castle({b:2,m:7,k:2,r:2}),castle({b:5,m:5,k:1,r:2})]
+];
+
+/* ==================== END LOGIC ==================== */
+</script>
+
+<script>
+/* ==================== SPRITES ==================== */
+var PAL={K:'#07061A',Y:'#FFD23F',W:'#FFFFFF',O:'#E08A00',C:'#6CF2FF',G:'#2BD46B',R:'#FF3B4E',B:'#3D7BFF',P:'#B26BFF'};
+function sprite(rows,px,pal){pal=pal||PAL;var w=rows[0].length,h=rows.length,r='';
+  rows.forEach(function(row,y){var x=0;while(x<w){var c=row[x];if(c==='.'){x++;continue}var s=x;while(x<w&&row[x]===c)x++;
+    r+='<rect x="'+s+'" y="'+y+'" width="'+(x-s)+'" height="1" fill="'+(pal[c]||c)+'"/>'}});
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+w+' '+h+'" width="'+w*px+'" height="'+h*px+'" shape-rendering="crispEdges" aria-hidden="true">'+r+'</svg>'}
+var HERO=['.....YY.....','.....KK.....','..KKKKKKKK..','.KMMMMMMMMK.','.KMKKKKKKMK.','.KMKCCCCKMK.','.KMKCWCCKMK.','.KMKKKKKKMK.',
+  '.KMMMMMMMMK.','..KKKKKKKK..','.KMMKYYKMMK.','KMMMKYYKMMMK','KMKMMMMMMKMK','..KMMKKMMK..','..KMK..KMK..','.KKKK..KKKK.'];
+var COIN=['..KKKK..','.KYYYYK.','KYYWYYOK','KYYWYYOK','KYYWYYOK','KYYYYYOK','.KYOOOK.','..KKKK..'];
+var CLOUD=['....WWWW......','..WWWWWWWW....','.WWWWWWWWWWWW.','WWWWWWWWWWWWWW','.WWWWWWWWWWWW.'];
+var TROPHY=['..KKKKKKKK..','KKKYYYYYYKKK','KYKYYWYYYKYK','KYKYYWYYYKYK','.KKYYWYYYKK.','..KKYYYYKK..','....KYYK....','....KYYK....','...KYYYYK...','..KKKKKKKK..','..KRRRRRRK..','..KKKKKKKK..'];
+var FLAGI=['K.......','KRRR....','KRRRRR..','KRRRRRRR','KRRRRR..','KRRR....','K.......','K.......'];
+var JOY=['...RR...','...RR...','....K...','....K...','.KKKKKK.','KBBBBBBK','KBYBBGBK','.KKKKKK.'];
+var HEROES={red:{M:'#FF3B4E',n:'VERMELL'},green:{M:'#2BD46B',n:'VERD'},blue:{M:'#3D7BFF',n:'BLAU'},yellow:{M:'#FFD23F',n:'GROC'}};
+function heroSVG(color,px){var pal=Object.assign({},PAL,{M:HEROES[color].M});if(color==='yellow')pal.Y='#FF3B4E';return sprite(HERO,px,pal)}
+
+/* ==================== STATE ==================== */
+var KEY='missio-blocs-daurats-v2';
+var TOTAL=11, WORLD0=4, REPORT=9, NW=VARIANTS.length;
+function randVer(){return VARIANTS.map(function(){return LETTERS[Math.floor(Math.random()*LETTERS.length)]})}
+function fresh(){return {name:'',hero:'red',screen:0,ver:randVer(),
+  w:VARIANTS.map(function(){return {k:0,fails:0,hint:false,wrong:[],done:false,gaveUp:false,gaveAt:null,coins:0,flag:0,errors:0,hints:0,log:[],start:null,end:null}}),
+  copied:VARIANTS.map(function(){return false})}}
+var S=fresh();
+function load(){try{var d=JSON.parse(localStorage.getItem(KEY)||'null');if(d&&d.w&&d.w.length===NW&&d.ver)S=Object.assign(fresh(),d)}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function W(i){return VARIANTS[i][LETTERS.indexOf(S.ver[i])]}
+function coins(){return S.w.reduce(function(a,w){return a+w.coins},0)}
+function blocksBroken(){return S.w.reduce(function(a,w,i){return a+(w.done?W(i).steps.length:w.k)},0)}
+function totalBlocks(){var t=0;for(var i=0;i<NW;i++)t+=W(i).steps.length;return t}
+function maxScreen(){var m=WORLD0;for(var i=0;i<4;i++){if(S.w[i].done)m=WORLD0+i+1;else break}if(S.w[3].done)m=TOTAL-1;return m}
+function canGo(i){return i===REPORT||i<=maxScreen()}
+function worldPts(i){var w=S.w[i],n=W(i).steps.length,got=w.log.reduce(function(a,l){return a+l.coins},0);return (i<4?2.5:1)*got/(3*n)}
+function grade(){var g=0;for(var i=0;i<NW;i++)g+=worldPts(i);return g}
+function fmt1(x){return (Math.round(x*10)/10).toFixed(1).replace('.',',')}
+function fmt2(x){return (Math.round(x*100)/100).toFixed(2).replace('.',',')}
+function verCode(){return S.ver.map(function(v,i){return (i<4?'M'+(i+1):'Castell ')+v}).join(' · ')}
+function worldLabel(i){return i<4?'Món '+(i+1):'Castell'}
+
+/* ==================== RENDER ==================== */
+var $=function(id){return document.getElementById(id)};
+function renderHUD(){
+  $('hud-name').textContent=S.name||'—';
+  $('hud-coins').innerHTML=sprite(COIN,2)+' × '+coins();
+  var sc=S.screen;$('hud-world').textContent=(sc>=WORLD0&&sc<WORLD0+NW)?(sc-WORLD0<4?'MÓN '+(sc-WORLD0+1)+' · '+S.ver[sc-WORLD0]:'CASTELL · '+S.ver[4]):(sc<WORLD0?'INICI':(sc===REPORT?'INFORME':'FINAL'));
+  $('hud-blocks').textContent=blocksBroken()+' / '+totalBlocks();
+}
+function sceneHTML(wi,cls){
+  var n=wi==null?5:W(wi).steps.length, st=wi==null?null:S.w[wi];
+  var h='';
+  if(cls==='sc-w2'||cls==='sc-w5')h+='<div class="stars"></div>';
+  else{h+='<div class="cloud" style="left:8%;top:10px">'+sprite(CLOUD,4)+'</div><div class="cloud" style="left:62%;top:22px">'+sprite(CLOUD,3)+'</div>'}
+  var xs=[];for(var i=0;i<n;i++)xs.push(20+i*(62/Math.max(1,n-1)));
+  xs.forEach(function(x,i){var used=st&&(st.done||i<st.k),next=st&&!st.done&&i===st.k;
+    h+='<div class="sblk'+(used?' used':'')+(next?' next':'')+'" style="left:'+x+'%" data-b="'+i+'">!</div>'});
+  h+='<div class="pipe" style="left:3%"><div class="t"></div><div class="b" style="height:24px"></div></div>';
+  var won=st&&st.done&&!st.gaveUp;
+  h+='<div class="pole" style="left:93%"><div class="flag" style="top:'+(won?'2px':'72px')+'"></div></div>';
+  var hx=!st?12:(won?88:(st.gaveUp?Math.max(12,xs[Math.min(st.gaveAt,n-1)]-4):Math.max(12,xs[st.k]-4)));
+  h+='<div class="hero" id="hero-'+(wi==null?'c':wi)+'" style="left:'+hx+'%">'+heroSVG(S.hero,4)+'</div>';
+  h+='<div class="ground"></div>';
+  return h}
+function worldHTML(wi){
+  var Wd=W(wi),st=S.w[wi],steps=Wd.steps,done=st.done,step=steps[Math.min(st.k,steps.length-1)];
+  var label=(Wd.optional?'CASTELL · VOLUNTARI':'MÓN '+(wi+1))+' · VERSIÓ '+S.ver[wi];
+  var minis=steps.map(function(_,i){return '<span class="mini'+(done||i<st.k?' used':'')+'"></span>'}).join('');
+  var goal=GOAL_TXT[Wd.goal]+(Wd.base?' de base '+Wd.base:'');
+  var h='<div class="world-head"><div style="display:flex;flex-direction:column;gap:8px"><span class="eyebrow">'+label+'</span><h2>'+Wd.name+'</h2></div>'+
+    '<div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end"><span class="chip'+(Wd.optional?' red':'')+'">OBJECTIU: '+goal.toUpperCase()+'</span><div class="blocks-left" aria-label="Blocs">'+minis+'</div></div></div>';
+  h+='<div class="stage" id="stage-'+wi+'">'+tex(Wd.states[done?steps.length:st.k])+'</div>';
+  if(!done){
+    h+='<div class="rule">▸ '+esc(step.rule)+'</div>';
+    h+='<div class="panel"><label class="lab" for="ans-'+wi+'">'+(step.final?'ÚLTIMA CLAU: ESCRIU EL RESULTAT COM A '+goal.toUpperCase():'QUANT VAL EL BLOC DAURAT?')+'</label>'+
+      '<div class="answer-row"><input type="text" id="ans-'+wi+'" autocomplete="off" spellcheck="false" placeholder="'+(step.final?'resultat final':'valor del bloc')+'" data-w="'+wi+'">'+
+      '<button class="btn red" type="button" data-act="check" data-w="'+wi+'">TRENCA!</button></div>'+
+      '<div class="keypad" style="margin-top:10px">'+['√','∛','^','/','(',')','−','·'].map(function(k){return '<button type="button" class="kp" data-key="'+k+'" data-w="'+wi+'" aria-label="Insereix '+k+'">'+k+'</button>'}).join('')+
+      '<button type="button" class="btn ghost small" data-act="hint" data-w="'+wi+'">PISTA</button></div>'+
+      '<div class="row giveup-row"><button type="button" class="btn ghost small giveup" data-act="giveup" data-w="'+wi+'">🏳 EM RENDEIXO!</button><span class="muted" style="font-size:18px">Veuràs la solució, però aquest món comptarà com a no superat.</span></div>'+
+      '<div class="preview"><span>Has escrit:</span><span id="prevm-'+wi+'"></span></div>'+
+      '<div class="fb" id="fb-'+wi+'" role="status"></div></div>';
+  }else{
+    if(st.gaveUp)h+='<div class="flag-panel lost"><span class="chip red">RENDICIÓ</span><p>La solució era:</p><div>'+tex(Wd.extra)+'</div><p class="muted">Món no superat. Els passos que faltaven compten 0 punts. Estudia’ls a sota i a l’informe.</p></div>';
+    else h+='<div class="flag-panel"><span class="chip green">BANDERA!</span><div>'+tex(Wd.extra)+'</div><p class="muted">Expressió alliberada amb '+st.coins+' monedes.</p></div>';
+  }
+  if(st.k>0||done){h+='<h3>'+(st.gaveUp?'SOLUCIÓ PAS A PAS':'PASSOS ALLIBERATS')+'</h3><ol class="log">'+steps.slice(0,done?steps.length:st.k).map(function(s,i){var g=st.log[i]&&st.log[i].gave;return '<li'+(g?' class="gave"':'')+'><span class="n">'+(g?'SOLUCIÓ ':'PAS ')+(i+1)+'</span>'+tex(s.why)+'</li>'}).join('')+'</ol>'}
+  h+='<div class="scene '+Wd.scene+'" id="scene-'+wi+'" aria-hidden="true">'+sceneHTML(wi,Wd.scene)+'</div>';
+  return h}
+function renderWorld(wi){var sec=document.querySelector('[data-world="'+wi+'"]');sec.innerHTML=worldHTML(wi);
+  var inp=$('ans-'+wi);if(inp){inp.addEventListener('input',function(){preview(wi)});inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();check(wi)}})}}
+function preview(wi){var v=$('ans-'+wi).value,el=$('prevm-'+wi);var a=parseInput(v);
+  el.innerHTML=v.trim()?(a?'<span class="m">'+astHTML(a)+'</span>':'<span style="color:var(--red)">expressió incompleta</span>'):''}
+function renderStatic(){
+  $('cover-scene').innerHTML=sceneHTML(null,'sc-w1');
+  $('ico-joy').innerHTML=sprite(JOY,3);$('ico-joy2').innerHTML=sprite(JOY,3);$('ico-flag').innerHTML=sprite(FLAGI,3);$('ico-coin').innerHTML=sprite(COIN,3);
+  $('trophy-big').innerHTML=sprite(TROPHY,9);
+  var keys=[['3/4','Fracció: barra inclinada','\\frac{3}{4}'],['2^-3','Potència: símbol ^','2^{-3}'],['(2/3)^4','Base fraccionària entre parèntesis','\\p{\\frac{2}{3}}^{4}'],
+    ['16^(3/4)','Exponent fraccionari entre parèntesis','16^{\\sfrac{3}{4}}'],['5√2','Radical amb coeficient (botó √)','5\\sqrt{2}'],['∛8','Arrel cúbica (botó ∛)','\\sqrt[3]{8}']];
+  $('keys-table').innerHTML=keys.map(function(k){return '<tr><td>'+esc(k[0])+'</td><td>'+k[1]+'</td><td style="font-size:24px">'+tex(k[2])+'</td></tr>'}).join('');
+  $('heroes').innerHTML=Object.keys(HEROES).map(function(c){return '<button type="button" class="hero-pick" data-hero="'+c+'" aria-pressed="'+(S.hero===c)+'">'+heroSVG(c,4)+'<span>'+HEROES[c].n+'</span></button>'}).join('');
+  $('player-name').value=S.name;
+}
+
+/* ==================== REPORT ==================== */
+function plain(t){return t.replace(/\\hl\{/g,'{').replace(/\\ok\{/g,'{')}
+function hlTex(t){var i=t.indexOf('\\hl{');if(i<0)return '';var j=i+4,dep=1;while(dep&&j<t.length){if(t[j]==='{')dep++;else if(t[j]==='}')dep--;j++}return t.slice(i+4,j-1)}
+function ansHTML(s){var a=parseInput(s);return a?'<span class="m">'+astHTML(a)+'</span>':esc(s)}
+function when(ts){if(!ts)return '—';var d=new Date(ts);return d.toLocaleDateString('ca-ES',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('ca-ES',{hour:'2-digit',minute:'2-digit'})}
+function mins(a,b){if(!a||!b)return '—';return Math.max(1,Math.round((b-a)/60000))+' min'}
+function gaveList(){return VARIANTS.map(function(_,i){return i}).filter(function(i){return i<4&&S.w[i].gaveUp})}
+function verdict(){var g=gaveList(),all=S.w.slice(0,4).every(function(w){return w.done}),gr=grade();
+  if(g.length)return {ok:false,t:'MISSIÓ NO SUPERADA',d:'Rendició al '+g.map(function(i){return 'món '+(i+1)+' (pas '+(S.w[i].gaveAt+1)+' de '+W(i).steps.length+')'}).join(', ')+'. Els passos no resolts compten 0 punts. Cal repetir la missió amb números nous.'};
+  if(!all)return {ok:false,t:'MISSIÓ INCOMPLETA',d:'Encara no s’han completat els 4 mons obligatoris.'};
+  if(gr<5)return {ok:false,t:'MISSIÓ NO SUPERADA',d:'Nota orientativa inferior a 5.'};
+  return {ok:true,t:'MISSIÓ SUPERADA',d:'Els 4 mons obligatoris resolts sense rendir-se.'}}
+function reportHTML(){
+  var now=Date.now(),done4=S.w.slice(0,4).filter(function(w){return w.done}).length;
+  var starts=S.w.map(function(w){return w.start}).filter(Boolean),ends=S.w.map(function(w){return w.end}).filter(Boolean);
+  var errs=0,hints=0;S.w.forEach(function(w){errs+=w.errors;hints+=w.hints});
+  var h='<div class="rep">';
+  h+='<div class="rblock"><div class="rep-top"><div><div class="rep-kick">MATEMÀTIQUES B · 4t ESO</div><h1>Missió Blocs Daurats</h1><div class="rep-sub">Informe de resultats · operacions combinades amb potències, arrels i fraccions</div></div>'+
+     '<div class="rep-grade'+(verdict().ok?'':' low')+'"><div class="k">NOTA ORIENTATIVA</div><div class="v">'+fmt1(grade())+'</div><div class="k">sobre 10 · castell +1</div></div></div>'+
+     '<table class="rep-kv"><tr><th>Alumne/a</th><td>'+esc(S.name||'(sense nom)')+'</td><th>Informe generat</th><td>'+when(now)+'</td></tr>'+
+     '<tr><th>Versions</th><td>'+esc(verCode())+'</td><th>Temps de joc</th><td>'+(starts.length&&ends.length?mins(Math.min.apply(null,starts),Math.max.apply(null,ends)):'—')+'</td></tr>'+
+     '<tr><th>Mons completats</th><td>'+done4+' / 4'+(S.w[4].done?' + castell':'')+'</td><th>Monedes · errors · pistes</th><td>'+coins()+' · '+errs+' · '+hints+'</td></tr></table>'+
+     (function(v){return '<div class="rep-verdict '+(v.ok?'ok':'bad')+'"><b>'+v.t+'</b><span>'+esc(v.d)+'</span></div>'})(verdict())+'</div>';
+  h+='<div class="rblock"><h2>Resum per mons</h2><table class="rep-t"><tr><th>Món</th><th>Versió</th><th>Resultat</th><th>Estat</th><th>Errors</th><th>Pistes</th><th>Punts</th></tr>'+
+    VARIANTS.map(function(_,i){var Wd=W(i),w=S.w[i];
+      return '<tr'+(w.gaveUp?' class="gave"':'')+'><td>'+worldLabel(i)+'</td><td>'+S.ver[i]+'</td><td>'+(w.done&&!w.gaveUp?ansHTML(w.log[w.log.length-1].ans):'—')+'</td><td>'+(w.gaveUp?'<span class="tag neg">Rendició al pas '+(w.gaveAt+1)+'/'+Wd.steps.length+'</span>':(w.done?'Completat':(w.k?'A mitges ('+w.k+'/'+Wd.steps.length+')':'No començat')))+'</td><td>'+w.errors+'</td><td>'+w.hints+'</td><td>'+fmt2(worldPts(i))+' / '+(i<4?'2,50':'1,00')+'</td></tr>'}).join('')+'</table>'+
+    '<p class="rep-note">Puntuació: cada pas val 3 si s’encerta al primer intent, 2 al segon i 1 amb pista o més intents. Cada món obligatori val 2,5 punts; el castell voluntari, fins a 1 punt més. Els valors correctes escrits en una forma no demanada no compten com a error.</p></div>';
+  VARIANTS.forEach(function(_,i){var Wd=W(i),w=S.w[i];
+    h+='<div class="rblock"><h2>'+worldLabel(i)+' · '+Wd.name.charAt(0)+Wd.name.slice(1).toLowerCase()+' · versió '+S.ver[i]+(w.gaveUp?' <span class="tag neg">no superat</span>':'')+'</h2>'+
+      '<div class="rep-expr"><span class="lbl">Expressió</span>'+tex(plain(Wd.states[0]))+'</div>'+
+      '<table class="rep-t steps"><tr><th>Pas</th><th>Bloc</th><th>Resposta</th><th>Intents fallits</th><th>Procediment correcte</th></tr>'+
+      Wd.steps.map(function(s,k){var l=w.log[k];
+        var wrong=l?(l.wrong&&l.wrong.length?l.wrong.slice(0,4).map(ansHTML).join(', ')+(l.wrong.length>4?' …':''):'—'):'';
+        return '<tr class="'+(l?(l.gave?'gave':(l.wrong.length||l.hint?'mid':'good')):'pend')+'"><td>'+(k+1)+'</td><td>'+tex(hlTex(Wd.states[k]))+'</td><td>'+(l?(l.gave?'<span class="tag neg">rendició</span>':ansHTML(l.ans)+(l.hint?' <span class="tag">pista</span>':'')):'<span class="tag">no resolt</span>')+'</td><td>'+wrong+'</td><td>'+tex(s.why)+'</td></tr>'}).join('')+
+      '</table><div class="rep-final"><span class="lbl">Solució</span>'+tex(Wd.extra)+'<span class="rep-goal">('+GOAL_TXT[Wd.goal]+(Wd.base?' de base '+Wd.base:'')+')</span></div></div>'});
+  h+='<div class="rblock"><h2>Per estudiar</h2><div class="rep-study">'+
+    '<div><b>Ordre de les operacions.</b> 1) Parèntesis i barres de fracció. 2) Potències i arrels. 3) Multiplicacions i divisions, d’esquerra a dreta. 4) Sumes i restes.</div>'+
+    '<div><b>Potències de la mateixa base.</b> '+tex('a^{m} \\cdot a^{n} = a^{m + n}')+'   '+tex('a^{m} : a^{n} = a^{m - n}')+'   '+tex('\\p{a^{m}}^{n} = a^{m \\cdot n}')+'</div>'+
+    '<div><b>Exponent negatiu.</b> '+tex('\\p{\\frac{a}{b}}^{-n} = \\p{\\frac{b}{a}}^{n}')+'</div>'+
+    '<div><b>Arrels com a potències.</b> '+tex('a^{\\sfrac{m}{n}} = \\sqrt[n]{a^{m}}')+'   '+tex('\\sqrt{a^{2} \\cdot b} = a\\sqrt{b}')+'</div>'+
+    '<div><b>Fraccions.</b> El resultat final sempre en fracció irreductible.</div></div>'+
+    '<h2 style="margin-top:14px">A la llibreta</h2><ul class="rep-list">'+VARIANTS.map(function(_,i){return '<li>'+(S.copied[i]?'☑':'☐')+' Passos del '+worldLabel(i).toLowerCase()+' copiats</li>'}).join('')+'</ul>'+
+    '<p class="rep-note">Informe generat automàticament per la Missió Blocs Daurats. La versió de cada món identifica els números que ha treballat l’alumne/a.</p></div>';
+  return h+'</div>'}
+var REP_BODY="body{margin:0;background:#E9E7F2}";
+var REP_CSS=".rep h1,.rep h2{font-family:Arial,Helvetica,sans-serif;text-shadow:none;line-height:1.25;text-wrap:balance}.rep p{max-width:none}.rep{background:#fff;color:#16151F;font-family:Arial,Helvetica,sans-serif;font-size:13.5px;line-height:1.4;padding:26px 28px;max-width:760px;margin:0 auto}"+
+ ".rep .rblock{padding:6px 0 14px;border-bottom:1px solid #DAD6EA;margin-bottom:12px}.rep .rblock:last-child{border-bottom:0}"+
+ ".rep h1{font-size:24px;margin:2px 0 4px;color:#16151F}.rep h2{font-size:15px;margin:0 0 8px;color:#2A2370}.rep-kick{font-size:10px;letter-spacing:1.5px;color:#6A64A0;font-weight:700}.rep-sub{color:#4C4870;font-size:12.5px}"+
+ ".rep-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:12px}.rep-grade{border:3px solid #16151F;background:#FFD23F;padding:8px 14px;text-align:center;min-width:110px}.rep-grade .v{font-size:30px;font-weight:700}.rep-grade .k{font-size:9px;letter-spacing:1px;font-weight:700}"+
+ ".rep table{width:100%;border-collapse:collapse}.rep-kv th{text-align:left;font-size:10px;letter-spacing:.5px;color:#6A64A0;padding:5px 6px;width:16%;vertical-align:top}.rep-kv td{padding:5px 6px;font-weight:700;vertical-align:top}"+
+ ".rep-t th{font-size:10px;text-align:left;color:#6A64A0;letter-spacing:.5px;padding:6px;border-bottom:2px solid #16151F}.rep-t td{padding:6px;border-bottom:1px solid #E4E1F0;vertical-align:middle}"+
+ ".rep-t.steps td:first-child{font-weight:700;width:28px}.rep-t tr.good td:first-child{color:#178A45}.rep-t tr.mid td:first-child{color:#B07800}.rep-t tr.pend td{color:#8A86A8}"+
+ ".rep .tag{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border:1px solid #16151F;background:#F2F0FA;vertical-align:middle}"+
+ ".rep-expr,.rep-final{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 10px}.rep-final{margin-top:10px}.rep .lbl{font-size:10px;font-weight:700;letter-spacing:1px;color:#6A64A0;text-transform:uppercase}"+
+ ".rep-expr .m{font-size:22px}.rep-final .m{font-size:20px;color:#178A45}.rep-goal{color:#4C4870;font-size:12px}.rep-note{font-size:11.5px;color:#4C4870;margin:8px 0 0}"+
+ ".rep-verdict{display:flex;flex-direction:column;gap:3px;margin-top:12px;padding:10px 12px;border:2px solid #178A45;background:#E3F7EA}.rep-verdict.bad{border-color:#C23B3B;background:#FFE7E7}.rep-verdict b{font-size:14px;letter-spacing:.5px}.rep-verdict.bad b{color:#A31F2C}.rep-verdict.ok b{color:#126B35}.rep-grade.low{background:#FF8A8A}.rep .tag.neg{background:#FFE1E1;border-color:#C23B3B;color:#8F1525}.rep-t tr.gave td:first-child{color:#C23B3B}.rep-t tr.gave td{background:#FFF5F5}.rep-study{display:flex;flex-direction:column;gap:6px}.rep-list{margin:0;padding-left:0;list-style:none;columns:2}"+
+ ".rep .m{font-family:'Atkinson Hyperlegible',Arial,sans-serif;color:inherit;font-size:16px;line-height:1.15;white-space:nowrap}.rep .m .v{font-style:italic}.rep .m .op{margin:0 .2em}"+
+ ".rep .m .fr{display:inline-block;vertical-align:middle;text-align:center;margin:0 .1em}.rep .m .fr>span{display:block;padding:0 .14em}.rep .m .fr>.n{border-bottom:.075em solid currentColor;padding-bottom:.05em}.rep .m .fr>.d{padding-top:.05em}"+
+ ".rep .m .pw{display:inline-block;white-space:nowrap}.rep .m .pe{font-size:.6em;position:relative;top:-.85em;margin-left:.05em}.rep .m .pw.tall>.pe{top:-1.75em}"+
+ ".rep .m .rad{display:inline-flex;align-items:flex-end;vertical-align:middle}.rep .m .rs{font-size:1.12em;line-height:1}.rep .m .rad.tall .rs{font-size:2.05em}.rep .m .rad.tall>.rb{padding-top:.3em}"+
+ ".rep .m .rb{border-top:.075em solid currentColor;padding:.06em .1em 0 .06em;margin-left:-.03em}.rep .m .ri{font-size:.55em;align-self:center;margin-right:-.42em;transform:translateY(-.45em);position:relative;z-index:1}"+
+ ".rep .m .rad.tall .ri{transform:translateY(-.9em);margin-right:-.6em}.rep .m .par.tall>.pl,.rep .m .par.tall>.pr{font-size:1.9em;vertical-align:middle;line-height:1}";
+function renderReport(){
+  $('sum-name').textContent=S.name||'—';$('sum-coins').textContent=coins();$('sum-grade').textContent=fmt1(grade());
+  $('sum-worlds').textContent=S.w.slice(0,4).filter(function(w){return w.done}).length+' / 4'+(S.w[4].done?' + castell':'');
+  $('tasks').innerHTML=VARIANTS.map(function(_,i){return '<button type="button" class="task" data-task="'+i+'" aria-pressed="'+!!S.copied[i]+'"><span class="box">✓</span><span>He copiat a la llibreta tots els passos '+(i<4?'del món '+(i+1):'del castell (voluntari)')+'</span></button>'}).join('');
+  $('paper').innerHTML=reportHTML();
+  $('dl-status').textContent='';
+}
+function safeName(){return (S.name||'alumne').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,'')||'alumne'}
+function loadScript(src){return new Promise(function(res,rej){if(document.querySelector('script[src="'+src+'"]')){res();return}
+  var s=document.createElement('script');s.src=src;s.onload=function(){res()};s.onerror=function(){rej(new Error('load'))};document.head.appendChild(s)})}
+var JSPDF='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',H2C='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+async function buildPDF(){
+  await loadScript(H2C);await loadScript(JSPDF);
+  var host=document.createElement('div');host.className='pdf-host';host.innerHTML=reportHTML();document.body.appendChild(host);
+  try{
+    if(document.fonts&&document.fonts.ready)await document.fonts.ready;
+    var pdf=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),M=12,PW=210-2*M,TOP=12,BOT=285,y=TOP,page=1;
+    var blocks=host.querySelectorAll('.rblock');
+    for(var i=0;i<blocks.length;i++){
+      var cv=await window.html2canvas(blocks[i],{scale:2,backgroundColor:'#ffffff',logging:false});
+      var w=PW,h=cv.height*w/cv.width;if(h>BOT-TOP){w=w*(BOT-TOP)/h;h=BOT-TOP}
+      if(y+h>BOT&&y>TOP){pdf.addPage();page++;y=TOP}
+      pdf.addImage(cv.toDataURL('image/jpeg',0.92),'JPEG',M,y,w,h);y+=h+3;
+    }
+    var n=pdf.getNumberOfPages();for(var p=1;p<=n;p++){pdf.setPage(p);pdf.setFontSize(8);pdf.setTextColor(120);
+      pdf.text('Missió Blocs Daurats · '+(S.name||'')+' · pàgina '+p+' de '+n,105,292,{align:'center'})}
+    return pdf.output('blob');
+  }finally{host.remove()}
+}
+function buildHTML(){return '<!doctype html><html lang="ca"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Informe · Missió Blocs Daurats · '+esc(S.name||'')+'</title>'+
+  '<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet"><style>'+REP_BODY+REP_CSS+'@page{size:A4;margin:12mm}@media print{body{background:#fff}.rep{padding:0}.rep .rblock{break-inside:avoid}}</style></head><body>'+reportHTML()+'</body></html>'}
+/* Three ways to deliver the report:
+   'cap'   inside the claude.ai viewer with the downloads capability (print is blocked there)
+   'local' the .html file opened directly in a browser: native print to PDF + normal downloads
+   'none'  a viewer without downloads: show the report on screen only */
+var DL=null,MODE=null;
+function dlUI(){var row=$('dl-row');if(!row)return;
+  row.hidden=MODE==='none';$('dl-off').hidden=MODE!=='none';
+  $('btn-print').hidden=MODE!=='local';
+  $('dl-hint').textContent=MODE==='local'?'«Desa en PDF» obre la finestra d’impressió: tria «Desa com a PDF» com a impressora.':''}
+function localSave(fn,data){var blob=data instanceof Blob?data:new Blob([data],{type:'text/html'});var u=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000)}
+function printReport(){$('print-report').innerHTML=reportHTML();setTimeout(function(){window.print()},120)}
+async function download(kind){
+  var st=$('dl-status');
+  if(kind==='print'){printReport();return}
+  if(!MODE){st.textContent='Un moment: la descàrrega encara s’està preparant.';return}
+  if(MODE==='none'){st.textContent='Les descàrregues no estan disponibles en aquesta vista.';return}
+  var btns=document.querySelectorAll('[data-dl]');btns.forEach(function(b){b.disabled=true});
+  try{
+    var data,fn='Informe_BlocsDaurats_'+safeName();
+    if(kind==='pdf'){st.textContent='Generant el PDF…';data=await buildPDF();fn+='.pdf'}else{data=buildHTML();fn+='.html'}
+    if(MODE==='local'){localSave(fn,data);st.textContent='Fitxer desat: '+fn;return}
+    st.textContent='Confirma la descàrrega a la finestra que apareix.';
+    var r=await DL.save({filename:fn,data:data});
+    st.textContent=r&&r.status==='delivered'?'Fitxer enviat.':'Fitxer desat: '+fn;
+  }catch(e){var c=e&&e.code;
+    st.textContent=c==='declined'?'Has cancel·lat la descàrrega.':(c==='rate_limited'?'Ja hi ha una descàrrega pendent. Espera un moment i torna-ho a provar.':
+      (e&&e.message==='load'?'No s’ha pogut carregar el generador de PDF. Prova la versió HTML.':'No s’ha pogut descarregar el fitxer en aquesta vista.'));
+  }finally{btns.forEach(function(b){b.disabled=false})}
+}
+
+/* ==================== NAV ==================== */
+function buildDots(){var d=$('dots');d.innerHTML='';for(var i=0;i<TOTAL;i++){var b=document.createElement('button');b.type='button';b.className='dot';b.setAttribute('aria-label',i===REPORT?'Informe':'Pantalla '+(i+1));b.dataset.i=i;d.appendChild(b)}}
+function show(i){
+  if(i<0||i>=TOTAL||!canGo(i))return;S.screen=i;save();
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.toggle('active',+s.dataset.screen===i)});
+  if(i>=WORLD0&&i<WORLD0+NW){var st=S.w[i-WORLD0];if(!st.start){st.start=Date.now();save()}renderWorld(i-WORLD0)}
+  if(i===REPORT)renderReport();
+  if(i===TOTAL-1)renderFinal();
+  document.querySelectorAll('.dot').forEach(function(d,k){d.classList.toggle('active',k===i);d.classList.toggle('done',k<i&&k<=maxScreen());d.disabled=!canGo(k)});
+  $('btn-back').disabled=i===0;
+  var nx=$('btn-next');
+  if(i===TOTAL-1){nx.textContent='🏆 Reclama el trofeu';nx.disabled=false}
+  else if(i===WORLD0+4&&!S.w[4].done){nx.textContent='Salta el castell ▶';nx.disabled=false}
+  else if(i===REPORT){nx.textContent='Endavant ▶';nx.disabled=!canGo(i+1)}
+  else{nx.textContent='Endavant ▶';nx.disabled=!canGo(i+1)||(i+1===REPORT&&!S.w[3].done&&i>=WORLD0)}
+  renderHUD();window.scrollTo(0,0);
+  var inp=$('ans-'+(i-WORLD0));if(inp&&window.matchMedia('(pointer:fine)').matches)setTimeout(function(){inp.focus()},50);
+}
+function next(){if(S.screen===TOTAL-1)reward();else show(S.screen+1)}
+
+/* ==================== PLAY ==================== */
+function check(wi){
+  var Wd=W(wi),st=S.w[wi];if(st.done)return;var step=Wd.steps[st.k];
+  var inp=$('ans-'+wi),fb=$('fb-'+wi);var r=checkStep(step,inp.value);
+  fb.className='fb '+(r.state==='ok'?'ok':(r.state==='form'?'form':'bad'));fb.textContent=r.msg;
+  if(r.state==='wrong'){st.fails++;st.errors++;st.wrong.push(inp.value.trim());save();return}
+  if(r.state!=='ok')return;
+  var stepCoins=st.hint?1:(st.fails===0?3:(st.fails===1?2:1)),flag=step.final?(Wd.optional?10:5):0;
+  st.log.push({ans:inp.value.trim(),wrong:st.wrong.slice(),hint:st.hint,coins:stepCoins});
+  st.coins+=stepCoins+flag;st.flag+=flag;
+  var hero=$('hero-'+wi),blk=document.querySelector('#scene-'+wi+' [data-b="'+st.k+'"]'),sc=$('scene-'+wi);
+  if(hero){hero.classList.remove('jump');void hero.offsetWidth;hero.classList.add('jump')}
+  if(blk&&sc){var c=document.createElement('div');c.className='coinpop';c.style.left=blk.style.left;c.innerHTML=sprite(COIN,3);sc.appendChild(c);blk.classList.add('used')}
+  var sb=document.querySelector('#stage-'+wi+' .blk');if(sb)sb.classList.add('shatter');
+  fb.textContent=r.msg+' +'+(stepCoins+flag)+' monedes';
+  st.k++;st.fails=0;st.hint=false;st.wrong=[];if(st.k>=Wd.steps.length){st.done=true;st.end=Date.now()}save();renderHUD();
+  var reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  setTimeout(function(){renderWorld(wi);show(S.screen)},reduce?0:650);
+}
+function giveUp(wi){var Wd=W(wi),st=S.w[wi];if(st.done)return;var n=Wd.steps.length;
+  st.gaveUp=true;st.gaveAt=st.k;
+  for(var k=st.k;k<n;k++)st.log.push({ans:'',wrong:k===st.k?st.wrong.slice():[],hint:k===st.k?st.hint:false,coins:0,gave:true});
+  st.k=n;st.done=true;st.end=Date.now();st.fails=0;st.hint=false;st.wrong=[];save();renderWorld(wi);show(S.screen)}
+function hint(wi){var st=S.w[wi];if(st.done)return;var step=W(wi).steps[st.k];
+  if(!st.hint){st.hint=true;st.hints++;save()}
+  var fb=$('fb-'+wi);fb.className='fb form';fb.textContent='Pista: '+step.hint}
+function insertKey(wi,k){var inp=$('ans-'+wi);if(!inp)return;var s=inp.selectionStart==null?inp.value.length:inp.selectionStart,e=inp.selectionEnd==null?s:inp.selectionEnd;
+  inp.setRangeText(k==='−'?'-':k,s,e,'end');inp.focus();preview(wi)}
+
+/* ==================== REWARD ==================== */
+function renderFinal(){var g=gaveList().length,v=verdict();
+  $('final-title').innerHTML=g?'MISSIÓ<br>ACABADA':'EXPRESSIONS<br>ALLIBERADES!';
+  $('final-note').hidden=!g;$('final-note').textContent=g?'Has acabat la missió amb '+g+' rendici'+(g>1?'ons':'ó')+'. '+v.d:''}
+function reward(){
+  $('rw-name').textContent=S.name||'jugador/a';$('rw-coins').textContent=coins();
+  $('rw-date').textContent=new Date().toLocaleDateString('ca-ES',{day:'numeric',month:'long',year:'numeric'});
+  $('medal-img').src='data:image/svg+xml,'+encodeURIComponent(sprite(TROPHY,14));
+  var card=$('reward');card.querySelectorAll('.confetti').forEach(function(e){e.remove()});
+  var g=gaveList().length;$('rw-chip').textContent=g?'MISSIÓ ACABADA AMB RENDICIONS':'MISSIÓ COMPLETADA';$('rw-chip').className='chip '+(g?'red':'green');
+  $('rw-lead').textContent=g?'Missió acabada, ':'Bona feina, ';$('medal-img').style.filter=g?'grayscale(1)':'';
+  var cols=['#FF3B4E','#2BD46B','#3D7BFF','#FFD23F'];
+  if(!g)for(var i=0;i<20;i++){var p=document.createElement('span');p.className='confetti';p.style.left=(4+Math.random()*92)+'%';p.style.background=cols[i%4];p.style.animationDelay=(Math.random()*.5)+'s';card.appendChild(p)}
+  $('overlay').hidden=false;$('btn-close').focus();
+}
+function closeReward(){$('overlay').hidden=true}
+
+/* ==================== EVENTS ==================== */
+document.addEventListener('click',function(e){
+  var t=e.target.closest('button');if(!t)return;
+  if(t.id==='btn-back')show(S.screen-1);
+  else if(t.id==='btn-next')next();
+  else if(t.id==='btn-close')closeReward();
+  else if(t.dataset.dl)download(t.dataset.dl);
+  else if(t.classList.contains('dot'))show(+t.dataset.i);
+  else if(t.dataset.act==='check')check(+t.dataset.w);
+  else if(t.dataset.act==='hint')hint(+t.dataset.w);
+  else if(t.dataset.act==='giveup'){if(t.dataset.confirm)giveUp(+t.dataset.w);else{t.dataset.confirm='1';t.textContent='🏳 SEGUR? TORNA A CLICAR'}}
+  else if(t.dataset.key)insertKey(+t.dataset.w,t.dataset.key);
+  else if(t.dataset.hero){S.hero=t.dataset.hero;save();document.querySelectorAll('.hero-pick').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.hero===S.hero)});$('cover-scene').innerHTML=sceneHTML(null,'sc-w1')}
+  else if(t.dataset.task!=null){var i=+t.dataset.task;S.copied[i]=!S.copied[i];save();t.setAttribute('aria-pressed',S.copied[i]);$('paper').innerHTML=reportHTML()}
+  else if(t.id==='btn-reset'){
+    if(t.dataset.confirm){S=fresh();save();renderStatic();t.textContent='↺ Reinicia la missió amb números nous';delete t.dataset.confirm;show(0)}
+    else{t.dataset.confirm='1';t.textContent='Segur? Torna a clicar: s’esborrarà tot el progrés'}}
+});
+$('player-name').addEventListener('input',function(e){S.name=e.target.value.trim();save();renderHUD()});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'&&!$('overlay').hidden){closeReward();return}
+  if(e.target.tagName==='INPUT')return;
+  if(e.key==='ArrowRight'&&!$('btn-next').disabled)next();
+  if(e.key==='ArrowLeft')show(S.screen-1);
+});
+
+function start(){var rs=document.createElement('style');rs.textContent=REP_CSS;document.head.appendChild(rs);load();buildDots();renderStatic();show(Math.min(S.screen||0,TOTAL-1)>maxScreen()&&S.screen!==REPORT?maxScreen():(S.screen||0));
+  if(window.claude&&typeof window.claude.use==='function'){window.claude.use('downloads').then(function(d){DL=d;MODE=d?'cap':'none';dlUI()},function(){MODE='none';dlUI()})}else{MODE='local';dlUI()}}
+if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.ready(start);else start();
+
+</script>
+</body></html>
