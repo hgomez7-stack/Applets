@@ -1,0 +1,325 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Dividir al revés</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600&display=swap">
+<style>
+/* Layout: lámina centrada; pestanyes de nivell a dalt, a l'esquerra la divisió pas a pas, a la dreta la taula de multiplicar com a eina; en mòbil s'apilen */
+:root{
+  --paper:#ffffff; --ink:#1d1d1b; --ink-soft:#5f5f58; --line:#1d1d1b; --mute:#c9c9c0; --box:#f2f2f2;
+  --c1:#FCEB9E; --c2:#F4F4D6; --c3:#BFE1F6; --c4:#B5E0D6; --c5:#F9D3D9;
+  --ok:#1f7a55; --bad:#b4233a; --focus:#1F5FAD; --blue:#1F497D;
+  --f-display:'Fredoka',ui-rounded,system-ui,sans-serif;
+  --f-body:'Andika','Trebuchet MS',system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{background:var(--paper);color:var(--ink)}
+body{font-family:var(--f-body);font-size:17px;padding-inline:16px;padding-block:24px 40px}
+.wrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{text-align:center;display:flex;flex-direction:column;gap:2px}
+.eyebrow{font-family:var(--f-display);font-size:clamp(17px,4vw,22px);font-weight:500}
+h1{margin:0;font-family:var(--f-display);font-weight:600;font-size:clamp(32px,7.5vw,54px);line-height:1.05;text-wrap:balance}
+h2{margin:0;font-family:var(--f-display);font-weight:600;font-size:22px;text-wrap:balance}
+p{margin:0;line-height:1.5}
+b.k{color:var(--blue)}
+button{font:inherit;font-weight:700;font-size:16px;color:var(--ink);background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:9px 16px;cursor:pointer;min-height:44px}
+button:hover{background:var(--c2)}
+button.primary{background:var(--c1)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+input[type=text]{font:inherit;font-family:var(--f-display);font-size:28px;font-weight:600;text-align:center;border:2px solid var(--line);border-radius:10px;padding:2px 4px;background:var(--paper);color:var(--ink);width:2.8ch;vertical-align:middle}
+input.w3{width:3.6ch}
+input.right{background:var(--c4)} input.wrong{background:var(--c5)}
+input:disabled{color:var(--ink);opacity:1}
+
+.tabs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.tabs button{display:flex;flex-direction:column;align-items:center;gap:0;padding:6px 16px;line-height:1.2}
+.tabs button small{font-weight:400;font-size:14px;color:var(--ink-soft)}
+.tabs button[aria-selected="true"]{background:var(--c3)}
+.chips{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.chip{width:34px;height:28px;border:2px solid var(--line);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.chip.now{background:var(--c1)} .chip.first{background:var(--c4)} .chip.help{background:var(--c3)}
+
+.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:860px){.layout{grid-template-columns:minmax(0,1fr)}}
+.card{border:2px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+details.how{background:var(--box);border:1.5px solid #bfbfbf;border-radius:12px;padding:10px 14px}
+details.how summary{cursor:pointer;font-family:var(--f-display);font-weight:600;font-size:18px}
+details.how .body{display:flex;flex-direction:column;gap:6px;padding-top:8px;line-height:1.55}
+.ctx{background:var(--box);border:1.5px solid #bfbfbf;border-radius:10px;padding:10px 14px}
+.big{font-family:var(--f-display);font-weight:600;font-size:clamp(34px,8vw,46px);font-variant-numeric:tabular-nums;display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.line{font-family:var(--f-display);font-weight:500;font-size:clamp(20px,5vw,26px);font-variant-numeric:tabular-nums;display:flex;flex-wrap:wrap;align-items:center;gap:8px;line-height:1.4}
+.line .lab{font-family:var(--f-body);font-size:16px;font-weight:700;color:var(--ink-soft);width:100%}
+.stage{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border:2px dashed var(--mute);border-radius:12px}
+.stage.active{border:2px solid var(--line)}
+.stage.done{border-color:var(--ok);border-style:solid;background:#f3faf6}
+.note{font-size:15px;color:var(--ink-soft)}
+.barwrap{display:flex;height:46px;border:2px solid var(--line);border-radius:10px;overflow:hidden}
+.seg{display:flex;align-items:center;justify-content:center;font-family:var(--f-display);font-weight:600;font-size:18px;min-width:44px;transition:flex-basis .4s}
+.seg.a{background:var(--c3)} .seg.b{background:var(--c4);border-left:2px solid var(--line)}
+.fb{font-weight:700;min-height:1.5em}
+.fb.ok{color:var(--ok)} .fb.bad{color:var(--bad)}
+.hint{background:var(--c2);border:2px solid var(--line);border-radius:12px;padding:10px 14px;line-height:1.5}
+.bar{display:flex;gap:10px;flex-wrap:wrap}
+.endbox{display:flex;flex-direction:column;gap:12px;padding:16px;border:2px solid var(--line);border-radius:14px;background:var(--c4)}
+
+.tablecard{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}
+@media (max-width:860px){.tablecard{position:static}}
+.task{min-height:3em;line-height:1.5;padding:10px 14px;border-radius:12px;background:var(--c2);border:2px solid var(--line)}
+.task.idle{background:var(--paper);border-style:dashed;color:var(--ink-soft)}
+.board{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));gap:clamp(2px,.7vw,5px)}
+.cell{aspect-ratio:1;max-width:100%;display:flex;align-items:center;justify-content:center;font-family:var(--f-body);font-size:clamp(11px,2.6vw,17px);font-variant-numeric:tabular-nums;border:2px solid var(--line);border-radius:3px;padding:0;min-height:0;color:var(--ink);font-weight:400;transition:opacity .2s}
+.cell.h{border:0;background:transparent;font-weight:700;cursor:default}
+.cell.k1{background:var(--c1)} .cell.k2{background:var(--c2)} .cell.k3{background:var(--c3)} .cell.k4{background:var(--c4)} .cell.k5{background:var(--c5)}
+.board.focus .cell:not(.h):not(.lit){opacity:.28}
+.cell.h.lit{background:var(--c1);border-radius:6px}
+.cell.found{box-shadow:0 0 0 3px var(--ink) inset;font-weight:700;opacity:1}
+.cell.over{text-decoration:line-through}
+.pop{animation:pop .35s ease} .shake{animation:shake .35s ease}
+@keyframes pop{0%{transform:scale(.8)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@media (prefers-reduced-motion:reduce){.pop,.shake{animation:none}.cell,.seg{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Taules de multiplicar</span>
+    <h1>Dividir és multiplicar al revés</h1>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Nivells">
+    <button role="tab" id="t1" aria-selected="true">Nivell 1<small>Divisions de la taula</small></button>
+    <button role="tab" id="t2" aria-selected="false">Nivell 2<small>Partim el número</small></button>
+    <button role="tab" id="t3" aria-selected="false">Nivell 3<small>Divisions amb residu</small></button>
+  </div>
+  <div class="chips" id="chips" aria-label="Divisions del nivell"></div>
+
+  <div class="layout">
+    <section class="card" id="main">
+      <details class="how" id="how" open><summary>Mira com es fa</summary><div class="body" id="howBody"></div></details>
+      <div id="prob" style="display:flex;flex-direction:column;gap:14px"></div>
+      <p class="fb" id="fb" aria-live="polite"></p>
+      <div id="hints" style="display:flex;flex-direction:column;gap:8px"></div>
+      <div class="bar" id="btns">
+        <button class="primary" type="button" id="check">Comprova</button>
+        <button type="button" id="helpBtn">Ajuda amb la taula</button>
+        <button class="primary" type="button" id="next" hidden>Següent divisió</button>
+      </div>
+      <div class="endbox" id="endbox" hidden>
+        <h2 id="endTitle">Nivell acabat!</h2>
+        <p id="endText"></p>
+        <div class="bar"><button id="repeat">Repetir el nivell</button><button class="primary" id="nextLevel">Nivell següent</button></div>
+      </div>
+    </section>
+    <section class="card tablecard">
+      <h2>La taula, per ajudar-te</h2>
+      <p class="task idle" id="task" aria-live="polite">Prem «Ajuda amb la taula» i aquí et dirà on has de mirar.</p>
+      <div class="board" id="board" aria-label="Taula de multiplicar"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+  const colorOf=(r,c)=>'k'+(((Math.max(r,c)-1)%5)+1);
+  const N=6;
+
+  const HOW={
+    1:`<p>Per fer <b>63 : 7</b>, pensa-ho al revés: <b>7 × ? = 63</b>.</p>
+       <p>A la taula, ves a la <b>fila del 7</b> i busca el <b>63</b>. Mira a quina columna és: la del <b>9</b>.</p>
+       <p>Per tant, <b>63 : 7 = 9</b>. I ho comproves: 7 × 9 = 63 ✓</p>`,
+    2:`<p>El <b>84</b> no és a la fila del 7. El partim en <b>dos trossos fàcils</b>:</p>
+       <p><b>84 = 70 + 14</b>, perquè 70 = 7 × 10 i 14 = 7 × 2 (els dos són a la fila del 7).</p>
+       <p>Dividim cada tros: <b>70 : 7 = 10</b> i <b>14 : 7 = 2</b>. Ho sumem: <b>84 : 7 = 10 + 2 = 12</b>.</p>`,
+    3:`<p>Repartim <b>30 caramels entre 7 amics</b>. El 30 no és a la fila del 7.</p>
+       <p>Busquem a la fila del 7 el número <b>més gran que no passi de 30</b>: és el <b>28</b> (7 × 4).</p>
+       <p>A cada amic li toquen <b>4</b> i en sobren <b>30 − 28 = 2</b>. Ho escrivim: <b>30 : 7 = 4</b> i residu <b>2</b>.</p>`
+  };
+  const CTX=[['caramels','amics'],['cromos','nens'],['galetes','plats'],['llapis','capses'],['pomes','cistells'],['euros','persones']];
+
+  let level=1, probs=[], idx=0, stage=0, status=[], clean=true, task=null;
+
+  function gen(){
+    const out=[], used=new Set();
+    while(out.length<N){
+      if(level===1){
+        const d=out.length<2?rnd(2,5):rnd(6,9), q=rnd(2,10), k=d+'-'+q; if(used.has(k))continue; used.add(k);
+        out.push({d,q,D:d*q});
+      }else if(level===2){
+        const d=rnd(3,8), t=out.length<3?1:2, u=rnd(1,9), q=t*10+u, k=d+'-'+q; if(used.has(k))continue; used.add(k);
+        out.push({d,q,D:d*q,t,u,c1:d*t*10,c2:d*u});
+      }else{
+        const d=rnd(3,9), q=rnd(2,9), r=rnd(1,d-1), D=d*q+r, k=d+'-'+D; if(used.has(k)||D>90)continue; used.add(k);
+        out.push({d,q,r,D,ctx:CTX[out.length%CTX.length]});
+      }
+    }
+    return out;
+  }
+
+  // ---------- taula
+  const board=$('board'), cells={}, rowH={}, colH={};
+  const mk=(t,cls)=>{const e=document.createElement('div');e.className='cell '+cls;e.textContent=t;board.appendChild(e);return e;};
+  mk('×','h').style.border='2px solid var(--line)';
+  for(let c=1;c<=10;c++)colH[c]=mk(c,'h');
+  for(let r=1;r<=10;r++){rowH[r]=mk(r,'h');
+    for(let c=1;c<=10;c++){const b=document.createElement('button');b.type='button';b.className='cell '+colorOf(r,c);b.textContent=r*c;
+      b.setAttribute('aria-label',r+' per '+c+' és '+(r*c));b.onclick=()=>tap(r,c);cells[r+'-'+c]=b;board.appendChild(b);}}
+  function anim(e,c){e.classList.remove(c);void e.offsetWidth;e.classList.add(c);}
+  function clearTable(){
+    board.classList.remove('focus');
+    Object.values(cells).forEach(e=>e.classList.remove('lit','found','over','pop','shake'));
+    Object.values(rowH).concat(Object.values(colH)).forEach(h=>h.classList.remove('lit'));
+    $('task').className='task idle'; $('task').textContent='Prem «Ajuda amb la taula» i aquí et dirà on has de mirar.'; task=null;
+  }
+  function startTask(t){
+    clearTable(); task={...t,solved:false};
+    board.classList.add('focus'); rowH[t.row].classList.add('lit');
+    for(let c=1;c<=10;c++)cells[t.row+'-'+c].classList.add('lit');
+    $('task').className='task'; $('task').innerHTML=t.ask;
+    if(window.innerWidth<=860) document.querySelector('.tablecard').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  function tap(r,c){
+    if(!task||task.solved)return;
+    const e=cells[r+'-'+c], v=r*c;
+    if(r!==task.row){anim(e,'shake');$('task').innerHTML=task.ask+'<br><span style="color:var(--bad);font-weight:700">Has de buscar a la fila del '+task.row+'.</span>';return;}
+    if(c===task.col){
+      task.solved=true; e.classList.add('found'); anim(e,'pop'); colH[c].classList.add('lit');
+      $('task').innerHTML='<b style="color:var(--ok)">Molt bé!</b> '+task.after;
+    }else if(task.max&&v>task.max){
+      e.classList.add('over'); anim(e,'shake');
+      $('task').innerHTML=task.ask+'<br><span style="color:var(--bad);font-weight:700">'+v+' és més gran que '+task.max+': no hi cap.</span>';
+    }else if(task.max){
+      anim(e,'shake'); $('task').innerHTML=task.ask+'<br><span style="color:var(--bad);font-weight:700">El '+v+' hi cap, però n’hi ha un de més gran que encara no passa de '+task.max+'.</span>';
+    }else{
+      anim(e,'shake'); $('task').innerHTML=task.ask+'<br><span style="color:var(--bad);font-weight:700">Aquí hi ha '+r+' × '+c+' = '+v+'.</span>';
+    }
+  }
+
+  // ---------- render
+  const inp=(id,cls)=>`<input type="text" id="${id}" class="${cls||''}" inputmode="numeric" maxlength="3" autocomplete="off" aria-label="Resposta">`;
+  function render(){
+    const p=probs[idx]; stage=0; clean=true;
+    $('fb').textContent=''; $('fb').className='fb'; $('hints').innerHTML='';
+    $('check').hidden=false; $('helpBtn').hidden=false; $('next').hidden=true; $('endbox').hidden=true; $('btns').hidden=false;
+    clearTable(); let h='';
+    if(level===1){
+      h=`<div class="big">${p.D} : ${p.d} = ${inp('a')}</div>
+         <div class="line"><span class="lab">Pensa-ho al revés:</span>${p.d} × <span id="mirror" style="min-width:1.5ch;text-align:center;border-bottom:3px solid var(--ink)">?</span> = ${p.D}</div>`;
+    }else if(level===2){
+      h=`<div class="big">${p.D} : ${p.d} = ?</div>
+         <div class="barwrap" aria-hidden="true"><div class="seg a" id="sa" style="flex:${p.c1} 1 0">${p.c1}</div><div class="seg b" id="sb" style="flex:${p.c2} 1 0">?</div></div>
+         <div class="stage active" id="s0"><span class="line"><span class="lab">1. Parteix el ${p.D} en dos trossos:</span>${p.D} = ${p.c1} + ${inp('a0')}</span>
+           <span class="note">${p.c1} = ${p.d} × ${p.t*10}: és fàcil de dividir per ${p.d}.</span></div>
+         <div class="stage" id="s1" hidden><span class="line"><span class="lab">2. Divideix cada tros per ${p.d}:</span>${p.c1} : ${p.d} = ${inp('a1')} <span style="width:18px"></span> ${p.c2} : ${p.d} = ${inp('a2')}</span></div>
+         <div class="stage" id="s2" hidden><span class="line"><span class="lab">3. Suma els dos resultats:</span>${p.D} : ${p.d} = <span id="sumL"></span> = ${inp('a3','w3')}</span></div>`;
+    }else{
+      h=`<div class="ctx">Repartim <b class="k">${p.D} ${p.ctx[0]}</b> entre <b class="k">${p.d} ${p.ctx[1]}</b>. Quants en toquen a cadascun i quants en sobren?</div>
+         <div class="big">${p.D} : ${p.d} = ${inp('a')} <span style="font-size:.55em;font-family:var(--f-body)">i en sobren</span> ${inp('r')}</div>
+         <div class="line"><span class="lab">Comprovació:</span>${p.d} × <span id="mq">?</span> + <span id="mr">?</span> = ${p.D}</div>`;
+    }
+    $('prob').innerHTML=h;
+    $('prob').querySelectorAll('input').forEach(x=>{
+      x.addEventListener('input',()=>{x.value=x.value.replace(/\D/g,'');x.classList.remove('wrong');
+        if($('mirror')&&x.id==='a')$('mirror').textContent=x.value||'?';
+        if($('mq')&&x.id==='a')$('mq').textContent=x.value||'?';
+        if($('mr')&&x.id==='r')$('mr').textContent=x.value||'?';});
+      x.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('check').click();}});
+    });
+    focusFirst(); chips();
+  }
+  function focusFirst(){const f=[...$('prob').querySelectorAll('input')].find(x=>!x.disabled&&!x.closest('[hidden]'));if(f)f.focus({preventScroll:true});}
+  function chips(){
+    const ch=$('chips');ch.innerHTML='';
+    probs.forEach((p,i)=>{const s=document.createElement('span');s.className='chip'+(i===idx&&!status[i]?' now':'')+(status[i]?' '+status[i]:'');s.textContent=i+1;ch.appendChild(s);});
+  }
+  const val=id=>{const e=$(id);return e&&e.value!==''?Number(e.value):null;};
+  function mark(id,ok){const e=$(id);e.classList.toggle('right',ok);e.classList.toggle('wrong',!ok);if(ok)e.disabled=true;}
+  function hint(t){if([...$('hints').children].some(x=>x.innerHTML===t))return;const d=document.createElement('p');d.className='hint';d.innerHTML=t;$('hints').appendChild(d);}
+  function say(t,cls){$('fb').innerHTML=t;$('fb').className='fb'+(cls?' '+cls:'');}
+  function wrong(t){clean=false;say(t,'bad');anim($('main'),'shake');}
+
+  // ---------- comprovar
+  $('check').onclick=()=>{
+    const p=probs[idx];
+    if(level===1){
+      const a=val('a'); if(a===null){say('Escriu la teva resposta.');return;}
+      if(a===p.q){mark('a',true);solved(`${p.D} : ${p.d} = <b>${p.q}</b>, perquè ${p.d} × ${p.q} = ${p.D} ✓`);return;}
+      mark('a',false);
+      let m=`Comprova-ho al revés: ${p.d} × ${a} = <b>${p.d*a}</b>, i no ${p.D}. `;
+      if(a===p.D-p.d) m='Has restat. Dividir és repartir: pensa '+p.d+' × ? = '+p.D+'. ';
+      else if(a===p.D+p.d) m='Has sumat. Dividir és repartir: pensa '+p.d+' × ? = '+p.D+'. ';
+      else m+=p.d*a<p.D?'És massa petit.':'És massa gran.';
+      wrong(m); hint(`Busca a la <b>fila del ${p.d}</b> on hi ha el <b>${p.D}</b>. La columna és la resposta.`);
+    }else if(level===2){
+      if(stage===0){
+        const a=val('a0'); if(a===null){say('Escriu el tros que falta.');return;}
+        if(a===p.c2){mark('a0',true);$('sb').textContent=p.c2;$('s0').className='stage done';$('s1').hidden=false;$('s1').classList.add('active');stage=1;say('Molt bé! '+p.D+' = '+p.c1+' + '+p.c2+'.','ok');clearTable();focusFirst();return;}
+        mark('a0',false); wrong(`${p.c1} + ${a} = ${p.c1+a}, i no ${p.D}.`); hint(`Resta: <b>${p.D} − ${p.c1}</b>. Quant falta per arribar a ${p.D}?`);
+      }else if(stage===1){
+        const a1=val('a1'),a2=val('a2'); if(a1===null||a2===null){say('Escriu les dues divisions.');return;}
+        const ok1=a1===p.t*10, ok2=a2===p.u;
+        if(!$('a1').disabled)mark('a1',ok1); if(!$('a2').disabled)mark('a2',ok2);
+        if(ok1&&ok2){$('s1').className='stage done';$('s2').hidden=false;$('s2').classList.add('active');$('sumL').textContent=(p.t*10)+' + '+p.u;stage=2;say('Molt bé!','ok');clearTable();focusFirst();return;}
+        const ms=[];
+        if(!ok1){ms.push(`${p.d} × ${a1} = ${p.d*a1}, i no ${p.c1}.`);hint(p.t===1?`${p.d} × 10 = ${p.c1}. Per tant, ${p.c1} : ${p.d} = 10.`:`${p.d} × 2 = ${p.d*2}, doncs ${p.d} × 20 = ${p.c1}. Per tant, ${p.c1} : ${p.d} = 20.`);}
+        if(!ok2){ms.push(`${p.d} × ${a2} = ${p.d*a2}, i no ${p.c2}.`);hint(`Per a ${p.c2} : ${p.d}, busca el <b>${p.c2}</b> a la <b>fila del ${p.d}</b>.`);}
+        wrong('Comprova-ho al revés: '+ms.join(' '));
+      }else{
+        const a=val('a3'); if(a===null){say('Escriu el resultat.');return;}
+        if(a===p.q){mark('a3',true);$('s2').className='stage done';solved(`${p.D} : ${p.d} = ${p.t*10} + ${p.u} = <b>${p.q}</b>. Comprovació: ${p.d} × ${p.q} = ${p.D} ✓`);return;}
+        mark('a3',false); wrong(`${p.t*10} + ${p.u} no fa ${a}.`); hint(`Suma: <b>${p.t*10} + ${p.u}</b>.`);
+      }
+    }else{
+      const a=val('a'), r=val('r'); if(a===null||r===null){say('Escriu quants en toquen i quants en sobren (pot ser 0).');return;}
+      if(a===p.q&&r===p.r){mark('a',true);mark('r',true);solved(`${p.D} : ${p.d} = <b>${p.q}</b> i en sobren <b>${p.r}</b>. Comprovació: ${p.d} × ${p.q} + ${p.r} = ${p.D} ✓`);return;}
+      mark('a',a===p.q); mark('r',r===p.r);
+      if(r>=p.d) wrong(`En sobren ${r}, però això és ${p.d} o més: encara en pots donar un altre a cada un.`);
+      else if(p.d*a+r!==p.D) wrong(`Comprova: ${p.d} × ${a} + ${r} = <b>${p.d*a+r}</b>, i no ${p.D}.`);
+      else wrong('Revisa-ho.');
+      hint(`A la <b>fila del ${p.d}</b>, busca el número <b>més gran que no passi de ${p.D}</b>.`);
+    }
+  };
+  function solved(t){
+    status[idx]=clean?'first':'help'; say(t,'ok');
+    $('check').hidden=true; $('helpBtn').hidden=true;
+    if(idx+1<N){$('next').hidden=false;$('next').focus({preventScroll:true});}
+    else setTimeout(endLevel,900);
+    chips();
+  }
+  $('next').onclick=()=>{idx++;render();};
+
+  $('helpBtn').onclick=()=>{
+    const p=probs[idx]; clean=false;
+    if(level===1) startTask({row:p.d,col:p.q,ask:`Fila del <b>${p.d}</b>: toca el <b>${p.D}</b>.`,after:`És a la columna del <b>${p.q}</b>: ${p.d} × ${p.q} = ${p.D}. Per tant, ${p.D} : ${p.d} = ${p.q}.`});
+    else if(level===2){
+      if(stage===0) startTask({row:p.d,col:p.u,ask:`Quant falta? Pista: el tros que falta també és a la <b>fila del ${p.d}</b> i és més petit que ${p.d*10}.`,after:`El tros que falta és <b>${p.c2}</b>: ${p.c1} + ${p.c2} = ${p.D}.`});
+      else if(stage===1&&$('a2').disabled) startTask(p.t===1
+        ?{row:p.d,col:10,ask:`Per a ${p.c1} : ${p.d}: a la fila del <b>${p.d}</b>, toca el <b>${p.c1}</b>.`,after:`És a la columna del <b>10</b>: ${p.d} × 10 = ${p.c1}. Per tant, ${p.c1} : ${p.d} = 10.`}
+        :{row:p.d,col:2,ask:`Per a ${p.c1} : ${p.d}: a la fila del <b>${p.d}</b>, toca el <b>${p.d*2}</b> (és ${p.c1} sense el zero).`,after:`És a la columna del <b>2</b>: ${p.d} × 2 = ${p.d*2}, doncs ${p.d} × 20 = ${p.c1}. Per tant, ${p.c1} : ${p.d} = 20.`});
+      else if(stage===1) startTask({row:p.d,col:p.u,ask:`Per a ${p.c2} : ${p.d}: a la fila del <b>${p.d}</b>, toca el <b>${p.c2}</b>.`,after:`És a la columna del <b>${p.u}</b>: ${p.c2} : ${p.d} = ${p.u}. I ${p.c1} : ${p.d} = ${p.t*10}, perquè ${p.d} × ${p.t*10} = ${p.c1}.`});
+      else {hint(`Suma: <b>${p.t*10} + ${p.u}</b>.`);}
+    }else startTask({row:p.d,col:p.q,max:p.D,ask:`Fila del <b>${p.d}</b>: toca el número <b>més gran que no passi de ${p.D}</b>.`,after:`És el <b>${p.d*p.q}</b> (${p.d} × ${p.q}). En toquen <b>${p.q}</b> i en sobren ${p.D} − ${p.d*p.q} = <b>${p.r}</b>.`});
+  };
+
+  function endLevel(){
+    const f=status.filter(s=>s==='first').length;
+    $('btns').hidden=true; $('endbox').hidden=false;
+    $('endTitle').textContent='Nivell '+level+' acabat!';
+    $('endText').innerHTML=`Has fet <b>${N} divisions</b>: <b>${f}</b> a la primera i <b>${N-f}</b> amb ajuda. `+(f===N?'Perfecte!':f>=4?'Molt bé!':'Repeteix el nivell per practicar una mica més.');
+    $('nextLevel').hidden=level===3;
+    $('endbox').scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+  $('repeat').onclick=()=>setLevel(level);
+  $('nextLevel').onclick=()=>setLevel(level+1);
+
+  function setLevel(l){
+    level=l; [1,2,3].forEach(k=>$('t'+k).setAttribute('aria-selected',k===l));
+    $('howBody').innerHTML=HOW[l]; $('how').open=true;
+    probs=gen(); idx=0; status=new Array(N).fill(null); render();
+  }
+  [1,2,3].forEach(k=>$('t'+k).onclick=()=>setLevel(k));
+  setLevel(1);
+})();
+</script>
+
+</body></html>
