@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sessió 6 · Micro i macro, sistemes econòmics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;0,900;1,400;1,500;1,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#F7F2E6;
+  --cream-deep:#F1EAD8;
+  --ink:#2A2019;
+  --ink-soft:#4A4038;
+  --muted:#8A8272;
+  --gold:#C99A3D;
+  --gold-dark:#9C7A2E;
+  --line:#E4DCC8;
+  --card:#FDFBF5;
+  --teal:#1F6F72;
+  --teal-bg:#DEEAE8;
+  --tan:#B9862E;
+  --tan-bg:#F3E4BE;
+  --coral:#B24B2A;
+  --coral-bg:#FBE0D2;
+  --coral-border:#E3A583;
+  --dark-bg:#241C16;
+  --dark-fg:#F3EBDC;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;background:#111;}
+body{font-family:'Inter',sans-serif;color:var(--ink);}
+
+.deck{position:relative;width:100vw;height:100vh;}
+.slide{
+  position:absolute;inset:0;
+  background:var(--cream);
+  opacity:0;pointer-events:none;
+  transform:translateX(40px);
+  transition:opacity .35s ease, transform .35s ease;
+  padding:64px 88px 76px;
+  display:flex;flex-direction:column;
+}
+.slide.active{opacity:1;pointer-events:all;transform:translateX(0);z-index:2;}
+.slide.left{transform:translateX(-40px);}
+.slide.dark{background:var(--dark-bg);color:var(--dark-fg);}
+
+.kicker{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:14px;
+}
+.dark .kicker{color:var(--gold);}
+
+h1{
+  font-family:'Playfair Display',serif;font-weight:700;
+  font-size:clamp(30px,3.6vw,46px);line-height:1.12;color:var(--ink);
+  max-width:920px;
+}
+.dark h1{color:var(--dark-fg);font-style:italic;font-weight:500;font-size:clamp(32px,4vw,50px);}
+
+.rule{width:64px;height:3px;background:var(--gold);border:none;margin:22px 0 26px;}
+
+.subtitle{
+  font-family:'Playfair Display',serif;font-style:italic;font-weight:400;
+  font-size:clamp(17px,1.5vw,21px);line-height:1.55;color:var(--ink-soft);max-width:640px;
+}
+.dark .subtitle{color:#D8CBB4;font-style:normal;font-family:'Inter',sans-serif;font-size:16px;max-width:520px;}
+
+p.body{
+  font-size:16.5px;line-height:1.68;color:var(--ink-soft);max-width:800px;margin-top:4px;
+}
+
+blockquote{
+  border-left:3px solid var(--gold);
+  padding-left:20px;margin-top:22px;max-width:620px;
+  font-family:'Playfair Display',serif;font-style:italic;font-weight:500;
+  font-size:clamp(18px,1.8vw,22px);line-height:1.45;color:var(--gold-dark);
+}
+
+/* swoosh icon */
+.swoosh{position:absolute;top:44px;right:60px;opacity:.9;}
+.dark .swoosh path{stroke:var(--gold);}
+
+/* persistent footer + nav */
+.chrome-footer{
+  position:fixed;left:0;right:0;bottom:0;height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 88px;z-index:20;pointer-events:none;
+}
+.brand{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;
+  color:var(--muted);text-transform:uppercase;
+}
+.pagecount{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.05em;color:var(--muted);
+}
+.navchevrons{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  display:flex;gap:14px;align-items:center;z-index:25;
+}
+.navchevrons button{
+  width:34px;height:34px;border-radius:50%;
+  border:1px solid var(--line);background:var(--card);
+  color:var(--gold-dark);font-family:'JetBrains Mono',monospace;font-size:14px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:.15s;
+}
+.navchevrons button:hover{border-color:var(--gold);background:#fff;}
+.navchevrons button:disabled{opacity:.25;cursor:default;}
+.navchevrons .dot{
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+  min-width:44px;text-align:center;
+}
+
+/* content area helper */
+.content{margin-top:8px;flex:1;min-height:0;}
+
+/* ---- recap checklist card ---- */
+.recap-card{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:26px 30px;max-width:760px;margin-top:8px;
+}
+.recap-item{display:flex;gap:16px;align-items:flex-start;padding:11px 0;}
+.recap-item + .recap-item{border-top:1px solid var(--line);}
+.recap-num{
+  font-family:'Playfair Display',serif;font-weight:700;color:var(--gold);
+  font-size:20px;min-width:26px;
+}
+.recap-text{font-size:15.5px;line-height:1.6;color:var(--ink-soft);}
+.recap-text strong{color:var(--ink);}
+
+/* ---- highlight boxes (cas de partida) ---- */
+.hbox{
+  background:var(--coral-bg);border:1px solid var(--coral-border);
+  border-radius:8px;padding:12px 18px;margin-bottom:10px;max-width:820px;
+  font-family:'JetBrains Mono',monospace;font-size:13.5px;color:var(--coral);
+}
+hr.thin{border:none;border-top:1px solid var(--line);margin:22px 0 18px;max-width:900px;}
+h3.question{
+  font-family:'Playfair Display',serif;font-weight:700;font-size:clamp(20px,2.2vw,27px);
+  color:var(--ink);max-width:800px;line-height:1.3;
+}
+
+/* ---- two-col comparison cards ---- */
+.panel-wrap{
+  background:var(--cream-deep);border-radius:14px;padding:28px;margin-top:14px;max-width:1020px;
+}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+.compare-card{border-radius:10px;overflow:hidden;border:1px solid rgba(0,0,0,.05);background:var(--card);display:flex;flex-direction:column;height:100%;}
+.compare-card .bar{height:6px;flex-shrink:0;}
+.compare-card.teal .bar{background:var(--teal);}
+.compare-card.tan .bar{background:var(--tan);}
+.compare-card.coral .bar{background:var(--coral);}
+.compare-card .inner{padding:20px 22px;flex:1;}
+.compare-card.teal .inner{background:var(--teal-bg);}
+.compare-card.tan .inner{background:var(--tan-bg);}
+.compare-card.coral .inner{background:var(--coral-bg);}
+.compare-card h4{
+  font-family:'Playfair Display',serif;font-style:italic;font-weight:600;
+  font-size:20px;color:var(--ink);margin-bottom:4px;
+}
+.compare-card .sub{font-size:12.5px;font-style:italic;color:var(--ink-soft);margin-bottom:12px;}
+.compare-card ul{list-style:none;}
+.compare-card li{font-size:14.5px;font-weight:600;color:var(--ink);padding:5px 0;display:flex;justify-content:space-between;gap:8px;}
+.compare-card li span.lbl{display:flex;gap:8px;}
+.compare-card li span.lbl::before{content:'\2022';color:var(--gold-dark);}
+.compare-card.coral li span.lbl::before{content:'\2022';color:var(--coral);}
+.compare-card li span.val{font-family:'JetBrains Mono',monospace;font-weight:600;}
+.compare-card li.total{border-top:1px dashed rgba(0,0,0,.15);margin-top:6px;padding-top:10px;}
+.alert{
+  margin-top:16px;background:var(--coral-bg);border:1px solid var(--coral-border);
+  border-radius:10px;padding:14px 20px;text-align:center;
+  font-size:14px;font-weight:600;color:var(--coral);
+}
+
+/* ---- plain 2-card grid (béns/serveis) ---- */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:1000px;margin-top:16px;}
+.grid4{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1000px;margin-top:16px;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px 24px;}
+.card h4{font-family:'Playfair Display',serif;font-weight:700;font-size:18px;color:var(--gold-dark);margin-bottom:10px;}
+.card p{font-size:14.5px;line-height:1.6;color:var(--ink-soft);}
+.note{
+  margin-top:16px;max-width:760px;font-family:'Playfair Display',serif;font-style:italic;
+  font-size:15.5px;color:var(--ink-soft);border-left:3px solid var(--gold);padding-left:16px;
+}
+
+/* ---- factor table ---- */
+.table-wrap{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:8px 30px;max-width:1040px;margin-top:14px;
+}
+.trow{display:grid;grid-template-columns:1.3fr 1.6fr 1fr;gap:20px;padding:16px 0;align-items:center;}
+.trow.head{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;
+  color:var(--gold-dark);text-transform:uppercase;
+}
+.trow + .trow{border-top:1px solid var(--line);}
+.trow.head + .trow{border-top:2px solid var(--gold);}
+.trow .fname{font-family:'Playfair Display',serif;font-weight:700;font-size:16.5px;color:var(--ink);}
+.trow .fwho{font-size:14px;color:var(--ink-soft);}
+.trow .fpay{font-size:14px;font-weight:700;color:var(--gold-dark);}
+.table-note{
+  margin-top:14px;max-width:900px;font-family:'Playfair Display',serif;font-style:italic;
+  font-size:14.5px;color:var(--ink-soft);
+}
+
+/* ---- illustration full-bleed slide ---- */
+.illus-slide{padding:0 !important;}
+.illus-top{
+  height:72%;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#1F6F72 0%,#2C8C86 38%,#E7C36B 100%);
+  display:flex;align-items:center;justify-content:center;gap:56px;
+}
+.illus-top svg{width:70px;height:70px;}
+.illus-cap{
+  height:28%;display:flex;align-items:center;justify-content:space-between;
+  padding:0 88px;background:var(--cream);
+}
+.illus-cap .capleft h4{
+  font-family:'Playfair Display',serif;font-weight:700;font-size:22px;color:var(--ink);
+}
+.illus-cap .capleft .capsub{
+  font-family:'Playfair Display',serif;font-style:italic;font-size:14.5px;color:var(--ink-soft);margin-top:4px;max-width:560px;
+}
+.illus-cap .capright{
+  font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);text-align:right;
+}
+
+/* ---- quiz ---- */
+.optgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:1000px;margin-top:18px;}
+.optcard{
+  background:var(--card);border:1.5px solid var(--line);border-radius:10px;
+  padding:16px 18px;display:flex;gap:14px;align-items:flex-start;
+  font-size:14.5px;color:var(--ink);transition:.15s;
+}
+.optcard .oletter{
+  font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--gold-dark);
+  min-width:18px;
+}
+.reveal-btn{
+  align-self:flex-start;
+  margin-top:20px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.08em;
+  text-transform:uppercase;background:transparent;border:1px solid var(--gold);color:var(--gold-dark);
+  padding:9px 20px;border-radius:20px;cursor:pointer;transition:.15s;white-space:nowrap;
+}
+.reveal-btn:hover{background:var(--gold);color:#fff;}
+.solution{
+  display:none;margin-top:16px;max-width:820px;background:var(--tan-bg);
+  border:1px solid var(--tan);border-radius:10px;padding:16px 20px;
+  font-size:14.5px;line-height:1.6;color:var(--ink-soft);
+}
+.solution.show{display:block;}
+.solution strong{color:var(--gold-dark);font-family:'JetBrains Mono',monospace;}
+.optcard.correct{border-color:var(--teal);background:var(--teal-bg);}
+
+/* ---- checklist (repassa) ---- */
+.checklist{max-width:760px;margin-top:16px;}
+.check-item{display:flex;gap:14px;align-items:flex-start;padding:9px 0;}
+.check-box{
+  width:16px;height:16px;border:1.5px solid var(--gold);border-radius:4px;margin-top:3px;flex-shrink:0;
+}
+.check-text{font-size:15.5px;line-height:1.6;color:var(--ink-soft);}
+.nextline{
+  margin-top:26px;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--gold-dark);
+  border-top:1px solid var(--line);padding-top:16px;max-width:760px;
+}
+
+/* ---- FPP diagram ---- */
+.fppwrap{margin-top:14px;display:flex;justify-content:flex-start;}
+.legend-row{display:flex;gap:26px;flex-wrap:wrap;margin-top:6px;}
+.legend-item{
+  display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-soft);
+}
+.legend-item strong{color:var(--ink);}
+.legend-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+
+/* ---- example box + media link ---- */
+.example-box{
+  background:var(--tan-bg);border:1px solid var(--tan);border-radius:12px;
+  padding:20px 24px;margin-top:18px;max-width:820px;
+}
+.example-box .ex-label{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--gold-dark);margin-bottom:8px;
+}
+.example-box .ex-text{font-size:14.5px;line-height:1.62;color:var(--ink-soft);}
+.example-box .ex-text strong{color:var(--ink);}
+.medialink{
+  display:flex;align-items:center;gap:14px;margin-top:14px;padding:12px 16px;
+  background:var(--card);border:1px solid var(--line);border-radius:10px;
+  text-decoration:none;transition:.15s;
+}
+.medialink:hover{border-color:var(--gold);background:#fff;}
+.medialink .micon{flex-shrink:0;}
+.medialink .mtext{flex:1;min-width:0;}
+.medialink .mtitle{font-family:'Playfair Display',serif;font-weight:600;font-size:14.5px;color:var(--ink);}
+.medialink .msource{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.04em;color:var(--muted);margin-top:2px;}
+.medialink .marrow{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--gold-dark);flex-shrink:0;}
+</style>
+<style>.linkbox{max-width:900px;margin-top:16px}.linkbox label{display:block;font:600 11px "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-dark);margin-bottom:6px}.linkrow{display:flex;gap:10px;align-items:center}.linkrow input{flex:1;font:15px Inter,sans-serif;padding:10px 12px;border:1.5px solid var(--tan);border-radius:8px;background:#fff}.linkrow button[disabled]{opacity:.4;cursor:default}</style></head>
+<body>
+
+<div class="deck" id="deck">
+
+<section class="slide active">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">SESSIÓ 6 · BLOC I · ECONOMIA</div>
+  <h1>Micro i macroeconomia, i sistemes econòmics</h1>
+  <hr class="rule">
+  <div class="subtitle">Mirar l'economia de a prop, mirar-la des de dalt, i veure com s'organitzen les societats.</div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">ABANS DE COMENÇAR</div>
+  <h1>Què vam veure la sessió 5</h1>
+  <div class="content"><p class="body">Ho recordem en tres idees, abans d'avançar avui.</p><div class="recap-card"><div class="recap-item"><div class="recap-num">1</div><div class="recap-text">Un <strong>cost irrecuperable</strong> és una despesa ja feta que no es pot recuperar: no ha de condicionar la decisió. <em>Exemple: l'entrada de cinema que ja has pagat.</em></div></div><div class="recap-item"><div class="recap-num">2</div><div class="recap-text">Els <strong>incentius</strong> són el que ens empeny a actuar; poden ser positius o negatius i tenir efectes no previstos. <em>Exemple: una beca per a les bones notes.</em></div></div><div class="recap-item"><div class="recap-num">3</div><div class="recap-text">L'<strong>anàlisi marginal</strong> compara el benefici d'una unitat més amb el seu cost. <em>Exemple: decidir si estudies una hora més.</em></div></div></div></div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">CAS DE PARTIDA</div>
+  <h1>Dues notícies. Una mateixa economia.</h1>
+  <div class="content">
+    <p class="body">Imagina que llegeixes dos titulars el mateix dia:</p>
+    <div class="hbox">«La fleca del barri puja el preu de la barra de pa.»</div>
+    <div class="hbox">«El país tanca l'any amb un 11 % d'atur.»</div>
+    <hr class="thin">
+    <div class="kicker">LA PREGUNTA</div>
+    <h3 class="question">Parlen del mateix? Des d'on estàs mirant l'economia en cada cas?</h3>
+  </div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">§6</div>
+  <h1>Microeconomia i macroeconomia</h1>
+  <hr class="rule">
+  <div class="subtitle">Dues maneres de mirar la mateixa economia: de a prop i des de dalt.</div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">ACTIVITAT D'ENTRADA</div>
+  <h1>Mira'l sense paraules</h1>
+  <div class="content"><p class="body" style="max-width:900px;">Veurem un vídeo curt que no parla d'economia. Mentre el mires, reflexiona sobre dues coses: <strong>què fa una sola unitat</strong> i <strong>què passa en conjunt</strong>.</p><div class="recap-card"><div class="recap-item"><div class="recap-num">A</div><div class="recap-text">Una bandada d'estornells: cada ocell i la bandada sencera.</div></div><div class="recap-item"><div class="recap-num">B</div><div class="recap-text">Un embús vist des d'un dron: un cotxe i el trànsit de tota la ciutat.</div></div><div class="recap-item"><div class="recap-num">C</div><div class="recap-text">L'ola en un estadi: una persona i tot el camp.</div></div></div><div class="linkbox"><label for="vidUrl">Enllaç del vídeo</label><div class="linkrow"><input id="vidUrl" type="url" placeholder="https://..." autocomplete="off"><button type="button" class="reveal-btn" id="vidBtn" disabled>Obre el vídeo ↗</button></div></div></div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">ACTIVITAT D'ENTRADA</div>
+  <h1>Què has vist?</h1>
+  <div class="content"><div class="panel-wrap" style="margin-top:6px;"><div class="compare-grid"><div class="compare-card teal"><div class="bar"></div><div class="inner"><h4>Una sola unitat</h4><div class="sub">Mirat de prop</div><ul><li><span class="lbl">Què fa i per què ho fa?</span></li><li><span class="lbl">Què decideix?</span></li></ul></div></div><div class="compare-card coral"><div class="bar"></div><div class="inner"><h4>El conjunt</h4><div class="sub">Mirat des de dalt</div><ul><li><span class="lbl">Quina forma o comportament apareix?</span></li><li><span class="lbl">Es pot explicar només amb una unitat?</span></li></ul></div></div></div></div><button class="reveal-btn" data-label-show="Mostra la solució" data-label-hide="Amaga la solució" onclick="toggleReveal(this)">Mostra la solució</button><div class="solution">Amb les dues mirades veiem la mateixa realitat, però responen preguntes diferents. En economia passa igual: tornem als dos titulars. <strong>«La fleca del barri puja el preu del pa»</strong> mira una unitat (micro). <strong>«El país tanca l'any amb un 11 % d'atur»</strong> mira el conjunt (macro).</div></div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">CONCEPTES CLAU</div>
+  <h1>Micro i macro</h1>
+  <div class="content">
+    <div class="panel-wrap" style="margin-top:6px;">
+      <div class="compare-grid">
+        <div class="compare-card teal"><div class="bar"></div><div class="inner">
+          <h4>Microeconomia</h4><div class="sub">Els agents un a un i com es relacionen</div>
+          <ul><li><span class="lbl">Famílies, empreses i Estat</span></li><li><span class="lbl">El sou d'una persona</span></li><li><span class="lbl">El preu del peix al teu barri</span></li></ul>
+        </div></div>
+        <div class="compare-card coral"><div class="bar"></div><div class="inner">
+          <h4>Macroeconomia</h4><div class="sub">El comportament global de tota l'economia</div>
+          <ul><li><span class="lbl">Els preus en general (inflació)</span></li><li><span class="lbl">L'atur d'un país</span></li><li><span class="lbl">El creixement econòmic</span></li></ul>
+        </div></div>
+      </div>
+    </div>
+    <p class="body" style="max-width:900px;">Les dues es necessiten: el que passa en moltes economies petites explica el conjunt, i el conjunt condiciona cada cas particular.</p>
+  </div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">EN LA VIDA REAL</div>
+  <h1>Del cas concret al conjunt</h1>
+  <div class="content">
+    <div class="example-box">
+      <div class="ex-label">Exemple real</div>
+      <div class="ex-text">Quan un forn puja el preu del pa, és un fet <strong>micro</strong>. Quan els preus de moltíssims productes pugen alhora i el país els mesura amb un únic indicador, l'IPC (índex de preus de consum), parlem d'un fet <strong>macro</strong>. L'IPC i les dades d'atur són dades macro que publica l'Institut Nacional d'Estadística.</div>
+      <a class="medialink" href="https://www.ine.es/" target="_blank" rel="noopener">
+        <svg class="micon" width="30" height="30" viewBox="0 0 32 32" fill="none"><path d="M8 4h11l6 6v18H8V4Z" stroke="#9C7A2E" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 15h9M12 19h9M12 23h6" stroke="#9C7A2E" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <div class="mtext"><div class="mtitle">Dades oficials: IPC, atur i molt més</div><div class="msource">WEB · INE (INSTITUT NACIONAL D'ESTADÍSTICA)</div></div>
+        <div class="marrow">Obrir ↗</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">EXERCICI</div>
+  <h1>Exercici 6.1 — Micro o macro?</h1>
+  <div class="content"><p class="body" style="max-width:900px;">Classifica cada cas en un full o fitxa com a <strong>micro</strong> o <strong>macro</strong>.</p><div class="recap-card"><div class="recap-item"><div class="recap-num">a</div><div class="recap-text">Els empleats del supermercat de la teva ciutat.</div></div><div class="recap-item"><div class="recap-num">b</div><div class="recap-text">El sou d'una persona de la teva família.</div></div><div class="recap-item"><div class="recap-num">c</div><div class="recap-text">L'oferta de peix en un poble de pescadors.</div></div><div class="recap-item"><div class="recap-num">d</div><div class="recap-text">L'atur en el conjunt d'una economia.</div></div></div></div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">EXERCICI</div>
+  <h1>Exercici 6.1 (continuació)</h1>
+  <div class="content"><div class="recap-card"><div class="recap-item"><div class="recap-num">e</div><div class="recap-text">La pujada del preu del marisc al mercat del teu poble.</div></div><div class="recap-item"><div class="recap-num">f</div><div class="recap-text">La pujada general dels preus de l'economia.</div></div><div class="recap-item"><div class="recap-num">g</div><div class="recap-text">El préstec hipotecari d'un familiar.</div></div><div class="recap-item"><div class="recap-num">h</div><div class="recap-text">La pujada dels tipus d'interès.</div></div></div><button class="reveal-btn" data-label-show="Mostra la solució" data-label-hide="Amaga la solució" onclick="toggleReveal(this)">Mostra la solució</button><div class="solution"><strong>Micro:</strong> a, b, c, e, g (afecten agents o mercats concrets). <strong>Macro:</strong> d, f, h (afecten el conjunt de l'economia).<br>Truc: pregunta't si parles d'<em>un</em> mercat, una família o una empresa, o de <em>tota</em> l'economia.</div></div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">COMPROVA QUE HAS ENTÈS</div>
+  <h1 style="font-size:clamp(22px,2.6vw,30px);max-width:980px;">Quin d'aquests fets és un exemple de macroeconomia?</h1>
+  <div class="optgrid"><div class="optcard"><span class="oletter">A</span><span>El preu del pa a la fleca del barri.</span></div><div class="optcard" id="quizCorrect"><span class="oletter">B</span><span>El nombre de persones aturades en tot el país.</span></div><div class="optcard"><span class="oletter">C</span><span>El sou d'una cambrera.</span></div><div class="optcard"><span class="oletter">D</span><span>L'oferta de peix d'un poble.</span></div></div>
+  <button class="reveal-btn" data-label-show="Mostra la solució" data-label-hide="Amaga la solució" onclick="toggleReveal(this)">Mostra la solució</button>
+  <div class="solution"><strong>Solució: B.</strong> L'atur del país és un resultat del conjunt de l'economia. Les altres opcions descriuen un mercat, una persona o un lloc concret: són micro.</div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">§7</div>
+  <h1>Els sistemes econòmics</h1>
+  <hr class="rule">
+  <div class="subtitle">Com decideix una societat què produeix, com ho fa i per a qui.</div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">TRES PREGUNTES</div>
+  <h1>Què produir, com i per a qui</h1>
+  <div class="content"><p class="body">Com que els recursos són escassos, tota societat ha de respondre tres preguntes:</p><div class="recap-card"><div class="recap-item"><div class="recap-num">1</div><div class="recap-text"><strong>Què</strong> es produeix? (més sanitat, més cotxes, més habitatge…)</div></div><div class="recap-item"><div class="recap-num">2</div><div class="recap-text"><strong>Com</strong> es produeix? (amb més treball o amb més maquinària, amb quines tècniques)</div></div><div class="recap-item"><div class="recap-num">3</div><div class="recap-text"><strong>Per a qui</strong> es produeix? (com es reparteix el que es produeix)</div></div></div><blockquote>El <strong>sistema econòmic</strong> és la manera com una societat respon a aquestes tres preguntes.</blockquote></div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">QUADRE RESUM</div>
+  <h1>Tres sistemes, tres respostes</h1>
+  <div class="content"><div class="table-wrap" style="max-width:1000px;margin-top:6px;"><div class="trow head" style="grid-template-columns:1.2fr 1.6fr 1.2fr 1.4fr;"><div>Sistema</div><div>Qui decideix</div><div>A favor</div><div>En contra</div></div><div class="trow" style="grid-template-columns:1.2fr 1.6fr 1.2fr 1.4fr;"><div class="fname">Mercat</div><div class="fwho">Famílies i empreses, mitjançant preus i competència</div><div class="fwho">Llibertat i incentius</div><div class="fpay">Més desigualtat</div></div><div class="trow" style="grid-template-columns:1.2fr 1.6fr 1.2fr 1.4fr;"><div class="fname">Mixta</div><div class="fwho">Mercat i Estat es reparteixen el paper</div><div class="fwho">Equilibri públic-privat</div><div class="fpay">Pot sumar defectes dels altres dos</div></div><div class="trow" style="grid-template-columns:1.2fr 1.6fr 1.2fr 1.4fr;"><div class="fname">Planificació centralitzada</div><div class="fwho">L'Estat organitza tota l'economia</div><div class="fwho">Necessitats bàsiques cobertes</div><div class="fpay">Sense incentius, risc de corrupció</div></div></div><p class="body" style="max-width:900px;margin-top:14px;">Cap país és «pur»: a la pràctica, la majoria són <strong>mixtos</strong> i només varia quant pes tenen el mercat i l'Estat.</p></div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">EN LA VIDA REAL</div>
+  <h1>Ho veiem al nostre voltant</h1>
+  <div class="content">
+    <div class="example-box">
+      <div class="ex-label">Exemple real</div>
+      <div class="ex-text">A Espanya, bona part de la sanitat i l'educació són <strong>públiques</strong>, però la majoria de botigues, bars i empreses són <strong>privades</strong>: és una economia mixta. La Unió Soviètica és l'exemple clàssic de planificació centralitzada: un organisme estatal, el Gosplan, fixava què s'havia de produir.</div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">EXERCICI</div>
+  <h1>Exercici 6.2 — Quin sistema és?</h1>
+  <div class="content"><p class="body" style="max-width:900px;">Indica, en un full o fitxa, a quin sistema s'assembla cada cas (mercat, mixta o planificació centralitzada) i respon la pregunta final.</p><div class="recap-card"><div class="recap-item"><div class="recap-num">a</div><div class="recap-text">El preu de les bicicletes el fixen les botigues segons l'oferta i la demanda, sense cap intervenció de l'Estat.</div></div><div class="recap-item"><div class="recap-num">b</div><div class="recap-text">Hi ha hospitals públics i alhora clíniques privades.</div></div><div class="recap-item"><div class="recap-num">c</div><div class="recap-text">Un organisme estatal decideix quant blat es cultiva a cada granja i a quin preu es ven.</div></div><div class="recap-item"><div class="recap-num">d</div><div class="recap-text">«El millor sistema és el de mercat»: és una frase positiva o normativa?</div></div></div><button class="reveal-btn" data-label-show="Mostra la solució" data-label-hide="Amaga la solució" onclick="toggleReveal(this)">Mostra la solució</button><div class="solution"><strong>a)</strong> Mercat. <strong>b)</strong> Mixta. <strong>c)</strong> Planificació centralitzada.<br><strong>d)</strong> Normativa: expressa un judici de valor sobre quin sistema <em>hauria de ser</em> el millor, i les dades soles no ho decideixen.</div></div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">COMPROVA QUE HAS ENTÈS</div>
+  <h1 style="font-size:clamp(22px,2.6vw,30px);max-width:980px;">Un país on l'Estat gestiona la sanitat i l'educació, però les empreses privades fabriquen i venen la majoria de productes, és…</h1>
+  <div class="optgrid"><div class="optcard"><span class="oletter">A</span><span>Una economia de mercat pura.</span></div><div class="optcard" id="quizCorrect"><span class="oletter">B</span><span>Una economia mixta.</span></div><div class="optcard"><span class="oletter">C</span><span>Una economia de planificació centralitzada.</span></div><div class="optcard"><span class="oletter">D</span><span>Una economia sense escassetat.</span></div></div>
+  <button class="reveal-btn" data-label-show="Mostra la solució" data-label-hide="Amaga la solució" onclick="toggleReveal(this)">Mostra la solució</button>
+  <div class="solution"><strong>Solució: B.</strong> L'Estat i el mercat es reparteixen el paper: és una economia mixta. Cap país no té un sistema pur, i l'escassetat existeix en tots.</div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">REPASSA</div>
+  <h1>Abans de tancar la sessió 6</h1>
+  <div class="checklist">
+    <div class="check-item"><div class="check-box"></div><div class="check-text">Sabries explicar la diferència entre micro i macro i classificar casos?</div></div>
+    <div class="check-item"><div class="check-box"></div><div class="check-text">Sabries enumerar les tres preguntes que respon tot sistema econòmic?</div></div>
+    <div class="check-item"><div class="check-box"></div><div class="check-text">Sabries descriure el mercat, l'economia mixta i la planificació centralitzada amb un pro i un contra de cadascun?</div></div>
+    <div class="check-item"><div class="check-box"></div><div class="check-text">Sabries explicar per què cap sistema és «pur» a la pràctica?</div></div>
+  </div>
+</section>
+
+<section class="slide dark">
+  <div class="kicker">SESSIÓ 6 · COMPLETADA</div>
+  <h1>Fins aquí la sessió 6</h1>
+  <div class="subtitle">Ja saps mirar l'economia de a prop i des de dalt, i com s'organitzen les societats per decidir què, com i per a qui.</div>
+</section>
+
+</div>
+
+<div class="chrome-footer">
+  <div class="brand">ECONOMIA · 4T ESO</div>
+  <div class="pagecount" id="pagecount">01/13</div>
+</div>
+<div class="navchevrons">
+  <button id="prevBtn" onclick="go(-1)">&#8592;</button>
+  <div class="dot" id="dotLabel">1 / 13</div>
+  <button id="nextBtn" onclick="go(1)">&#8594;</button>
+</div>
+
+<script>
+var slides = document.querySelectorAll('.slide');
+var total = slides.length;
+var current = 0;
+
+function render(){
+  slides.forEach(function(s, i){
+    s.classList.remove('active','left');
+    if(i === current) s.classList.add('active');
+    else if(i < current) s.classList.add('left');
+  });
+  document.getElementById('pagecount').textContent = String(current+1).padStart(2,'0') + '/' + String(total).padStart(2,'0');
+  document.getElementById('dotLabel').textContent = (current+1) + ' / ' + total;
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').disabled = current === total-1;
+}
+
+function go(delta){
+  var n = current + delta;
+  if(n < 0 || n >= total) return;
+  current = n;
+  render();
+}
+
+document.addEventListener('keydown', function(e){
+  if(e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') go(1);
+  if(e.key === 'ArrowLeft' || e.key === 'ArrowUp') go(-1);
+});
+
+document.getElementById('deck').addEventListener('click', function(e){
+  if(e.target.closest('button') || e.target.closest('.optcard')) return;
+  var rect = deck.getBoundingClientRect();
+  var x = e.clientX - rect.left;
+  if(x > rect.width/2) go(1); else go(-1);
+});
+
+function toggleReveal(btn){
+  var box = btn.nextElementSibling;
+  var showing = box.classList.toggle('show');
+  btn.textContent = showing ? btn.dataset.labelHide : btn.dataset.labelShow;
+  var correct = document.getElementById('quizCorrect');
+  if(correct) correct.classList.toggle('correct', showing);
+}
+
+render();
+</script>
+<script>(function(){var i=document.getElementById('vidUrl'),b=document.getElementById('vidBtn');if(!i)return;var K='s6_vid';try{i.value=localStorage.getItem(K)||''}catch(e){}function ok(){return /^https?:\/\//i.test(i.value.trim())}function up(){b.disabled=!ok();try{localStorage.setItem(K,i.value)}catch(e){}}i.addEventListener('input',up);b.addEventListener('click',function(){if(ok())window.open(i.value.trim(),'_blank','noopener')});up();['keydown','keyup'].forEach(function(t){i.addEventListener(t,function(e){e.stopPropagation()})});i.addEventListener('click',function(e){e.stopPropagation()});})();</script></body>
+</html>
