@@ -1,0 +1,515 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sessió 8 · Expectatives i comportament humà</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;0,900;1,400;1,500;1,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#F7F2E6;
+  --cream-deep:#F1EAD8;
+  --ink:#2A2019;
+  --ink-soft:#4A4038;
+  --muted:#8A8272;
+  --gold:#C99A3D;
+  --gold-dark:#9C7A2E;
+  --line:#E4DCC8;
+  --card:#FDFBF5;
+  --teal:#1F6F72;
+  --teal-bg:#DEEAE8;
+  --tan:#B9862E;
+  --tan-bg:#F3E4BE;
+  --coral:#B24B2A;
+  --coral-bg:#FBE0D2;
+  --coral-border:#E3A583;
+  --dark-bg:#241C16;
+  --dark-fg:#F3EBDC;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;background:#111;}
+body{font-family:'Inter',sans-serif;color:var(--ink);}
+
+.deck{position:relative;width:100vw;height:100vh;}
+.slide{
+  position:absolute;inset:0;
+  background:var(--cream);
+  opacity:0;pointer-events:none;
+  transform:translateX(40px);
+  transition:opacity .35s ease, transform .35s ease;
+  padding:64px 88px 76px;
+  display:flex;flex-direction:column;
+}
+.slide.active{opacity:1;pointer-events:all;transform:translateX(0);z-index:2;}
+.slide.left{transform:translateX(-40px);}
+.slide.dark{background:var(--dark-bg);color:var(--dark-fg);}
+
+.kicker{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:14px;
+}
+.dark .kicker{color:var(--gold);}
+
+h1{
+  font-family:'Playfair Display',serif;font-weight:700;
+  font-size:clamp(30px,3.6vw,46px);line-height:1.12;color:var(--ink);
+  max-width:920px;
+}
+.dark h1{color:var(--dark-fg);font-style:italic;font-weight:500;font-size:clamp(32px,4vw,50px);}
+
+.rule{width:64px;height:3px;background:var(--gold);border:none;margin:22px 0 26px;}
+
+.subtitle{
+  font-family:'Playfair Display',serif;font-style:italic;font-weight:400;
+  font-size:clamp(17px,1.5vw,21px);line-height:1.55;color:var(--ink-soft);max-width:640px;
+}
+.dark .subtitle{color:#D8CBB4;font-style:normal;font-family:'Inter',sans-serif;font-size:16px;max-width:520px;}
+
+p.body{
+  font-size:16.5px;line-height:1.68;color:var(--ink-soft);max-width:800px;margin-top:4px;
+}
+
+blockquote{
+  border-left:3px solid var(--gold);
+  padding-left:20px;margin-top:22px;max-width:620px;
+  font-family:'Playfair Display',serif;font-style:italic;font-weight:500;
+  font-size:clamp(18px,1.8vw,22px);line-height:1.45;color:var(--gold-dark);
+}
+
+/* swoosh icon */
+.swoosh{position:absolute;top:44px;right:60px;opacity:.9;}
+.dark .swoosh path{stroke:var(--gold);}
+
+/* persistent footer + nav */
+.chrome-footer{
+  position:fixed;left:0;right:0;bottom:0;height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 88px;z-index:20;pointer-events:none;
+}
+.brand{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;
+  color:var(--muted);text-transform:uppercase;
+}
+.pagecount{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.05em;color:var(--muted);
+}
+.navchevrons{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  display:flex;gap:14px;align-items:center;z-index:25;
+}
+.navchevrons button{
+  width:34px;height:34px;border-radius:50%;
+  border:1px solid var(--line);background:var(--card);
+  color:var(--gold-dark);font-family:'JetBrains Mono',monospace;font-size:14px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:.15s;
+}
+.navchevrons button:hover{border-color:var(--gold);background:#fff;}
+.navchevrons button:disabled{opacity:.25;cursor:default;}
+.navchevrons .dot{
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+  min-width:44px;text-align:center;
+}
+
+/* content area helper */
+.content{margin-top:8px;flex:1;min-height:0;}
+
+/* ---- recap checklist card ---- */
+.recap-card{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:26px 30px;max-width:760px;margin-top:8px;
+}
+.recap-item{display:flex;gap:16px;align-items:flex-start;padding:11px 0;}
+.recap-item + .recap-item{border-top:1px solid var(--line);}
+.recap-num{
+  font-family:'Playfair Display',serif;font-weight:700;color:var(--gold);
+  font-size:20px;min-width:26px;
+}
+.recap-text{font-size:15.5px;line-height:1.6;color:var(--ink-soft);}
+.recap-text strong{color:var(--ink);}
+
+/* ---- highlight boxes (cas de partida) ---- */
+.hbox{
+  background:var(--coral-bg);border:1px solid var(--coral-border);
+  border-radius:8px;padding:12px 18px;margin-bottom:10px;max-width:820px;
+  font-family:'JetBrains Mono',monospace;font-size:13.5px;color:var(--coral);
+}
+hr.thin{border:none;border-top:1px solid var(--line);margin:22px 0 18px;max-width:900px;}
+h3.question{
+  font-family:'Playfair Display',serif;font-weight:700;font-size:clamp(20px,2.2vw,27px);
+  color:var(--ink);max-width:800px;line-height:1.3;
+}
+
+/* ---- two-col comparison cards ---- */
+.panel-wrap{
+  background:var(--cream-deep);border-radius:14px;padding:28px;margin-top:14px;max-width:1020px;
+}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+.compare-card{border-radius:10px;overflow:hidden;border:1px solid rgba(0,0,0,.05);background:var(--card);display:flex;flex-direction:column;height:100%;}
+.compare-card .bar{height:6px;flex-shrink:0;}
+.compare-card.teal .bar{background:var(--teal);}
+.compare-card.tan .bar{background:var(--tan);}
+.compare-card.coral .bar{background:var(--coral);}
+.compare-card .inner{padding:20px 22px;flex:1;}
+.compare-card.teal .inner{background:var(--teal-bg);}
+.compare-card.tan .inner{background:var(--tan-bg);}
+.compare-card.coral .inner{background:var(--coral-bg);}
+.compare-card h4{
+  font-family:'Playfair Display',serif;font-style:italic;font-weight:600;
+  font-size:20px;color:var(--ink);margin-bottom:4px;
+}
+.compare-card .sub{font-size:12.5px;font-style:italic;color:var(--ink-soft);margin-bottom:12px;}
+.compare-card ul{list-style:none;}
+.compare-card li{font-size:14.5px;font-weight:600;color:var(--ink);padding:5px 0;display:flex;justify-content:space-between;gap:8px;}
+.compare-card li span.lbl{display:flex;gap:8px;}
+.compare-card li span.lbl::before{content:'\2022';color:var(--gold-dark);}
+.compare-card.coral li span.lbl::before{content:'\2022';color:var(--coral);}
+.compare-card li span.val{font-family:'JetBrains Mono',monospace;font-weight:600;}
+.compare-card li.total{border-top:1px dashed rgba(0,0,0,.15);margin-top:6px;padding-top:10px;}
+.alert{
+  margin-top:16px;background:var(--coral-bg);border:1px solid var(--coral-border);
+  border-radius:10px;padding:14px 20px;text-align:center;
+  font-size:14px;font-weight:600;color:var(--coral);
+}
+
+/* ---- plain 2-card grid (béns/serveis) ---- */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:1000px;margin-top:16px;}
+.grid4{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1000px;margin-top:16px;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px 24px;}
+.card h4{font-family:'Playfair Display',serif;font-weight:700;font-size:18px;color:var(--gold-dark);margin-bottom:10px;}
+.card p{font-size:14.5px;line-height:1.6;color:var(--ink-soft);}
+.note{
+  margin-top:16px;max-width:760px;font-family:'Playfair Display',serif;font-style:italic;
+  font-size:15.5px;color:var(--ink-soft);border-left:3px solid var(--gold);padding-left:16px;
+}
+
+/* ---- factor table ---- */
+.table-wrap{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:8px 30px;max-width:1040px;margin-top:14px;
+}
+.trow{display:grid;grid-template-columns:1.3fr 1.6fr 1fr;gap:20px;padding:16px 0;align-items:center;}
+.trow.head{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;
+  color:var(--gold-dark);text-transform:uppercase;
+}
+.trow + .trow{border-top:1px solid var(--line);}
+.trow.head + .trow{border-top:2px solid var(--gold);}
+.trow .fname{font-family:'Playfair Display',serif;font-weight:700;font-size:16.5px;color:var(--ink);}
+.trow .fwho{font-size:14px;color:var(--ink-soft);}
+.trow .fpay{font-size:14px;font-weight:700;color:var(--gold-dark);}
+.table-note{
+  margin-top:14px;max-width:900px;font-family:'Playfair Display',serif;font-style:italic;
+  font-size:14.5px;color:var(--ink-soft);
+}
+
+/* ---- illustration full-bleed slide ---- */
+.illus-slide{padding:0 !important;}
+.illus-top{
+  height:72%;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#1F6F72 0%,#2C8C86 38%,#E7C36B 100%);
+  display:flex;align-items:center;justify-content:center;gap:56px;
+}
+.illus-top svg{width:70px;height:70px;}
+.illus-cap{
+  height:28%;display:flex;align-items:center;justify-content:space-between;
+  padding:0 88px;background:var(--cream);
+}
+.illus-cap .capleft h4{
+  font-family:'Playfair Display',serif;font-weight:700;font-size:22px;color:var(--ink);
+}
+.illus-cap .capleft .capsub{
+  font-family:'Playfair Display',serif;font-style:italic;font-size:14.5px;color:var(--ink-soft);margin-top:4px;max-width:560px;
+}
+.illus-cap .capright{
+  font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);text-align:right;
+}
+
+/* ---- quiz ---- */
+.optgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:1000px;margin-top:18px;}
+.optcard{
+  background:var(--card);border:1.5px solid var(--line);border-radius:10px;
+  padding:16px 18px;display:flex;gap:14px;align-items:flex-start;
+  font-size:14.5px;color:var(--ink);transition:.15s;
+}
+.optcard .oletter{
+  font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--gold-dark);
+  min-width:18px;
+}
+.reveal-btn{
+  align-self:flex-start;
+  margin-top:20px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.08em;
+  text-transform:uppercase;background:transparent;border:1px solid var(--gold);color:var(--gold-dark);
+  padding:9px 20px;border-radius:20px;cursor:pointer;transition:.15s;white-space:nowrap;
+}
+.reveal-btn:hover{background:var(--gold);color:#fff;}
+.solution{
+  display:none;margin-top:16px;max-width:820px;background:var(--tan-bg);
+  border:1px solid var(--tan);border-radius:10px;padding:16px 20px;
+  font-size:14.5px;line-height:1.6;color:var(--ink-soft);
+}
+.solution.show{display:block;}
+.solution strong{color:var(--gold-dark);font-family:'JetBrains Mono',monospace;}
+.optcard.correct{border-color:var(--teal);background:var(--teal-bg);}
+
+/* ---- checklist (repassa) ---- */
+.checklist{max-width:760px;margin-top:16px;}
+.check-item{display:flex;gap:14px;align-items:flex-start;padding:9px 0;}
+.check-box{
+  width:16px;height:16px;border:1.5px solid var(--gold);border-radius:4px;margin-top:3px;flex-shrink:0;
+}
+.check-text{font-size:15.5px;line-height:1.6;color:var(--ink-soft);}
+.nextline{
+  margin-top:26px;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--gold-dark);
+  border-top:1px solid var(--line);padding-top:16px;max-width:760px;
+}
+
+/* ---- FPP diagram ---- */
+.fppwrap{margin-top:14px;display:flex;justify-content:flex-start;}
+.legend-row{display:flex;gap:26px;flex-wrap:wrap;margin-top:6px;}
+.legend-item{
+  display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-soft);
+}
+.legend-item strong{color:var(--ink);}
+.legend-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+
+/* ---- example box + media link ---- */
+.example-box{
+  background:var(--tan-bg);border:1px solid var(--tan);border-radius:12px;
+  padding:20px 24px;margin-top:18px;max-width:820px;
+}
+.example-box .ex-label{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--gold-dark);margin-bottom:8px;
+}
+.example-box .ex-text{font-size:14.5px;line-height:1.62;color:var(--ink-soft);}
+.example-box .ex-text strong{color:var(--ink);}
+.medialink{
+  display:flex;align-items:center;gap:14px;margin-top:14px;padding:12px 16px;
+  background:var(--card);border:1px solid var(--line);border-radius:10px;
+  text-decoration:none;transition:.15s;
+}
+.medialink:hover{border-color:var(--gold);background:#fff;}
+.medialink .micon{flex-shrink:0;}
+.medialink .mtext{flex:1;min-width:0;}
+.medialink .mtitle{font-family:'Playfair Display',serif;font-weight:600;font-size:14.5px;color:var(--ink);}
+.medialink .msource{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.04em;color:var(--muted);margin-top:2px;}
+.medialink .marrow{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--gold-dark);flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+<section class="slide active">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">SESSIÓ 8 · BLOC I · ECONOMIA</div>
+  <h1>Expectatives i comportament humà</h1>
+  <hr class="rule">
+  <div class="subtitle">Què esperem que passi i per què no sempre decidim com ho faria un manual d'economia.</div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">ABANS DE COMENÇAR</div>
+  <h1>Què vam veure la sessió 7</h1>
+  <div class="content"><p class="body">Ho recordem en tres idees, abans d'avançar avui.</p><div class="recap-card"><div class="recap-item"><div class="recap-num">1</div><div class="recap-text">Hi ha <strong>quatre agents</strong>: famílies, empreses, sector públic i sector exterior. <em>Exemple: el bar de l'institut és una empresa.</em></div></div><div class="recap-item"><div class="recap-num">2</div><div class="recap-text">El <strong>flux circular</strong> mostra que la despesa d'uns és l'ingrés dels altres. <em>Exemple: els 4 € de l'entrepà paguen un sou.</em></div></div><div class="recap-item"><div class="recap-num">3</div><div class="recap-text">El <strong>PIB</strong> mesura la producció d'un país en un any i es calcula com C + I + G + (X − M). <em>Exemple: el consum de les famílies és una part del PIB.</em></div></div></div></div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">CAS DE PARTIDA</div>
+  <h1>«La setmana vinent faltarà el paper higiènic»</h1>
+  <div class="content">
+    <p class="body">Corre un rumor pel barri. Ningú no sap si és cert, però:</p>
+    <div class="hbox">Algunes famílies en compren més del que necessiten, per si de cas.</div>
+    <div class="hbox">Els prestatges es buiden en poques hores.</div>
+    <div class="hbox">Un cop buits, tothom pensa: «Ho sabia, ara sí que en falta».</div>
+    <hr class="thin">
+    <div class="kicker">LA PREGUNTA</div>
+    <h3 class="question">Si el rumor era fals, qui ha provocat la manca de paper? Què ha passat amb les expectatives?</h3>
+  </div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">§10</div>
+  <h1>Les expectatives</h1>
+  <hr class="rule">
+  <div class="subtitle">El que esperem que passi també és un incentiu per decidir.</div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">CONCEPTE CLAU</div>
+  <h1>Expectativa</h1>
+  <div class="content"><p class="body" style="max-width:900px;">Una expectativa és allò que esperem que passi. Influeix en el que decidim ara, tant si és realista com si no.</p><div class="recap-card"><div class="recap-item"><div class="recap-num">A</div><div class="recap-text"><strong>Expectativa adaptativa:</strong> es forma a partir del passat. <em>«Cada any han pujat els preus, aquest també pujaran.»</em></div></div><div class="recap-item"><div class="recap-num">R</div><div class="recap-text"><strong>Expectativa racional:</strong> s'analitza la informació disponible. <em>«He mirat les dades i les previsions, i crec que els preus pujaran poc.»</em></div></div></div><blockquote>Les expectatives poc realistes porten a decepcions i a males decisions.</blockquote></div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">IDEA CLAU</div>
+  <h1>La profecia autocomplerta</h1>
+  <div class="content"><blockquote>Si molta gent creu que una cosa passarà i actua en conseqüència, aquesta mateixa conducta pot fer que passi. S'anomena profecia autocomplerta o efecte Pigmalió.</blockquote><div class="example-box"><div class="ex-label">Exemple real</div><div class="ex-text">Si molta gent pensa que l'economia anirà malament, deixa de gastar i estalvia per si de cas. Com que tothom compra menys, les empreses venen menys, redueixen la producció i l'economia pot entrar en recessió: l'expectativa s'ha complert per la reacció de tots.</div></div></div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">EN LA VIDA REAL</div>
+  <h1>També passa a classe i en un banc</h1>
+  <div class="content"><div class="recap-card"><div class="recap-item"><div class="recap-num">1</div><div class="recap-text"><strong>A classe:</strong> si un professor espera poc d'un alumne, aquest pot acabar esforçant-se menys. Rosenthal i Jacobson van descriure aquest efecte l'any 1968.</div></div><div class="recap-item"><div class="recap-num">2</div><div class="recap-text"><strong>En un banc:</strong> si molts clients creuen que un banc tindrà problemes i retiren els diners alhora, el banc té problemes de debò.</div></div><div class="recap-item"><div class="recap-num">3</div><div class="recap-text"><strong>Amb el paper higiènic:</strong> la por a la manca de producte pot provocar-ne la manca.</div></div></div><p class="body" style="max-width:900px;margin-top:10px;">Pregunta oberta: com es pot frenar una profecia autocomplerta negativa?</p></div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">EXERCICI</div>
+  <h1 style="font-size:clamp(22px,2.6vw,30px);max-width:980px;">Exercici 8.1 — Quin tipus d'expectativa és?</h1>
+  <div class="content"><p class="body" style="max-width:900px;">En un full o fitxa, indica si cada cas és una expectativa <strong>adaptativa</strong>, <strong>racional</strong> o una <strong>profecia autocomplerta</strong>.</p><div class="recap-card"><div class="recap-item"><div class="recap-num">a</div><div class="recap-text">«L'any passat els preus del material escolar van pujar; aquest any també pujaran.»</div></div><div class="recap-item"><div class="recap-num">b</div><div class="recap-text">«He llegit les previsions oficials i les dades de l'any passat, i crec que els preus pujaran poc.»</div></div><div class="recap-item"><div class="recap-num">c</div><div class="recap-text">Tothom retira diners d'un banc perquè creu que fallarà, i el banc acaba fallant.</div></div><div class="recap-item"><div class="recap-num">d</div><div class="recap-text">«No tinc cap dada, però el meu cosí diu que el mes que ve tot serà més car.»</div></div></div><button class="reveal-btn" data-label-show="Mostra la solució" data-label-hide="Amaga la solució" onclick="toggleReveal(this)">Mostra la solució</button><div class="solution"><strong>a)</strong> Adaptativa (es basa en el passat). <strong>b)</strong> Racional (analitza informació disponible). <strong>c)</strong> Profecia autocomplerta (l'expectativa provoca el fet). <strong>d)</strong> Adaptativa: es basa en un rumor i no en informació verificada.</div></div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">COMPROVA QUE HAS ENTÈS</div>
+  <h1 style="font-size:clamp(22px,2.6vw,30px);max-width:980px;">Quina frase descriu millor una profecia autocomplerta?</h1>
+  <div class="optgrid"><div class="optcard"><span class="oletter">A</span><span>Una predicció que sempre és correcta.</span></div><div class="optcard" id="quizCorrect"><span class="oletter">B</span><span>Una expectativa que, en actuar tothom d'acord amb ella, acaba fent que es compleixi.</span></div><div class="optcard"><span class="oletter">C</span><span>Una expectativa basada en dades oficials.</span></div><div class="optcard"><span class="oletter">D</span><span>Una previsió que només fan els experts.</span></div></div>
+  <button class="reveal-btn" data-label-show="Mostra la solució" data-label-hide="Amaga la solució" onclick="toggleReveal(this)">Mostra la solució</button>
+  <div class="solution"><strong>Solució: B.</strong> La clau és que la conducta de la gent fa que allò que s'esperava passi de veritat.</div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">RESUM</div>
+  <h1>Decidir bé: quatre filtres</h1>
+  <div class="content"><div class="recap-card"><div class="recap-item"><div class="recap-num">1</div><div class="recap-text"><strong>Cost d'oportunitat:</strong> què perds amb la millor alternativa?</div></div><div class="recap-item"><div class="recap-num">2</div><div class="recap-text"><strong>Costos irrecuperables:</strong> el que ja està pagat no compta.</div></div><div class="recap-item"><div class="recap-num">3</div><div class="recap-text"><strong>Incentius:</strong> què t'empeny a triar una opció o una altra?</div></div><div class="recap-item"><div class="recap-num">4</div><div class="recap-text"><strong>Expectatives:</strong> què esperes que passi, i és realista?</div></div></div><blockquote>Una decisió racional passa pels quatre filtres. I si no sempre ho fem així, hi ha una explicació.</blockquote></div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">§11</div>
+  <h1>El comportament humà</h1>
+  <hr class="rule">
+  <div class="subtitle">Per què no sempre decidim com ho faria una persona totalment racional.</div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">CONCEPTE CLAU</div>
+  <h1>Economia del comportament</h1>
+  <div class="content"><p class="body" style="max-width:900px;">La teoria econòmica clàssica suposa que decidim de manera racional. L'<strong>economia del comportament</strong> estudia per què, a la pràctica, no sempre és així.</p><blockquote>Els factors que ens allunyen de la decisió racional s'anomenen <strong>biaixos cognitius</strong>.</blockquote><p class="body" style="max-width:900px;">Reconèixer-los no serveix per jutjar ningú: serveix per prendre millors decisions.</p></div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">BIAIXOS</div>
+  <h1 style="font-size:clamp(22px,2.6vw,30px);max-width:980px;">Cinc maneres d'allunyar-nos de la decisió racional</h1>
+  <div class="content"><div class="recap-card"><div class="recap-item"><div class="recap-num">1</div><div class="recap-text"><strong>Impulsivitat:</strong> preferim el plaer immediat al benefici futur. <em>Gastar la paga el mateix dia que la cobres.</em></div></div><div class="recap-item"><div class="recap-num">2</div><div class="recap-text"><strong>L'entorn:</strong> la pressió del grup, el «què diran» o no saber dir que no. <em>Prestar diners a un amic sabent que és difícil que els torni.</em></div></div><div class="recap-item"><div class="recap-num">3</div><div class="recap-text"><strong>Màrqueting:</strong> comprem per l'aparença més que per la qualitat. <em>Triar un producte pel seu envàs.</em></div></div><div class="recap-item"><div class="recap-num">4</div><div class="recap-text"><strong>Excés d'informació:</strong> tantes opcions que costa triar. <em>Estar mitja hora triant què veure en una plataforma.</em></div></div><div class="recap-item"><div class="recap-num">5</div><div class="recap-text"><strong>Personalitat:</strong> hi ha persones més temoroses del risc i altres més optimistes. <em>No decidir per por d'equivocar-se.</em></div></div></div></div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">EN LA VIDA REAL</div>
+  <h1>La prova del malvavisc</h1>
+  <div class="content"><div class="example-box"><div class="ex-label">Exemple real</div><div class="ex-text">En un experiment famós dels anys seixanta i setanta, a uns nens se'ls oferia un malvavisc ara o dos si esperaven uns minuts. Mostrava com el plaer immediat competeix amb la recompensa futura. Els resultats a llarg termini d'aquest estudi s'han discutit després, però l'experiment il·lustra molt bé la impulsivitat.</div></div><p class="body" style="max-width:900px;margin-top:10px;">Pregunta oberta: tu què triaries? I si fossin 20 € ara o 30 € d'aquí a un mes?</p></div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">EXERCICI</div>
+  <h1 style="font-size:clamp(22px,2.6vw,30px);max-width:980px;">Exercici 8.2 — Quin biaix és?</h1>
+  <div class="content"><p class="body" style="max-width:900px;">En un full o fitxa, relaciona cada cas amb un biaix (impulsivitat, entorn, màrqueting, excés d'informació o personalitat) i posa'n un exemple propi.</p><div class="recap-card"><div class="recap-item"><div class="recap-num">a</div><div class="recap-text">Compres el mateix mòbil que tota la classe perquè no vols ser el diferent.</div></div><div class="recap-item"><div class="recap-num">b</div><div class="recap-text">Compres una xocolata pel seu envàs, sense mirar-ne la qualitat.</div></div><div class="recap-item"><div class="recap-num">c</div><div class="recap-text">Tardes tres quarts d'hora a decidir què veure i al final no veus res.</div></div><div class="recap-item"><div class="recap-num">d</div><div class="recap-text">Gastes en cromos tota la paga el dia que la cobres.</div></div><div class="recap-item"><div class="recap-num">e</div><div class="recap-text">Mai no demanes un augment per por d'equivocar-te.</div></div></div><button class="reveal-btn" data-label-show="Mostra la solució" data-label-hide="Amaga la solució" onclick="toggleReveal(this)">Mostra la solució</button><div class="solution"><strong>a)</strong> L'entorn. <strong>b)</strong> Màrqueting. <strong>c)</strong> Excés d'informació. <strong>d)</strong> Impulsivitat. <strong>e)</strong> Personalitat (aversió al risc). Després, posa un exemple teu per a cada biaix.</div></div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">COMPROVA QUE HAS ENTÈS</div>
+  <h1 style="font-size:clamp(22px,2.6vw,30px);max-width:980px;">Un alumne es gasta tota la paga en un sol dia perquè no vol esperar. Quin biaix il·lustra?</h1>
+  <div class="optgrid"><div class="optcard"><span class="oletter">A</span><span>Excés d'informació.</span></div><div class="optcard"><span class="oletter">B</span><span>Màrqueting.</span></div><div class="optcard" id="quizCorrect"><span class="oletter">C</span><span>Impulsivitat: el valor del plaer immediat.</span></div><div class="optcard"><span class="oletter">D</span><span>L'entorn.</span></div></div>
+  <button class="reveal-btn" data-label-show="Mostra la solució" data-label-hide="Amaga la solució" onclick="toggleReveal(this)">Mostra la solució</button>
+  <div class="solution"><strong>Solució: C.</strong> Prefereix el plaer immediat al benefici futur de guardar diners. Les altres opcions apunten a factors diferents.</div>
+</section>
+
+<section class="slide">
+  <svg class="swoosh" width="46" height="46" viewBox="0 0 46 46" fill="none"><path d="M4 34C16 34 16 12 32 12" stroke="#C99A3D" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <div class="kicker">REPASSA</div>
+  <h1>Abans de tancar la sessió 8</h1>
+  <div class="checklist">
+    <div class="check-item"><div class="check-box"></div><div class="check-text">Sabries explicar què és una expectativa i distingir l'adaptativa de la racional?</div></div>
+    <div class="check-item"><div class="check-box"></div><div class="check-text">Sabries explicar què és una profecia autocomplerta amb un exemple?</div></div>
+    <div class="check-item"><div class="check-box"></div><div class="check-text">Sabries enumerar els quatre filtres d'una decisió racional?</div></div>
+    <div class="check-item"><div class="check-box"></div><div class="check-text">Sabries descriure què estudia l'economia del comportament i què és un biaix cognitiu?</div></div>
+    <div class="check-item"><div class="check-box"></div><div class="check-text">Sabries posar un exemple de cadascun dels cinc biaixos?</div></div>
+  </div>
+</section>
+
+<section class="slide dark">
+  <div class="kicker">SESSIÓ 8 · COMPLETADA</div>
+  <h1>Fins aquí la sessió 8</h1>
+  <div class="subtitle">Ja saps què esperem, per què podem equivocar-nos i com decidir una mica millor.</div>
+</section>
+
+</div>
+
+<div class="chrome-footer">
+  <div class="brand">ECONOMIA · 4T ESO</div>
+  <div class="pagecount" id="pagecount">01/13</div>
+</div>
+<div class="navchevrons">
+  <button id="prevBtn" onclick="go(-1)">&#8592;</button>
+  <div class="dot" id="dotLabel">1 / 13</div>
+  <button id="nextBtn" onclick="go(1)">&#8594;</button>
+</div>
+
+<script>
+var slides = document.querySelectorAll('.slide');
+var total = slides.length;
+var current = 0;
+
+function render(){
+  slides.forEach(function(s, i){
+    s.classList.remove('active','left');
+    if(i === current) s.classList.add('active');
+    else if(i < current) s.classList.add('left');
+  });
+  document.getElementById('pagecount').textContent = String(current+1).padStart(2,'0') + '/' + String(total).padStart(2,'0');
+  document.getElementById('dotLabel').textContent = (current+1) + ' / ' + total;
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').disabled = current === total-1;
+}
+
+function go(delta){
+  var n = current + delta;
+  if(n < 0 || n >= total) return;
+  current = n;
+  render();
+}
+
+document.addEventListener('keydown', function(e){
+  if(e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') go(1);
+  if(e.key === 'ArrowLeft' || e.key === 'ArrowUp') go(-1);
+});
+
+document.getElementById('deck').addEventListener('click', function(e){
+  if(e.target.closest('button') || e.target.closest('.optcard')) return;
+  var rect = deck.getBoundingClientRect();
+  var x = e.clientX - rect.left;
+  if(x > rect.width/2) go(1); else go(-1);
+});
+
+function toggleReveal(btn){
+  var box = btn.nextElementSibling;
+  var showing = box.classList.toggle('show');
+  btn.textContent = showing ? btn.dataset.labelHide : btn.dataset.labelShow;
+  var correct = document.getElementById('quizCorrect');
+  if(correct) correct.classList.toggle('correct', showing);
+}
+
+render();
+</script>
+</body>
+</html>
+
+</body></html>
