@@ -1,0 +1,806 @@
+<!doctype html><html lang="ca"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body><title>Canvi d’escala</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Laboratori sobre paper mil·limetrat: tinta blava-grisa, un color per dimensió (1 blau, 2 ambre, 3 lila) i el factor k en taronja */
+:root{
+  --paper:#F6F8F6; --grid:#E1E8E3; --card:#FFFFFF; --ink:#1D2830; --muted:#5D6A71; --line:#CBD5CF;
+  --d1:#1F6FB2; --d2:#C27A0E; --d3:#8E3AA0; --k:#D9541E; --kbg:#FCE6DC;
+  --d1bg:#DCEAF6; --d2bg:#F7E6C6; --d3bg:#EBD9EF; --ok:#1B7F4B; --okbg:#DDF1E5; --bad:#B3261E; --badbg:#F8DEDC; --data:#1F4E9E;
+  --shadow:0 1px 2px rgba(29,40,48,.06),0 4px 14px rgba(29,40,48,.05);
+  --font:Arial,"Helvetica Neue",Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#12181B; --grid:#1B2428; --card:#182126; --ink:#E5ECEF; --muted:#9AA8AF; --line:#2E3B41;
+  --d1:#6FB0EA; --d2:#E9A945; --d3:#C88AD6; --k:#FF8A57; --kbg:#3A2219;
+  --d1bg:#18324A; --d2bg:#3A2D14; --d3bg:#33213A; --ok:#5CC48D; --okbg:#173326; --bad:#FF8A80; --badbg:#3A1C1A; --data:#8DB4F2;
+  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#12181B; --grid:#1B2428; --card:#182126; --ink:#E5ECEF; --muted:#9AA8AF; --line:#2E3B41;
+  --d1:#6FB0EA; --d2:#E9A945; --d3:#C88AD6; --k:#FF8A57; --kbg:#3A2219;
+  --d1bg:#18324A; --d2bg:#3A2D14; --d3bg:#33213A; --ok:#5CC48D; --okbg:#173326; --bad:#FF8A80; --badbg:#3A1C1A; --data:#8DB4F2;
+  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:15px/1.5 var(--font);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px}
+.wrap{max-width:1180px;margin:0 auto;padding-block:18px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+header.top{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px}
+header.top h1{margin:0;font-size:1.65rem;letter-spacing:-.01em;text-wrap:balance}
+header.top .sub{color:var(--muted);font-size:.9rem;margin:2px 0 0}
+.tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:4px}
+.tab{border:0;background:none;color:var(--ink);font:600 .92rem var(--font);padding:8px 14px;border-radius:7px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--paper)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:var(--shadow)}
+.eyebrow{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h2,h3{margin:.1em 0 .35em;text-wrap:balance} h2{font-size:1.3rem} h3{font-size:1.05rem}
+.muted{color:var(--muted)} .small{font-size:.85rem}
+.kk{color:var(--k);font-style:italic;font-weight:700}
+sup{font-size:.68em;line-height:0;vertical-align:.55em}
+sup.e1{color:var(--d1);font-weight:700} sup.e2{color:var(--d2);font-weight:700} sup.e3{color:var(--d3);font-weight:700}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .15em;line-height:1.15;font-size:.92em}
+.fr>span:first-child{border-bottom:1.5px solid currentColor;padding:0 .2em}.fr>span:last-child{padding:0 .2em}
+.rad{white-space:nowrap}.rad .rc,.ov{border-top:1.5px solid currentColor;padding:0 .12em;margin-left:-.05em}.idx{font-size:.62em;vertical-align:.9em;margin-right:-.35em}
+.dat{color:var(--data);font-weight:700} .res{color:var(--ok);font-weight:700}
+.btn{font:600 .9rem var(--font);border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 14px;border-radius:8px;cursor:pointer;min-height:40px}
+.btn:hover:not(:disabled){border-color:var(--ink)} .btn:disabled{opacity:.45;cursor:default}
+.btn.pri{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn.kbtn{background:var(--kbg);color:var(--k);border-color:var(--k)}
+.btn.ghost{background:transparent} .btn.bad{background:var(--bad);color:#fff;border-color:var(--bad)}
+.btn.sm{padding:5px 10px;min-height:32px;font-size:.84rem}
+button:focus-visible,input:focus-visible{outline:3px solid var(--k);outline-offset:2px}
+/* laboratori */
+.labintro{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:20px;align-items:start}
+.ctrls{display:flex;flex-direction:column;gap:12px}
+.ctl{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}.ctl .lab{font-weight:700;font-size:.88rem;min-width:118px}
+.ctl.acts{gap:8px}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--paper)}
+.seg button{border:0;border-right:1px solid var(--line);background:none;color:var(--ink);font:600 .9rem var(--font);padding:7px 12px;cursor:pointer;min-height:38px}
+.seg button:last-child{border-right:0}.seg button[aria-checked="true"]{background:var(--ink);color:var(--paper)}
+.slide{display:flex;align-items:center;gap:8px}.slide input{accent-color:var(--k);width:150px}
+#kout{font-weight:700;color:var(--k);min-width:62px;font-variant-numeric:tabular-nums}
+.narr{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;margin:0;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--k);border-radius:10px;padding:12px 16px;min-height:3.2em;font-size:.98rem}
+.dims{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.dim{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow)}
+.dim header{display:flex;align-items:baseline;gap:8px}.dim header h3{margin:0;flex:1}
+.dim .dn{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:2px 7px;border-radius:5px}
+.d1 .dn{background:var(--d1bg);color:var(--d1)}.d2 .dn{background:var(--d2bg);color:var(--d2)}.d3 .dn{background:var(--d3bg);color:var(--d3)}
+.dim svg{width:100%;height:auto;max-height:300px;display:block}
+.chips{min-height:38px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:baseline;gap:1px;background:var(--kbg);color:var(--k);border:1.5px solid var(--k);border-radius:999px;padding:2px 11px;font-weight:700;font-style:italic;transition:transform .5s ease,opacity .4s}
+.chip.big{font-size:1.15rem;padding:3px 14px}.chip .eq{font-style:normal;color:var(--ink);font-weight:600;margin-left:4px}
+.chip.e1{border-color:var(--d1)}.chip.e2{border-color:var(--d2)}.chip.e3{border-color:var(--d3)}
+.chip.e1 sup{color:var(--d1)}.chip.e2 sup{color:var(--d2)}.chip.e3 sup{color:var(--d3)}
+.chip sup{vertical-align:baseline;position:relative;top:-.5em}.chip.go{opacity:0}.dot{color:var(--k);font-weight:700;transition:opacity .3s}.dot.fade{opacity:0}
+.pop{animation:pop .45s ease}@keyframes pop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+sup.flash{animation:flash 1.1s ease}@keyframes flash{0%,100%{text-shadow:none}40%{text-shadow:0 0 10px currentColor;font-size:.95em}}
+.fx{font-size:.95rem;min-height:2.6em;border-top:1px dashed var(--line);padding-top:8px;overflow-wrap:anywhere}.fx b{color:var(--ok)}
+svg text{font-family:var(--font)} svg .hint{fill:var(--muted);font-size:13px}
+svg .small{fill:var(--muted);font-size:11px} svg .lbl{font-size:14px;font-weight:700}
+svg .c1{fill:var(--d1)} svg .c2{fill:var(--d2)} svg .c3{fill:var(--d3)}
+svg .seg1{stroke:var(--d1);stroke-width:6;stroke-linecap:round} svg .seg1.t0{stroke:var(--d1bg);stroke-width:14} svg .seg1.t1{stroke:var(--d1);stroke-opacity:.25;stroke-width:14}
+svg .tick{stroke:var(--ink);stroke-width:1.5} svg .cap{stroke:var(--d1);stroke-width:2.5}
+svg .ghost{fill:none;stroke:var(--muted);stroke-width:1.5;stroke-dasharray:4 4}
+svg .area{fill:var(--d2bg);stroke:none} svg .edge2{fill:none;stroke:var(--d2);stroke-width:2.5}
+svg .grid{stroke:var(--d2);stroke-opacity:.45;stroke-width:1;fill:none}
+svg .tile2.t0{fill:var(--d2);fill-opacity:.35} svg .tile2.t1{fill:var(--d2);fill-opacity:.2}
+svg .vol.top{fill:var(--d3bg)} svg .vol.rgt{fill:var(--d3);fill-opacity:.35} svg .vol.lft{fill:var(--d3);fill-opacity:.22}
+svg .vol{stroke:var(--d3);stroke-width:2}
+svg .cu{stroke:var(--card);stroke-width:1} svg .cu.top{fill:var(--d3bg)} svg .cu.rgt{fill:var(--d3);fill-opacity:.55} svg .cu.lft{fill:var(--d3);fill-opacity:.35}
+svg .cu.t1.top{fill:var(--d3);fill-opacity:.25}
+svg .floor{fill:var(--d3bg);fill-opacity:.4;stroke:var(--d3);stroke-dasharray:3 3} svg .wire{fill:none;stroke:var(--d3);stroke-dasharray:3 3}
+svg g.kchip rect{fill:var(--kbg);stroke:var(--k);stroke-width:1.5} svg g.kchip text{fill:var(--k);font-weight:700;font-size:13px;font-style:italic}
+.sumtab table{border-collapse:collapse;width:100%;min-width:520px;font-variant-numeric:tabular-nums}
+.tscroll{overflow-x:auto}
+.sumtab th,.sumtab td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left}.sumtab th{font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.sumtab tr.r1 td:first-child{border-left:4px solid var(--d1)}.sumtab tr.r2 td:first-child{border-left:4px solid var(--d2)}.sumtab tr.r3 td:first-child{border-left:4px solid var(--d3)}
+.sumtab tr.r1 sup{color:var(--d1);font-weight:700}.sumtab tr.r2 sup{color:var(--d2);font-weight:700}.sumtab tr.r3 sup{color:var(--d3);font-weight:700}
+.note{margin:.8em 0 0;color:var(--muted)}
+.inv-h h3{margin-top:0}.invctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.invstage{display:flex;flex-direction:column;gap:8px;margin-top:12px}.invstage .il{animation:pop .4s ease;font-size:1.02rem}
+.recorda{border-left:4px solid var(--muted)}.rgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.rgrid p{margin:.3em 0}.big-f{font-size:1.15rem}
+/* pràctica */
+.start{max-width:640px}.fld{display:block;font-weight:700;margin:12px 0 4px}
+#pname{width:100%;max-width:420px;font:1rem var(--font);padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);margin-bottom:12px}
+#pname.err{border-color:var(--bad)}
+.phead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.score{display:flex;align-items:center;gap:10px;font-variant-numeric:tabular-nums}
+.bar{display:inline-block;width:120px;height:8px;border-radius:4px;background:var(--grid);overflow:hidden}.bar i{display:block;height:100%;background:var(--ok)}
+.pgrid{display:grid;grid-template-columns:260px minmax(0,1fr);gap:14px;align-items:start}
+.exlist{display:flex;flex-direction:column;gap:6px}
+.exb{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:9px;padding:8px 10px;cursor:pointer;font:600 .88rem var(--font)}
+.exb .n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--grid);font-size:.8rem}
+.exb .c{color:var(--muted);font-size:.78rem;font-variant-numeric:tabular-nums}
+.exb.on{border-color:var(--ink);box-shadow:inset 3px 0 0 var(--k)} .exb.done .n{background:var(--okbg);color:var(--ok)} .exb.gave .n{background:var(--badbg);color:var(--bad)}
+.exv{min-width:0}.exh h3{font-size:1.2rem}
+.story{font-size:1rem;margin:.4em 0 .8em}
+.fig{margin:6px 0 12px;max-width:340px}.fig svg{width:100%;height:auto;display:block}
+.steps{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;counter-reset:s}
+.step{border:1px solid var(--line);border-radius:10px;padding:12px 14px;counter-increment:s;position:relative}
+.step .q{font-weight:600}.step .q::before{content:"Pas " counter(s) " · ";color:var(--muted);font-weight:700}
+.step.cur{border-color:var(--ink)}
+.inrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.ansin{font:1.05rem var(--font);width:150px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-variant-numeric:tabular-nums}
+.unit{color:var(--muted);min-width:20px}.tip{color:var(--muted);font-size:.82rem;margin-top:4px}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.opt{font:600 .95rem var(--font);border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:8px 12px;border-radius:8px;cursor:pointer;text-align:left}
+.opt:hover{border-color:var(--ink)}
+.fb{margin-top:8px;padding:7px 10px;border-radius:8px}.fb.good{background:var(--okbg)}.fb.bad{background:var(--badbg)}
+.fb .gv{display:block;color:var(--muted);font-size:.85rem}
+.why{margin-top:6px;font-size:.92rem;color:var(--muted)}.why b{color:var(--ink)}
+.exfoot,.exend{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:flex-end;margin-top:14px}
+/* informe */
+.repbar{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;align-items:center}
+.big{font-size:2.4rem;font-weight:700;font-variant-numeric:tabular-nums}.big small{font-size:1rem;color:var(--muted)}
+.dlbtns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.msg{width:100%;color:var(--muted);font-size:.88rem}
+#repview{overflow-x:auto}
+.rep h1{font-size:1.3rem}.rep table{border-collapse:collapse;margin:8px 0 16px}.rep td,.rep th{border:1px solid var(--line);padding:5px 9px;text-align:left}
+.rep .rex{margin-top:14px}.rep .rex ol{padding-left:20px}.rep li{margin-bottom:8px}.rep .ra{font-size:.9rem}.rep .rw{font-size:.85rem;color:var(--muted)}
+.rep .tag{font-size:.78rem;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--grid)}.rep .tag.g{background:var(--okbg);color:var(--ok)}.rep .tag.b{background:var(--badbg);color:var(--bad)}
+.rep .nota b{font-size:1.2em}
+.pdfbox{position:fixed;left:-10000px;top:0;width:760px;background:#fff;color:#111;padding:10px;font:14px/1.45 Arial,sans-serif;--line:#ccc;--grid:#eee;--okbg:#e2f3e8;--ok:#1b7f4b;--badbg:#f8dedc;--bad:#b3261e;--muted:#555;--data:#1f4e9e;--k:#d9541e}
+#print-report{display:none}
+@media print{
+  :root{color-scheme:light} body{background:#fff!important;color:#111} .wrap{display:none!important}
+  #print-report{display:block;--line:#bbb;--grid:#eee;--okbg:#e2f3e8;--ok:#1b7f4b;--badbg:#f8dedc;--bad:#b3261e;--muted:#555;--data:#1f4e9e;--k:#d9541e;color:#111}
+  .rex{break-inside:avoid-page}
+}
+@media (max-width:900px){.labintro{grid-template-columns:1fr}.dims{grid-template-columns:1fr}.dim svg{max-height:260px}.rgrid{grid-template-columns:1fr}.pgrid{grid-template-columns:1fr}.exlist{flex-direction:row;overflow-x:auto;padding-bottom:4px}.exb{min-width:190px}}
+@media (max-width:480px){header.top h1{font-size:1.35rem}.ctl .lab{min-width:0;width:100%}.tab{padding:8px 10px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+</style>
+<div class="wrap">
+  <header class="top"><div><h1>Canvi d’escala</h1><p class="sub">Matemàtiques B · 4t ESO · U1 Nombres</p></div>
+    <nav class="tabs" role="tablist"><button class="tab" role="tab" data-t="laboratori">Laboratori</button><button class="tab" role="tab" data-t="practica">Pràctica</button><button class="tab" role="tab" data-t="informe">Informe</button></nav></header>
+  <main>
+    <div class="pane" id="laboratori"><section class="labintro card">
+  <div class="li-text">
+    <span class="eyebrow">Laboratori</span>
+    <h2>Una longitud, una superfície i un volum</h2>
+    <p>Construeix les tres figures a partir del mateix segment i després amplia-les amb el factor d’escala <b class="kk">k</b>. Mira quantes vegades apareix <b class="kk">k</b> a cada figura: tantes com dimensions té.</p>
+  </div>
+  <div class="ctrls">
+    <div class="ctl"><span class="lab">Longitud inicial <i>L</i></span>
+      <div class="seg" id="Lsel" role="radiogroup" aria-label="Longitud inicial">
+        <button role="radio" data-v="1">1 cm</button><button role="radio" data-v="2" aria-checked="true">2 cm</button><button role="radio" data-v="3">3 cm</button><button role="radio" data-v="5">5 cm</button></div></div>
+    <div class="ctl"><span class="lab">Factor d’escala <i class="kk">k</i></span>
+      <div class="seg" id="ksel" role="radiogroup" aria-label="Factor d'escala">
+        <button role="radio" data-v="0.5"><span class="fr"><span>1</span><span>2</span></span></button><button role="radio" data-v="2">2</button><button role="radio" data-v="3" aria-checked="true">3</button></div>
+      <div class="slide"><input type="range" id="kslider" min="0.5" max="3" step="0.1" value="3" aria-label="Factor d'escala lliure"><output id="kout">k = 3</output></div></div>
+    <div class="ctl acts">
+      <button class="btn pri" id="bBuild">1 · Construeix les 3 dimensions</button>
+      <button class="btn kbtn" id="bAll">2 · Amplia-ho tot ×<i>k</i></button>
+      <button class="btn ghost sm" id="bReset">Torna a l’inici</button>
+    </div>
+  </div>
+</section>
+
+<p class="narr" id="narr" role="status" aria-live="polite">Prem «Construeix» per passar d’una longitud a una superfície i a un volum.</p>
+
+<div class="dims">
+  <article class="dim d1" id="P1">
+    <header><span class="dn">Dimensió 1</span><h3>Longitud</h3><button class="btn kbtn sm" data-p="1">×<i>k</i></button></header>
+    <svg viewBox="0 0 280 300" id="S1" role="img" aria-label="Segment"></svg>
+    <div class="chips" id="C1" aria-hidden="true"></div>
+    <div class="fx" id="F1"></div>
+  </article>
+  <article class="dim d2" id="P2">
+    <header><span class="dn">Dimensió 2</span><h3>Superfície</h3><button class="btn kbtn sm" data-p="2">×<i>k</i></button></header>
+    <svg viewBox="0 0 280 300" id="S2" role="img" aria-label="Quadrat"></svg>
+    <div class="chips" id="C2" aria-hidden="true"></div>
+    <div class="fx" id="F2"></div>
+  </article>
+  <article class="dim d3" id="P3">
+    <header><span class="dn">Dimensió 3</span><h3>Volum</h3><button class="btn kbtn sm" data-p="3">×<i>k</i></button></header>
+    <svg viewBox="0 0 280 300" id="S3" role="img" aria-label="Cub"></svg>
+    <div class="chips" id="C3" aria-hidden="true"></div>
+    <div class="fx" id="F3"></div>
+  </article>
+</div>
+
+<section class="card sumtab">
+  <h3>El factor també canvia de dimensió</h3>
+  <div class="tscroll"><table id="ktab">
+    <thead><tr><th>Magnitud</th><th>Dimensions</th><th>Inicial</th><th>Es multiplica per</th><th>Nova</th></tr></thead>
+    <tbody></tbody></table></div>
+  <p class="note">L’exponent de <b class="kk">k</b> és el mateix que el de la unitat: cm<sup>1</sup> → <span class="kk">k</span><sup class="e1">1</sup>, cm<sup>2</sup> → <span class="kk">k</span><sup class="e2">2</sup>, cm<sup>3</sup> → <span class="kk">k</span><sup class="e3">3</sup>. És la potència d’un producte: (<span class="kk">k</span> · L)<sup>2</sup> = <span class="kk">k</span><sup>2</sup> · L<sup>2</sup>.</p>
+</section>
+
+<section class="card inv">
+  <div class="inv-h"><span class="eyebrow">Camí invers</span><h3>Sé quant ha canviat la superfície o el volum. Quant val <i class="kk">k</i>?</h3></div>
+  <div class="invctl">
+    <div class="seg" id="isel" role="radiogroup" aria-label="Canvi conegut">
+      <button role="radio" data-m="2" data-f="9" aria-checked="true">Superfície ×9</button>
+      <button role="radio" data-m="2" data-f="4">Superfície ×4</button>
+      <button role="radio" data-m="2" data-f="0.25">Superfície ×<span class="fr"><span>1</span><span>4</span></span></button>
+      <button role="radio" data-m="3" data-f="27">Volum ×27</button>
+      <button role="radio" data-m="3" data-f="8">Volum ×8</button>
+      <button role="radio" data-m="3" data-f="0.125">Volum ×<span class="fr"><span>1</span><span>8</span></span></button>
+    </div>
+    <button class="btn pri" id="bInv">Troba <i>k</i></button>
+  </div>
+  <div class="invstage" id="invS" aria-live="polite"></div>
+</section>
+
+<section class="card recorda">
+  <h3>Recorda (fitxa Canvi d’escala)</h3>
+  <div class="rgrid">
+    <div><p>El factor d’escala és</p><p class="big-f"><i class="kk">k</i> = <span class="fr"><span>longitud nova</span><span>longitud inicial</span></span></p><p>Si <i>k</i> &gt; 1 és una ampliació; si <i>k</i> &lt; 1, una reducció.</p></div>
+    <div><p>Maqueta a escala 1:50: de la maqueta a la realitat, <i class="kk">k</i> = 50. Una paret de 4 cm a la maqueta fa 4 · 50 = 200 cm = 2 m. Una planta de 12 cm<sup>2</sup> fa 12 · 50<sup>2</sup> = 30 000 cm<sup>2</sup> = 3 m<sup>2</sup>.</p></div>
+    <div><p>Camí invers: si l’àrea es multiplica per <i>A</i>, <i class="kk">k</i> = √<span class="ov"><i>A</i></span>. Si el volum es multiplica per <i>V</i>, <i class="kk">k</i> = <sup class="idx">3</sup>√<span class="ov"><i>V</i></span>.</p></div>
+  </div>
+</section>
+</div>
+    <div class="pane" id="practica" hidden><div id="practice"></div></div>
+    <div class="pane" id="informe" hidden></div>
+  </main>
+</div>
+<div id="print-report"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+const REPORT_CSS = `body{font:14px/1.45 Arial,sans-serif;color:#111;max-width:820px;margin:24px auto;padding:0 16px}.dat{color:#1f4e9e;font-weight:700}.res{color:#1b7f4b;font-weight:700}sup{font-size:.68em;vertical-align:.55em;line-height:0}.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.15;font-size:.92em}.fr>span:first-child{border-bottom:1.5px solid currentColor}.rad .rc{border-top:1.5px solid currentColor}.idx{font-size:.62em;vertical-align:.9em;margin-right:-.35em}.kk{color:#d9541e;font-style:italic;font-weight:700}table{border-collapse:collapse}td,th{border:1px solid #bbb;padding:5px 9px;text-align:left}.tag{font-size:.78rem;font-weight:700;padding:1px 6px;border-radius:4px;background:#eee}.tag.g{background:#e2f3e8;color:#1b7f4b}.tag.b{background:#f8dedc;color:#b3261e}.rw,.meta{color:#555}.muted{color:#555}`;
+/* ===== Motor comú de pràctica: versions A/B/C, passos, 2 intents, «Em rendeixo», nota i informe ===== */
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const sleep = ms => new Promise(r => setTimeout(r, REDUCED ? Math.min(ms, 30) : ms));
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const pick = (rng, arr) => arr[Math.floor(rng() * arr.length)];
+// format numbers in Catalan: decimal comma, thin space thousands
+function fmt(x, d) {
+  if (d === undefined) { d = Math.abs(x - Math.round(x)) < 1e-9 ? 0 : (Math.abs(x * 10 - Math.round(x * 10)) < 1e-9 ? 1 : 2); }
+  let s = (Math.round(x * 10 ** d) / 10 ** d).toFixed(d);
+  let [i, f] = s.split('.'); const neg = i.startsWith('-'); if (neg) i = i.slice(1);
+  if (i.length > 4) i = i.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return (neg ? '−' : '') + i + (f ? ',' + f : '');
+}
+const B = x => `<span class="dat">${x}</span>`, G = x => `<span class="res">${x}</span>`;
+const sup = (b, e) => `${b}<sup>${e}</sup>`;
+const frac = (n, d) => `<span class="fr"><span>${n}</span><span>${d}</span></span>`;
+const rt = (x, n) => `<span class="rad">${n ? `<sup class="idx">${n}</sup>` : ''}√<span class="rc">${x}</span></span>`;
+function parseNum(s) {
+  if (s == null) return NaN; s = String(s).trim().replace(/\s| /g, '').replace(/−/g, '-');
+  if (/^-?\d+\/\d+$/.test(s)) { const [a, b] = s.split('/'); return +a / +b; }
+  if (/,/.test(s)) s = s.replace(/\./g, '').replace(',', '.');
+  return /^-?\d*\.?\d+$/.test(s) ? +s : NaN;
+}
+
+const APP = { key: '', title: '', bank: [], ver: null, name: '', st: null, dl: null, mode: 'file' };
+const VERS = { A: 101, B: 202, C: 303 };
+
+function genVersion(v) {
+  const rng = mulberry32(VERS[v] + APP.salt);
+  return APP.bank.map((g, i) => { const e = g(rng, v); e.i = i; return e; });
+}
+function save() { try { localStorage.setItem(APP.key, JSON.stringify({ ver: APP.ver, name: APP.name, st: APP.st })); } catch (e) { } }
+function load() { try { return JSON.parse(localStorage.getItem(APP.key) || 'null'); } catch (e) { return null; } }
+
+function startPractice(v, name) {
+  APP.ver = v; APP.name = name; APP.ex = genVersion(v);
+  if (!APP.st || APP.st.ver !== v) APP.st = { ver: v, ex: APP.ex.map(e => ({ cur: 0, rendit: false, steps: e.steps.map(() => ({ tries: 0, status: '', given: [] })) })) };
+  save(); renderPractice();
+}
+
+function points(s) { return s.status === 'ok1' ? 1 : s.status === 'ok2' ? 0.5 : 0; }
+function totals() {
+  let p = 0, n = 0, done = 0;
+  APP.ex.forEach((e, i) => e.steps.forEach((s, j) => { const S = APP.st.ex[i].steps[j]; n++; p += points(S); if (S.status) done++; }));
+  return { p, n, done, nota: n ? p / n * 10 : 0 };
+}
+
+function renderPractice() {
+  const host = $('#practice');
+  if (!APP.ver) {
+    host.innerHTML = `<div class="start card">
+      <h2>Pràctica</h2>
+      <p>Hi ha ${APP.bank.length} exercicis de la fitxa, resolts pas a pas. Cada pas té 2 intents: <b>1 punt</b> si l’encertes al primer, <b>0,5</b> al segon. Després del segon error veuràs la solució. Si un exercici se t’encalla, pots prémer <b>«Em rendeixo»</b>: veuràs la resolució, però aquells passos compten 0.</p>
+      <p>En començar se’t sortejarà una versió (A, B o C) amb números diferents dels dels companys.</p>
+      <label class="fld" for="pname">Nom i cognoms</label>
+      <input id="pname" type="text" autocomplete="name" placeholder="Escriu el teu nom">
+      <button class="btn pri" id="pgo">Comença la pràctica</button></div>`;
+    $('#pgo').onclick = () => { const nm = $('#pname').value.trim(); if (!nm) { $('#pname').focus(); $('#pname').classList.add('err'); return; } startPractice('ABC'[Math.floor(Math.random() * 3)], nm); };
+    return;
+  }
+  const T = totals();
+  host.innerHTML = `<div class="phead"><div><b>${APP.name}</b> · Versió <b>${APP.ver}</b></div>
+     <div class="score"><span>${fmt(T.p)} / ${T.n} punts</span><span class="bar"><i style="width:${T.n ? T.done / T.n * 100 : 0}%"></i></span><button class="btn sm" id="toRep">Informe i nota</button></div></div>
+    <div class="pgrid"><nav class="exlist" aria-label="Exercicis">${APP.ex.map((e, i) => {
+      const S = APP.st.ex[i]; const d = S.steps.filter(s => s.status).length; const ok = S.steps.every(s => s.status);
+      return `<button class="exb ${i === APP.cur ? 'on' : ''} ${ok ? (S.rendit ? 'gave' : 'done') : ''}" data-i="${i}"><span class="n">${i + 1}</span><span class="t">${e.title}</span><span class="c">${d}/${e.steps.length}</span></button>`;
+    }).join('')}</nav><section id="exv" class="exv card"></section></div>`;
+  $$('.exb').forEach(b => b.onclick = () => { APP.cur = +b.dataset.i; renderPractice(); });
+  $('#toRep').onclick = () => showTab('informe');
+  renderEx();
+}
+APP.cur = 0;
+
+function stepAnswerHTML(e, s) {
+  if (s.kind === 'choice') return s.opts[s.ans];
+  return (s.show || fmt(s.ans)) + (s.unit ? ' ' + s.unit : '');
+}
+
+function renderEx() {
+  const i = APP.cur, e = APP.ex[i], S = APP.st.ex[i], v = $('#exv');
+  const allDone = S.steps.every(s => s.status);
+  let h = `<header class="exh"><span class="eyebrow">Exercici ${i + 1} de ${APP.ex.length}</span><h3>${e.title}</h3></header>
+    <div class="story">${e.story}</div>${e.fig ? `<div class="fig">${e.fig}</div>` : ''}<ol class="steps">`;
+  e.steps.forEach((s, j) => {
+    const R = S.steps[j];
+    if (j > S.cur && !R.status) return;
+    h += `<li class="step ${R.status ? 'st-' + R.status : 'cur'}"><div class="q">${s.q}</div>`;
+    if (R.status) {
+      const lab = { ok1: '✓ Correcte', ok2: '✓ Correcte al segon intent', fail: '✗ Solució', rendit: 'Resolució' }[R.status];
+      h += `<div class="fb ${R.status.startsWith('ok') ? 'good' : 'bad'}"><b>${lab}:</b> ${G(stepAnswerHTML(e, s))}${R.given.length && R.status !== 'ok1' ? `<span class="gv">Has respost: ${R.given.map(x => esc(x)).join(' · ')}</span>` : ''}</div>`;
+      if (s.why) h += `<div class="why"><b>Per què?</b> ${s.why}</div>`;
+    } else {
+      if (s.kind === 'choice') h += `<div class="opts" role="group">${s.opts.map((o, k) => `<button class="opt" data-k="${k}">${o}</button>`).join('')}</div>`;
+      else h += `<div class="inrow"><input id="in-${i}-${j}" class="ansin" inputmode="decimal" autocomplete="off" aria-label="Resposta"><span class="unit">${s.unit || ''}</span><button class="btn pri" id="chk">Comprova</button></div>${s.tol ? `<div class="tip">Arrodoneix a ${s.tol >= 0.1 ? '1 decimal' : '2 decimals'}. Pots escriure la coma.</div>` : ''}`;
+      if (R.tries === 1) h += `<div class="fb bad">✗ No és correcte. ${s.hint ? `<b>Pista:</b> ${s.hint}` : 'Torna-ho a provar.'}</div>`;
+    }
+    h += `</li>`;
+  });
+  h += `</ol>`;
+  h += allDone ? `<div class="exend">${S.rendit ? 'Exercici resolt amb «Em rendeixo».' : 'Exercici acabat.'} ${i < APP.ex.length - 1 ? '<button class="btn pri" id="nextEx">Exercici següent →</button>' : '<button class="btn pri" id="nextEx">Veure l’informe →</button>'}</div>`
+    : `<div class="exfoot"><button class="btn ghost" id="giveup">Em rendeixo</button></div>`;
+  v.innerHTML = h;
+  const j = S.cur, s = e.steps[j];
+  if (!allDone) {
+    if (s.kind === 'choice') $$('.opt', v).forEach(b => b.onclick = () => answer(i, j, +b.dataset.k, s.opts[+b.dataset.k]));
+    else { const inp = $(`#in-${i}-${j}`); inp.focus({ preventScroll: true }); const go = () => { const raw = inp.value; if (!raw.trim()) return; answer(i, j, parseNum(raw), raw); }; $('#chk').onclick = go; inp.onkeydown = ev => { if (ev.key === 'Enter') go(); }; }
+    $('#giveup').onclick = () => confirmGiveUp(i);
+  } else $('#nextEx').onclick = () => { if (i < APP.ex.length - 1) { APP.cur = i + 1; renderPractice(); } else showTab('informe'); };
+  if (window.MathFix) MathFix(v);
+}
+function esc(x) { return String(x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+function isRight(s, val) {
+  if (s.kind === 'choice') return val === s.ans;
+  if (Number.isNaN(val)) return false;
+  const tol = s.tol ? s.tol * 0.51 + 1e-9 : 1e-6 * Math.max(1, Math.abs(s.ans));
+  return Math.abs(val - s.ans) <= tol || (s.alt || []).some(a => Math.abs(val - a) <= tol);
+}
+function answer(i, j, val, raw) {
+  const S = APP.st.ex[i], R = S.steps[j], s = APP.ex[i].steps[j];
+  R.given.push(raw); R.tries++;
+  if (isRight(s, val)) R.status = R.tries === 1 ? 'ok1' : 'ok2';
+  else if (R.tries >= 2) R.status = 'fail';
+  if (R.status) S.cur = j + 1;
+  save(); renderPractice();
+}
+function confirmGiveUp(i) {
+  const f = $('.exfoot');
+  f.innerHTML = `<span>Segur? Els passos que queden comptaran 0.</span><button class="btn bad" id="gyes">Sí, em rendeixo</button><button class="btn ghost" id="gno">Continuo</button>`;
+  $('#gno').onclick = renderEx;
+  $('#gyes').onclick = () => { const S = APP.st.ex[i]; S.rendit = true; S.steps.forEach(R => { if (!R.status) R.status = 'rendit'; }); S.cur = S.steps.length; save(); renderPractice(); };
+}
+
+/* ---------- informe ---------- */
+function reportHTML() {
+  const T = totals(), d = new Date();
+  let h = `<div class="rep"><h1>${APP.title} · Informe</h1>
+   <p class="meta">${esc(APP.name)} · Versió ${APP.ver} · ${d.toLocaleDateString('ca-ES')} ${d.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' })}</p>
+   <p class="nota">Nota orientativa: <b>${fmt(T.nota, 1)}</b> / 10 <span>(${fmt(T.p)} de ${T.n} punts · ${T.done} passos fets)</span></p><table><thead><tr><th>Exercici</th><th>Punts</th><th>Estat</th></tr></thead><tbody>`;
+  APP.ex.forEach((e, i) => { const S = APP.st.ex[i]; const p = S.steps.reduce((a, R) => a + points(R), 0); const st = S.rendit ? 'Rendició' : S.steps.every(R => R.status) ? 'Acabat' : S.steps.some(R => R.status) ? 'A mitges' : 'No començat';
+    h += `<tr><td>${i + 1}. ${e.title}</td><td>${fmt(p)} / ${e.steps.length}</td><td>${st}</td></tr>`; });
+  h += `</tbody></table>`;
+  APP.ex.forEach((e, i) => {
+    const S = APP.st.ex[i];
+    h += `<section class="rex"><h2>${i + 1}. ${e.title}</h2><div class="story">${e.story}</div><ol>`;
+    e.steps.forEach((s, j) => { const R = S.steps[j];
+      const lab = { ok1: 'Correcte (1)', ok2: 'Correcte al 2n intent (0,5)', fail: 'Error (0)', rendit: 'Rendició (0)', '': 'Sense fer' }[R.status];
+      h += `<li><div>${s.q}</div><div class="ra"><span class="tag ${R.status.startsWith('ok') ? 'g' : R.status ? 'b' : ''}">${lab}</span> ${R.given.length ? 'Respostes: ' + R.given.map(esc).join(' · ') + ' · ' : ''}Solució: ${G(stepAnswerHTML(e, s))}</div>${s.why ? `<div class="rw">${s.why}</div>` : ''}</li>`; });
+    h += `</ol></section>`;
+  });
+  return h + `</div>`;
+}
+function renderReport() {
+  const host = $('#informe');
+  if (!APP.ver) { host.innerHTML = `<div class="card"><p>Encara no has començat la pràctica. Quan la facis, aquí tindràs la nota i l’informe per descarregar.</p></div>`; return; }
+  const T = totals();
+  host.innerHTML = `<div class="card repbar"><div><span class="eyebrow">Nota orientativa</span><div class="big">${fmt(T.nota, 1)}<small> / 10</small></div><div>${fmt(T.p)} de ${T.n} punts · ${T.done} de ${T.n} passos fets</div></div>
+    <div class="dlbtns" id="dlbtns"></div></div><div class="card" id="repview">${reportHTML()}</div>
+    <div class="card"><button class="btn ghost" id="reset">Esborra la pràctica i torna a començar</button></div>`;
+  const b = $('#dlbtns');
+  if (APP.mode === 'artifact') {
+    b.innerHTML = `<button class="btn pri" id="dpdf">Descarrega l’informe en PDF</button><button class="btn" id="dhtml">Descarrega’l en HTML</button><div class="msg" id="dmsg" role="status"></div>`;
+    $('#dpdf').onclick = savePDF; $('#dhtml').onclick = saveHTML;
+  } else if (APP.mode === 'file') {
+    b.innerHTML = `<button class="btn pri" id="dprint">Desa en PDF (imprimir)</button><button class="btn" id="dhtml">Descarrega’l en HTML</button><div class="msg" id="dmsg" role="status"></div>`;
+    $('#dprint').onclick = () => { $('#print-report').innerHTML = reportHTML(); window.print(); };
+    $('#dhtml').onclick = saveHTML;
+  } else b.innerHTML = `<div class="msg">La descàrrega no està disponible en aquesta vista.</div>`;
+  $('#reset').onclick = () => { const r = $('#reset'); if (r.dataset.c) { APP.ver = null; APP.st = null; save(); try { localStorage.removeItem(APP.key) } catch (e) { } showTab('practica'); } else { r.dataset.c = 1; r.textContent = 'Segur? Prem una altra vegada per esborrar-ho tot'; } };
+}
+function fileName(ext) { return `${APP.file}_${(APP.name || 'alumne').replace(/[^\p{L}\p{N}]+/gu, '_')}_${APP.ver}.${ext}`; }
+function standaloneReport() {
+  return `<!doctype html><html lang="ca"><head><meta charset="utf-8"><title>${APP.title} · Informe</title><style>${REPORT_CSS}</style></head><body>${reportHTML()}</body></html>`;
+}
+async function saveHTML() {
+  const data = standaloneReport();
+  if (APP.mode === 'artifact') { try { await APP.dl.save({ filename: fileName('html'), data }); msg('Informe desat.'); } catch (e) { msg(e && e.code === 'declined' ? 'Descàrrega cancel·lada.' : 'No s’ha pogut desar.'); } return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: 'text/html' })); a.download = fileName('html'); a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+function msg(t) { const m = $('#dmsg'); if (m) m.textContent = t; }
+async function savePDF() {
+  if (!window.jspdf || !window.html2canvas) { msg('Falta carregar el generador de PDF. Prova el format HTML.'); return; }
+  msg('Preparant el PDF…');
+  const box = document.createElement('div'); box.className = 'pdfbox'; box.innerHTML = reportHTML(); document.body.appendChild(box);
+  try {
+    const { jsPDF } = window.jspdf; const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
+    const W = 190, PH = 277; let y = 10, first = true;
+    const blocks = [box.querySelector('h1').parentElement.querySelector('h1'), ...box.querySelectorAll('.rep > p, .rep > table, .rex')];
+    for (const el of blocks) {
+      const c = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff' });
+      let hmm = c.height * W / c.width;
+      if (hmm > PH) { // talla blocs molt llargs
+        const sliceH = Math.floor(c.width * PH / W); let off = 0;
+        while (off < c.height) { const cv = document.createElement('canvas'); cv.width = c.width; cv.height = Math.min(sliceH, c.height - off); cv.getContext('2d').drawImage(c, 0, -off); if (!first) pdf.addPage(); pdf.addImage(cv.toDataURL('image/jpeg', 0.92), 'JPEG', 10, 10, W, cv.height * W / c.width); first = false; off += sliceH; y = 10 + cv.height * W / c.width + 4; }
+        continue;
+      }
+      if (y + hmm > 287) { pdf.addPage(); y = 10; }
+      pdf.addImage(c.toDataURL('image/jpeg', 0.92), 'JPEG', 10, y, W, hmm); y += hmm + 4; first = false;
+    }
+    const out = pdf.output('blob');
+    await APP.dl.save({ filename: fileName('pdf'), data: out }); msg('Informe desat.');
+  } catch (e) { msg(e && e.code === 'declined' ? 'Descàrrega cancel·lada.' : 'No s’ha pogut generar el PDF. Prova el format HTML.'); }
+  finally { box.remove(); }
+}
+
+/* ---------- pestanyes i arrencada ---------- */
+function showTab(t) {
+  $$('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.t === t));
+  $$('.pane').forEach(p => p.hidden = p.id !== t);
+  if (t === 'practica') renderPractice(); if (t === 'informe') renderReport();
+  try { localStorage.setItem(APP.key + ':tab', t); } catch (e) { }
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+async function boot() {
+  const saved = load();
+  if (saved && saved.ver) { APP.ver = saved.ver; APP.name = saved.name; APP.st = saved.st; APP.ex = genVersion(APP.ver);
+    if (!APP.st || APP.st.ex.length !== APP.ex.length) { APP.st = null; startPractice(APP.ver, APP.name); } }
+  $$('.tab').forEach(b => b.onclick = () => showTab(b.dataset.t));
+  let t = 'laboratori'; try { t = localStorage.getItem(APP.key + ':tab') || t; } catch (e) { }
+  showTab(t);
+  if (window.claude && window.claude.use) {
+    APP.mode = 'pending';
+    try { const dl = await window.claude.use('downloads'); if (dl) { APP.dl = dl; APP.mode = 'artifact'; } else APP.mode = 'none'; } catch (e) { APP.mode = 'none'; }
+    if (!$('#informe').hidden) renderReport();
+  }
+  window.__app = APP; // proves
+}
+
+/* ===== Banc d'exercicis · Canvi d'escala (fitxa) ===== */
+const BYV = (v, a) => a['ABC'.indexOf(v)];
+const kopts = (k, n) => {
+  const o = [[`<i>k</i> = ${fmt(k)}`, k], [`2<i>k</i> = ${fmt(2 * k)}`, 2 * k], [`<i>k</i><sup>2</sup> = ${fmt(k * k)}`, k * k], [`<i>k</i><sup>3</sup> = ${fmt(k ** 3)}`, k ** 3]];
+  return { opts: o.map(x => x[0]), ans: n === 2 ? 2 : 3 };
+};
+APP.bank = [
+  (rng, v) => { const a = BYV(v, [2, 3, 4]), k = BYV(v, [3, 2, 3]);
+    const fa = kopts(k, 2), fv = kopts(k, 3);
+    return { title: 'La taula del cub', story: `Tenim un cub de ${B(a + ' cm')} d’aresta: cada cara fa ${B(fmt(a * a) + ' cm<sup>2</sup>')} i el volum és ${B(fmt(a ** 3) + ' cm<sup>3</sup>')}. L’ampliem amb factor d’escala <span class="kk">k</span> = ${B(k)}.`,
+      steps: [
+        { q: 'Quant fa l’aresta del cub nou?', ans: a * k, unit: 'cm', why: `Una longitud es multiplica per <i>k</i><sup>1</sup>: ${a} · ${k} = ${a * k} cm.`, hint: 'L’aresta és una longitud: es multiplica per <i>k</i>.' },
+        { q: 'Per quin nombre es multiplica l’àrea d’una cara?', kind: 'choice', ...fa, why: `Una cara té dues dimensions: s’amplien l’amplada i l’altura, <i>k</i> · <i>k</i> = <i>k</i><sup>2</sup> = ${k * k}.` },
+        { q: 'Quant fa l’àrea d’una cara del cub nou?', ans: a * a * k * k, unit: 'cm²', why: `${fmt(a * a)} · ${k}<sup>2</sup> = ${fmt(a * a)} · ${k * k} = ${fmt(a * a * k * k)} cm<sup>2</sup>. Comprovació: (${a * k})<sup>2</sup> = ${fmt((a * k) ** 2)}.`, hint: `Multiplica l’àrea inicial per <i>k</i><sup>2</sup> = ${k * k}.` },
+        { q: 'Per quin nombre es multiplica el volum?', kind: 'choice', ...fv, why: `El volum té tres dimensions: <i>k</i> · <i>k</i> · <i>k</i> = <i>k</i><sup>3</sup> = ${k ** 3}.` },
+        { q: 'Quant fa el volum del cub nou?', ans: a ** 3 * k ** 3, unit: 'cm³', why: `${fmt(a ** 3)} · ${k}<sup>3</sup> = ${fmt(a ** 3)} · ${k ** 3} = ${fmt(a ** 3 * k ** 3)} cm<sup>3</sup>. Comprovació: (${a * k})<sup>3</sup> = ${fmt((a * k) ** 3)}.`, hint: `Multiplica el volum inicial per <i>k</i><sup>3</sup> = ${k ** 3}.` }
+      ] }; },
+  (rng, v) => { const s = BYV(v, [6, 5, 4]), k = BYV(v, [3, 4, 5]), s2 = s * k;
+    return { title: 'Un quadrat ampliat', story: `Un quadrat de ${B(s + ' cm')} de costat s’amplia fins a fer ${B(s2 + ' cm')} de costat.`,
+      steps: [
+        { q: `Quin és el factor d’escala <i>k</i>? <span class="muted">(<i>k</i> = ${frac('longitud nova', 'longitud inicial')})</span>`, ans: k, why: `<i>k</i> = ${frac(s2, s)} = ${k}.`, hint: 'Divideix la longitud nova entre la inicial.' },
+        { q: 'Quina és l’àrea del quadrat inicial?', ans: s * s, unit: 'cm²', why: `${s}<sup>2</sup> = ${s * s} cm<sup>2</sup>.` },
+        { q: 'Quina és l’àrea del quadrat nou?', ans: s2 * s2, unit: 'cm²', why: `${s2}<sup>2</sup> = ${fmt(s2 * s2)} cm<sup>2</sup>, o bé ${s * s} · ${k}<sup>2</sup> = ${fmt(s2 * s2)} cm<sup>2</sup>.` },
+        { q: 'Quantes vegades més gran és l’àrea nova?', ans: k * k, why: `${frac(fmt(s2 * s2), s * s)} = ${k * k} = ${k}<sup>2</sup>: el costat es fa ${k} vegades més gran, però l’àrea ${k}<sup>2</sup> vegades.`, hint: 'Divideix les dues àrees, o pensa en <i>k</i><sup>2</sup>.' }
+      ] }; },
+  (rng, v) => { const a = BYV(v, [6, 8, 12]), d = BYV(v, [2, 2, 3]), k = 1 / d;
+    return { title: 'Una reducció', story: `Un cub de ${B(a + ' cm')} d’aresta es redueix amb factor d’escala <span class="kk">k</span> = ${B(frac(1, d))}.`,
+      steps: [
+        { q: 'Quant fa l’aresta del cub reduït?', ans: a / d, unit: 'cm', why: `${a} · ${frac(1, d)} = ${fmt(a / d)} cm.` },
+        { q: 'Quin és el volum del cub inicial?', ans: a ** 3, unit: 'cm³', why: `${a}<sup>3</sup> = ${fmt(a ** 3)} cm<sup>3</sup>.` },
+        { q: 'Quin és el volum del cub reduït?', ans: (a / d) ** 3, unit: 'cm³', why: `${fmt(a / d)}<sup>3</sup> = ${fmt((a / d) ** 3)} cm<sup>3</sup>, o bé ${fmt(a ** 3)} · (${frac(1, d)})<sup>3</sup> = ${frac(fmt(a ** 3), d ** 3)} = ${fmt((a / d) ** 3)} cm<sup>3</sup>.` },
+        { q: 'Quina fracció del volum inicial és el volum nou? <span class="muted">(pots escriure-la com 1/8)</span>', ans: 1 / d ** 3, show: frac(1, d ** 3), why: `(${frac(1, d)})<sup>3</sup> = ${frac(1, d ** 3)}: hi caben ${d ** 3} cubs petits dins del gran.`, hint: '<i>k</i><sup>3</sup> amb <i>k</i> fraccionari: eleva el numerador i el denominador.' }
+      ] }; },
+  (rng, v) => { const s = BYV(v, [4, 3, 5]), A = BYV(v, [9, 16, 25]), k = Math.sqrt(A);
+    return { title: 'Camí invers: la superfície', story: `Un quadrat de ${B(s + ' cm')} de costat s’amplia i la seva àrea queda multiplicada per ${B(A)}.`,
+      steps: [
+        { q: 'Per quin nombre s’ha multiplicat la longitud del costat? <span class="muted">(<i>k</i>)</span>', ans: k, why: `L’àrea es multiplica per <i>k</i><sup>2</sup> = ${A}. Desfem el quadrat amb l’arrel: <i>k</i> = ${rt(A)} = ${k}.`, hint: `Busca un nombre que elevat al quadrat doni ${A}.` },
+        { q: 'Quant fa el costat del quadrat nou?', ans: s * k, unit: 'cm', why: `${s} · ${k} = ${s * k} cm.` },
+        { q: 'Quant fa l’àrea del quadrat nou?', ans: s * s * A, unit: 'cm²', why: `${s * s} · ${A} = ${s * s * A} cm<sup>2</sup> = (${s * k})<sup>2</sup>.` }
+      ] }; },
+  (rng, v) => { const a = BYV(v, [2, 3, 2]), V = BYV(v, [8, 27, 64]), k = Math.round(Math.cbrt(V)), W = BYV(v, [5, 3, 10]);
+    return { title: 'Camí invers: el volum', story: `Un cub de ${B(a + ' cm')} d’aresta s’amplia i el seu volum queda multiplicat per ${B(V)}.`,
+      steps: [
+        { q: 'Quin és el factor d’escala <i>k</i> de les longituds?', ans: k, why: `<i>k</i><sup>3</sup> = ${V}, per tant <i>k</i> = ${rt(V, 3)} = ${k}: l’arrel cúbica desfà el cub.`, hint: `Busca un nombre que elevat al cub doni ${V}.` },
+        { q: 'Quant fa l’aresta del cub nou?', ans: a * k, unit: 'cm', why: `${a} · ${k} = ${a * k} cm.` },
+        { q: `Un altre cub té el volum multiplicat per ${B(W)}. Quant val <i>k</i>, aproximadament?`, ans: Math.cbrt(W), tol: 0.01, show: fmt(Math.cbrt(W), 2), why: `<i>k</i> = ${rt(W, 3)} ≈ ${fmt(Math.cbrt(W), 2)} (no és exacte: ho fem amb la calculadora).`, hint: `Calcula l’arrel cúbica de ${W} amb la calculadora.` }
+      ] }; },
+  (rng, v) => { const [l, w, h] = BYV(v, [[40, 30, 36], [30, 24, 20], [50, 20, 30]]), E = 50;
+    return { title: 'La maqueta 1:50', story: `Una maqueta a escala ${B('1:50')} d’un edifici té una planta rectangular de ${B(l + ' cm')} × ${B(w + ' cm')} i una alçada de ${B(h + ' cm')}. De la maqueta a la realitat, <span class="kk">k</span> = ${B(50)}.`,
+      steps: [
+        { q: 'Quant fa el llarg real de l’edifici, en metres?', ans: l * E / 100, unit: 'm', why: `${l} · 50 = ${fmt(l * E)} cm = ${fmt(l * E / 100)} m.`, hint: 'Multiplica per 50 i passa els cm a m (÷ 100).' },
+        { q: 'Quant fa l’alçada real, en metres?', ans: h * E / 100, unit: 'm', why: `${h} · 50 = ${fmt(h * E)} cm = ${fmt(h * E / 100)} m.` },
+        { q: 'Per quin nombre es multipliquen les àrees en passar de la maqueta a la realitat?', ans: E * E, why: `Les àrees es multipliquen per <i>k</i><sup>2</sup> = 50<sup>2</sup> = 2 500.`, hint: 'Una àrea té dues dimensions.' },
+        { q: 'Quina és l’àrea real de la planta, en m<sup>2</sup>?', ans: l * w * E * E / 10000, unit: 'm²', why: `Maqueta: ${l} · ${w} = ${fmt(l * w)} cm<sup>2</sup>. Real: ${fmt(l * w)} · 2 500 = ${fmt(l * w * 2500)} cm<sup>2</sup> = ${fmt(l * w * 2500 / 10000)} m<sup>2</sup>. Comprovació: ${fmt(l / 2)} m · ${fmt(w / 2)} m.`, hint: '1 m<sup>2</sup> = 10 000 cm<sup>2</sup>.' },
+        { q: 'Per quin nombre es multiplica el volum?', kind: 'choice', opts: ['50', '2 500', '125 000', '150'], ans: 2, why: `Tres dimensions: 50<sup>3</sup> = 125 000.` }
+      ] }; },
+  (rng, v) => { const [fig, m, word, kk] = BYV(v, [['el costat d’un quadrat', 2, 'l’àrea', 2], ['l’aresta d’un cub', 3, 'el volum', 2], ['el costat d’un quadrat', 2, 'l’àrea', 3]]);
+    const verb = kk === 2 ? 'dupliquem' : 'tripliquem', also = kk === 2 ? 'també es duplica' : 'també es triplica';
+    return { title: 'Detecta l’error', story: `En Pau diu: «Si ${verb} ${fig}, ${word} ${also}.»`,
+      steps: [
+        { q: 'Té raó en Pau?', kind: 'choice', opts: ['Sí, tot es multiplica pel mateix nombre', `No, ${word} es multiplica per ${kk}<sup>${m}</sup>`, `No, ${word} queda igual`], ans: 1, why: `${word.charAt(0).toUpperCase() + word.slice(1)} té ${m} dimensions: es multiplica per <i>k</i><sup>${m}</sup>.` },
+        { q: `Per quin nombre es multiplica realment ${word}?`, ans: kk ** m, why: `${kk}<sup>${m}</sup> = ${kk ** m}.` }
+      ] }; }
+];
+APP.salt = 7;
+
+/* ===== Laboratori de canvi d'escala: 1D → 2D → 3D i el factor k, k², k³ ===== */
+(function () {
+  const NS = 'http://www.w3.org/2000/svg', b = 36;
+  const S = { L: 2, k: 3, built: [false, false, false], sc: [false, false, false], busy: false,
+    p1: { w: 0 }, p2: { w: 0, h: 0, sweep: false }, p3: { w: 0, d: 0, h: 0 }, fill: [0, 0, 0], ch: [[], [], []] };
+  const ui = id => document.getElementById(id);
+  const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+  function tween(obj, key, to, ms) {
+    const from = obj[key];
+    if (REDUCED) { obj[key] = to; drawAll(); return Promise.resolve(); }
+    return new Promise(res => { const t0 = performance.now();
+      const f = now => { const t = Math.min(1, (now - t0) / ms); obj[key] = from + (to - from) * ease(t); drawAll(); t < 1 ? requestAnimationFrame(f) : res(); };
+      requestAnimationFrame(f); });
+  }
+  const el = (tag, at, txt) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); if (txt != null) e.textContent = txt; return e; };
+  const isInt = x => Math.abs(x - Math.round(x)) < 1e-9;
+  const inv = () => 1 / S.k;
+  const kTxt = () => S.k === 0.5 ? '½' : fmt(S.k);
+  const kH = () => S.k === 0.5 ? frac(1, 2) : fmt(S.k);
+  const kBase = n => S.k === 0.5 ? `(${frac(1, 2)})<sup>${n}</sup>` : `${fmt(S.k)}<sup>${n}</sup>`;
+  const kPow = n => S.k === 0.5 ? frac(1, 2 ** n) : fmt3(S.k ** n);
+  function fmt3(x) { const r = Math.round(x * 1000) / 1000; return isInt(r) ? fmt(r, 0) : fmt(r, (String(r).split('.')[1] || '').length); }
+  const U = n => n === 1 ? 'cm' : `cm<sup>${n}</sup>`;
+  const orig = n => S.L ** n;
+
+  /* ---------- dibuix ---------- */
+  function chipSvg(g, x, y, rot) {
+    const t = el('g', { class: 'kchip', transform: `translate(${x},${y})${rot ? ' rotate(-90)' : ''}` });
+    t.append(el('rect', { x: -17, y: -11, width: 34, height: 22, rx: 11 }), el('text', { x: 0, y: 5, 'text-anchor': 'middle' }, '×' + kTxt()));
+    g.append(t);
+  }
+  function draw1() {
+    const g = ui('S1'); g.replaceChildren(); const x0 = 60, y0 = 160, w = S.p1.w;
+    if (!S.built[0] && w === 0) { g.append(el('text', { x: 140, y: 150, class: 'hint', 'text-anchor': 'middle' }, 'Aquí naixerà el segment')); return; }
+    if (S.sc[0] || Math.abs(w - b) > .5) g.append(el('line', { x1: x0, y1: y0 + 46, x2: x0 + b, y2: y0 + 46, class: 'ghost' }), el('text', { x: x0, y: y0 + 66, class: 'small' }, 'segment inicial'));
+    const n = S.fill[0];
+    if (n && S.k > 1 && isInt(S.k)) for (let i = 0; i < n; i++) g.append(el('line', { x1: x0 + i * b + 2, y1: y0, x2: x0 + (i + 1) * b - 2, y2: y0, class: 'seg1 t' + (i % 2) }));
+    g.append(el('line', { x1: x0, y1: y0, x2: x0 + w, y2: y0, class: 'seg1 main' }));
+    for (let x = 0; x <= w + .5; x += b) g.append(el('line', { x1: x0 + x, y1: y0 - 7, x2: x0 + x, y2: y0 + 7, class: 'tick' }));
+    g.append(el('line', { x1: x0 + w, y1: y0 - 10, x2: x0 + w, y2: y0 + 10, class: 'cap' }), el('line', { x1: x0, y1: y0 - 10, x2: x0, y2: y0 + 10, class: 'cap' }));
+    if (S.k < 1 && S.sc[0]) for (let x = 0; x <= b + .5; x += w) g.append(el('line', { x1: x0 + x, y1: y0 + 40, x2: x0 + x, y2: y0 + 52, class: 'tick' }));
+    const val = S.sc[0] ? S.L * S.k : S.L;
+    if (w > 4) g.append(el('text', { x: x0 + w / 2, y: y0 - 18, 'text-anchor': 'middle', class: 'lbl c1' }, (S.sc[0] ? 'L′ = ' : 'L = ') + fmt3(val) + ' cm'));
+    if (S.ch[0].length) chipSvg(g, x0 + w / 2, y0 + 26);
+  }
+  function draw2() {
+    const g = ui('S2'); g.replaceChildren(); const x0 = 60, y0 = 262, { w, h } = S.p2;
+    if (!S.built[1] && w === 0) { g.append(el('text', { x: 140, y: 150, class: 'hint', 'text-anchor': 'middle' }, 'Aquí naixerà el quadrat')); return; }
+    g.append(el('rect', { x: x0, y: y0 - h, width: w, height: h, class: 'area' }));
+    const n = S.fill[1];
+    if (n && S.k > 1 && isInt(S.k)) { let c = 0; for (let r = 0; r < S.k && c < n; r++) for (let q = 0; q < S.k && c < n; q++, c++) g.append(el('rect', { x: x0 + q * b + 1.5, y: y0 - (r + 1) * b + 1.5, width: b - 3, height: b - 3, class: 'tile2 t' + ((r + q) % 2) })); }
+    for (let x = b; x < w - .5; x += b) g.append(el('line', { x1: x0 + x, y1: y0, x2: x0 + x, y2: y0 - h, class: 'grid' }));
+    for (let y = b; y < h - .5; y += b) g.append(el('line', { x1: x0, y1: y0 - y, x2: x0 + w, y2: y0 - y, class: 'grid' }));
+    g.append(el('rect', { x: x0, y: y0 - h, width: w, height: h, class: 'edge2' }));
+    if (S.p2.sweep) g.append(el('line', { x1: x0, y1: y0 - h, x2: x0 + w, y2: y0 - h, class: 'seg1 main' }));
+    if (S.sc[1] || Math.abs(w - b) > .5 || Math.abs(h - b) > .5) {
+      g.append(el('rect', { x: x0, y: y0 - b, width: b, height: b, class: 'ghost' }));
+      if (S.k < 1 && S.sc[1]) { const st = b * S.k; for (let x = st; x < b - .5; x += st) { g.append(el('line', { x1: x0 + x, y1: y0, x2: x0 + x, y2: y0 - b, class: 'ghost' }), el('line', { x1: x0, y1: y0 - x, x2: x0 + b, y2: y0 - x, class: 'ghost' })); } }
+    }
+    const val = S.sc[1] ? orig(2) * S.k ** 2 : orig(2);
+    if (h > 6 && w > 6) g.append(el('text', { x: x0 + Math.max(w, S.sc[1] ? b : 0) / 2, y: y0 - Math.max(h, S.sc[1] ? b : 0) - 12, 'text-anchor': 'middle', class: 'lbl c2' }, (S.sc[1] ? 'A′ = ' : 'A = ') + fmt3(val) + ' cm²'));
+    if (S.ch[1].length >= 1) chipSvg(g, x0 + w / 2, y0 + 17);
+    if (S.ch[1].length >= 2) chipSvg(g, x0 - 20, y0 - h / 2, true);
+  }
+  const C = Math.cos(Math.PI / 6), ox = 140, oy = 162;
+  const P = (x, y, z) => `${ox + (x - y) * C},${oy + (x + y) * .5 - z}`;
+  function box(g, x, y, z, w, d, h, cls) {
+    g.append(el('polygon', { points: [P(x, y, z + h), P(x + w, y, z + h), P(x + w, y + d, z + h), P(x, y + d, z + h)].join(' '), class: cls + ' top' }),
+      el('polygon', { points: [P(x + w, y, z), P(x + w, y + d, z), P(x + w, y + d, z + h), P(x + w, y, z + h)].join(' '), class: cls + ' rgt' }),
+      el('polygon', { points: [P(x, y + d, z), P(x + w, y + d, z), P(x + w, y + d, z + h), P(x, y + d, z + h)].join(' '), class: cls + ' lft' }));
+  }
+  function faceGrid(g, w, d, h, st, cls) {
+    for (let x = st; x < w - .5; x += st) g.append(el('polyline', { points: [P(x, 0, h), P(x, d, h), P(x, d, 0)].join(' '), class: cls }));
+    for (let y = st; y < d - .5; y += st) g.append(el('polyline', { points: [P(0, y, h), P(w, y, h), P(w, y, 0)].join(' '), class: cls }));
+    for (let z = st; z < h - .5; z += st) g.append(el('polyline', { points: [P(w, 0, z), P(w, d, z), P(0, d, z)].join(' '), class: cls }));
+  }
+  function draw3() {
+    const g = ui('S3'); g.replaceChildren(); const { w, d, h } = S.p3;
+    if (!S.built[2] && w === 0) { g.append(el('text', { x: 140, y: 150, class: 'hint', 'text-anchor': 'middle' }, 'Aquí naixerà el cub')); return; }
+    const showGhost = S.sc[2] || Math.abs(w - b) > .5 || Math.abs(d - b) > .5 || Math.abs(h - b) > .5;
+    const n = S.fill[2];
+    if (n && S.k > 1 && isInt(S.k)) {
+      const K = Math.round(S.k), cubes = [];
+      for (let l = 0; l < K; l++) for (let s = 0; s <= 2 * K - 2; s++) for (let i = 0; i < K; i++) { const j = s - i; if (j >= 0 && j < K) cubes.push([i, j, l]); }
+      g.append(el('polygon', { points: [P(0, 0, 0), P(w, 0, 0), P(w, d, 0), P(0, d, 0)].join(' '), class: 'floor' }));
+      cubes.slice(0, n).forEach(([i, j, l], q) => box(g, i * b, j * b, l * b, b, b, b, 'cu'));
+      if (n < cubes.length) g.append(el('polygon', { points: [P(0, 0, h), P(w, 0, h), P(w, d, h), P(0, d, h)].join(' '), class: 'wire' }));
+    } else {
+      if (h > .5) box(g, 0, 0, 0, w, d, h, 'vol'); else g.append(el('polygon', { points: [P(0, 0, 0), P(w, 0, 0), P(w, d, 0), P(0, d, 0)].join(' '), class: 'area' }));
+      if (h > .5) faceGrid(g, w, d, h, b, 'grid');
+    }
+    if (showGhost && !(n && S.k > 1)) {
+      g.append(el('polyline', { points: [P(b, 0, 0), P(b, 0, b), P(0, 0, b), P(0, b, b), P(0, b, 0)].join(' '), class: 'ghost' }),
+        el('polyline', { points: [P(b, 0, b), P(b, b, b), P(0, b, b)].join(' '), class: 'ghost' }), el('polyline', { points: [P(b, b, b), P(b, b, 0), P(b, 0, 0)].join(' '), class: 'ghost' }), el('polyline', { points: [P(b, b, 0), P(0, b, 0)].join(' '), class: 'ghost' }));
+      if (S.k < 1 && S.sc[2]) faceGrid(g, b, b, b, b * S.k, 'ghost');
+    }
+    const val = S.sc[2] ? orig(3) * S.k ** 3 : orig(3);
+    if (h > 6) g.append(el('text', { x: ox, y: oy - Math.max(h, S.sc[2] ? b : 0) - 14, 'text-anchor': 'middle', class: 'lbl c3' }, (S.sc[2] ? 'V′ = ' : 'V = ') + fmt3(val) + ' cm³'));
+    const L = S.ch[2].length;
+    if (L >= 1) { const [x, y] = P(w / 2, d, 0).split(',').map(Number); chipSvg(g, x - 4, y + 20); }
+    if (L >= 2) { const [x, y] = P(w, d / 2, 0).split(',').map(Number); chipSvg(g, x + 8, y + 20); }
+    if (L >= 3) { const [x, y] = P(w, d, h / 2).split(',').map(Number); chipSvg(g, x + 26, y + 10); }
+  }
+  function drawAll() { draw1(); draw2(); draw3(); }
+
+  /* ---------- fitxes k (fila de xips) ---------- */
+  function chipsRender(p) {
+    const c = ui('C' + p), arr = S.ch[p - 1];
+    c.innerHTML = arr.map((x, i) => (i ? '<span class="dot">·</span>' : '') + `<span class="chip">${x}</span>`).join('');
+  }
+  async function addChip(p) { S.ch[p - 1].push('<i>k</i>'); chipsRender(p); const c = ui('C' + p).lastElementChild; c.classList.add('pop'); drawAll(); await sleep(250); }
+  async function mergeChips(p) {
+    const c = ui('C' + p), chips = $$('.chip', c), dots = $$('.dot', c);
+    if (chips.length > 1) {
+      const first = chips[0].getBoundingClientRect();
+      dots.forEach(d => d.classList.add('fade'));
+      chips.slice(1).forEach(ch => { const r = ch.getBoundingClientRect(); ch.style.transform = `translateX(${first.left - r.left}px)`; ch.classList.add('go'); });
+      await sleep(550);
+    }
+    c.innerHTML = `<span class="chip big e${p}">${S.k === 0.5 ? `(${frac(1, 2)})` : '<i>k</i>'}<sup>${p}</sup><span class="eq"> = ${kPow(p)}</span></span>`;
+    c.firstElementChild.classList.add('pop');
+    const exp = c.querySelector('sup'); exp.classList.add('flash');
+    await sleep(500);
+  }
+
+  /* ---------- fórmules i taula ---------- */
+  function fx(p) {
+    const F = ui('F' + p);
+    if (!S.built[p - 1]) { F.innerHTML = '<span class="muted">—</span>'; return; }
+    const Lh = fmt(S.L);
+    const base = [
+      `L = ${Lh} cm  <span class="muted">→ L<sup class="e1">1</sup></span>`,
+      `A = L · L = L<sup class="e2">2</sup> = ${Lh}<sup>2</sup> = ${fmt(orig(2))} ${U(2)}`,
+      `V = L · L · L = L<sup class="e3">3</sup> = ${Lh}<sup>3</sup> = ${fmt(orig(3))} ${U(3)}`][p - 1];
+    if (!S.sc[p - 1]) { F.innerHTML = base; return; }
+    const nm = ['L′', 'A′', 'V′'][p - 1], on = ['L', 'L<sup>2</sup>', 'L<sup>3</sup>'][p - 1];
+    F.innerHTML = `<div class="muted small">${base}</div>` +
+      (p === 1 ? `${nm} = <span class="kk">k</span><sup class="e1">1</sup> · L = ${kBase(1)} · ${Lh} = <b>${fmt3(S.L * S.k)} cm</b>`
+        : `${nm} = (<span class="kk">k</span> · L)<sup>${p}</sup> = <span class="kk">k</span><sup class="e${p}">${p}</sup> · ${on} = ${kBase(p)} · ${fmt(orig(p))} = <b>${fmt3(orig(p) * S.k ** p)} ${U(p)}</b>`);
+  }
+  function table() {
+    const tb = $('#ktab tbody'); const names = ['Longitud', 'Superfície', 'Volum'];
+    tb.innerHTML = [1, 2, 3].map(p => `<tr class="r${p}"><td>${names[p - 1]}</td><td class="num">${p}</td><td class="num">${fmt(orig(p))} ${U(p)}</td><td class="num">${kBase(p).replace(/^/, '')}${S.k === 0.5 || !isInt(S.k) || true ? ' = ' + kPow(p) : ''}</td><td class="num">${fmt3(orig(p) * S.k ** p)} ${U(p)}</td></tr>`).join('');
+  }
+  function refresh() { [1, 2, 3].forEach(fx); table(); drawAll(); }
+  const say = t => ui('narr').innerHTML = t;
+  function lock(v) { S.busy = v; $$('#laboratori button, #laboratori input').forEach(x => x.disabled = v && !x.closest('.recorda')); }
+
+  /* ---------- construcció 1D → 2D → 3D ---------- */
+  async function build() {
+    if (S.busy) return; lock(true);
+    resetAll(false);
+    say('<b>Dimensió 1.</b> Un segment només té llargada: L = ' + fmt(S.L) + ' cm. La unitat és el cm, cm<sup>1</sup>.');
+    await tween(S.p1, 'w', b, 900); S.built[0] = true; fx(1); await sleep(500);
+    say('<b>Dimensió 2.</b> Arrosseguem el segment cap amunt la mateixa distància L: escombra una superfície. A = L · L = L<sup>2</sup>, en cm<sup>2</sup>.');
+    S.p2.w = b; S.p2.h = 0; S.p2.sweep = true; S.built[1] = true; drawAll(); await sleep(250);
+    await tween(S.p2, 'h', b, 1100); S.p2.sweep = false; fx(2); drawAll(); await sleep(500);
+    say('<b>Dimensió 3.</b> Ara aixequem el quadrat una altura L: omple un volum. V = L · L · L = L<sup>3</sup>, en cm<sup>3</sup>.');
+    S.p3.w = b; S.p3.d = b; S.p3.h = 0; S.built[2] = true; drawAll(); await sleep(250);
+    await tween(S.p3, 'h', b, 1100); fx(3); table();
+    say('Fixa’t en l’exponent: és el nombre de dimensions. Ara tria un factor <b class="kk">k</b> i prem «Amplia».');
+    lock(false);
+  }
+  async function ensureBuilt(p) {
+    if (S.built[p - 1]) return;
+    if (p === 1) S.p1.w = b; if (p === 2) { S.p2.w = b; S.p2.h = b; } if (p === 3) { S.p3.w = b; S.p3.d = b; S.p3.h = b; }
+    S.built[p - 1] = true; fx(p);
+  }
+  function unscale(p) {
+    S.sc[p - 1] = false; S.fill[p - 1] = 0; S.ch[p - 1] = []; chipsRender(p);
+    if (S.built[p - 1]) { if (p === 1) S.p1.w = b; if (p === 2) { S.p2.w = b; S.p2.h = b; } if (p === 3) { S.p3.w = b; S.p3.d = b; S.p3.h = b; } }
+    fx(p);
+  }
+  const T = 800;
+  async function fillCount(p) {
+    const n = p === 1 ? S.k : S.k ** p;
+    if (S.k > 1 && isInt(S.k)) {
+      const N = Math.round(n), dt = Math.max(40, Math.min(220, 1600 / N));
+      for (let i = 1; i <= N; i++) { S.fill[p - 1] = i; drawAll(); await sleep(dt); }
+      return `Hi caben <b>${N}</b> ${['segments', 'quadrats', 'cubs'][p - 1]} com l’inicial: ${kBase(p)} = ${N}.`;
+    }
+    if (S.k < 1 && isInt(1 / S.k)) { const N = Math.round((1 / S.k) ** p);
+      return `La figura inicial conté <b>${N}</b> ${['segments', 'quadrats', 'cubs'][p - 1]} com el nou: el nou és ${kBase(p)} = ${frac(1, N)} de l’inicial.`; }
+    return `No hi caben un nombre sencer de vegades, però la regla és la mateixa: ×${kBase(p)} = ×${kPow(p)}.`;
+  }
+  async function scale(p, solo = true) {
+    if (S.busy && solo) return; if (solo) lock(true);
+    await ensureBuilt(p); unscale(p); drawAll(); await sleep(150);
+    const nk = b * S.k, name = ['la longitud', 'la superfície', 'el volum'][p - 1];
+    if (p === 1) {
+      say(`<b>Longitud ×${kH()}.</b> El segment només té una direcció: <b class="kk">k</b> hi multiplica una vegada.`);
+      await addChip(1); S.sc[0] = true; await tween(S.p1, 'w', nk, T);
+    }
+    if (p === 2) {
+      say(`<b>Superfície.</b> Primer s’amplia l’amplada: ×${kH()}…`);
+      await addChip(2); S.sc[1] = true; await tween(S.p2, 'w', nk, T);
+      say(`<b>Superfície.</b> …i després l’altura: ×${kH()} una altra vegada. Dues dimensions, dues <b class="kk">k</b>.`);
+      await addChip(2); await tween(S.p2, 'h', nk, T);
+    }
+    if (p === 3) {
+      say(`<b>Volum.</b> L’amplada ×${kH()}…`); await addChip(3); S.sc[2] = true; await tween(S.p3, 'w', nk, T);
+      say(`<b>Volum.</b> …la fondària ×${kH()}…`); await addChip(3); await tween(S.p3, 'd', nk, T);
+      say(`<b>Volum.</b> …i l’altura ×${kH()}. Tres dimensions, tres <b class="kk">k</b>.`); await addChip(3); await tween(S.p3, 'h', nk, T);
+    }
+    await sleep(200);
+    say(`Les ${['', 'dues ', 'tres '][p - 1]}<b class="kk">k</b> que multipliquen ${name} s’ajunten: ${p === 1 ? '<i>k</i> = <i>k</i><sup>1</sup>' : p === 2 ? '<i>k</i> · <i>k</i> = <i>k</i><sup>2</sup>' : '<i>k</i> · <i>k</i> · <i>k</i> = <i>k</i><sup>3</sup>'} (producte de potències amb la mateixa base).`);
+    await mergeChips(p); fx(p); table();
+    const t = await fillCount(p); await sleep(200);
+    say(`${t} El factor de ${name} és <b class="kk">k</b><sup class="e${p}">${p}</sup>: el seu exponent és el nombre de dimensions.`);
+    if (solo) lock(false);
+  }
+  async function all() {
+    if (S.busy) return; lock(true);
+    if (!S.built.every(Boolean)) { lock(false); await build(); lock(true); }
+    for (const p of [1, 2, 3]) { await scale(p, false); await sleep(900); }
+    say(`Amb el mateix <b class="kk">k</b> = ${kH()}: la longitud es multiplica per ${kBase(1)} = ${kPow(1)}, la superfície per ${kBase(2)} = ${kPow(2)} i el volum per ${kBase(3)} = ${kPow(3)}.`);
+    lock(false);
+  }
+  function resetAll(full = true) {
+    S.built = [false, false, false]; S.sc = [false, false, false]; S.fill = [0, 0, 0]; S.ch = [[], [], []];
+    S.p1.w = 0; S.p2.w = 0; S.p2.h = 0; S.p3.w = 0; S.p3.d = 0; S.p3.h = 0; [1, 2, 3].forEach(chipsRender);
+    if (full) say('Prem «Construeix» per passar d’una longitud a una superfície i a un volum.');
+    refresh();
+  }
+
+  /* ---------- camí invers ---------- */
+  async function inverse() {
+    if (S.busy) return; lock(true);
+    const sel = $('#isel [aria-checked="true"]'), m = +sel.dataset.m, F = +sel.dataset.f;
+    const k = m === 2 ? Math.sqrt(F) : Math.cbrt(F); const st = ui('invS');
+    const Fh = F < 1 ? frac(1, Math.round(1 / F)) : fmt(F), kh = k < 1 ? frac(1, Math.round(1 / k)) : fmt(k);
+    const idx = m === 3 ? '<sup class="idx">3</sup>' : '';
+    const lines = [
+      `${m === 2 ? 'La superfície' : 'El volum'} s’ha multiplicat per ${B(Fh)}: aquest és el factor <span class="kk">k</span><sup class="e${m}">${m}</sup>.`,
+      `<span class="chip big e${m}"><i>k</i><sup>${m}</sup> = ${Fh}</span>`,
+      `<span class="chip">k</span>${m === 2 ? ' · <span class="chip">k</span>' : ' · <span class="chip">k</span> · <span class="chip">k</span>'} = ${Fh} <span class="muted">(${m === 2 ? 'dues' : 'tres'} dimensions, ${m === 2 ? 'dues' : 'tres'} k)</span>`,
+      `Per tornar a la longitud desfem la potència amb l’arrel del mateix índex: ${idx}√<span class="ov"><i>k</i><sup>${m}</sup></span> = <i>k</i> <span class="muted">(l’arrel i la potència es destrueixen)</span>`,
+      `<span class="kk">k</span> = ${idx}√<span class="ov">${Fh}</span> = ${G(kh)}`];
+    st.innerHTML = '';
+    for (const l of lines) { const d = document.createElement('div'); d.className = 'il'; d.innerHTML = l; st.append(d); await sleep(900); }
+    S.k = k; syncK(); refresh();
+    say(`Comprovem-ho: amb <b class="kk">k</b> = ${kh}, ${m === 2 ? 'la superfície' : 'el volum'} es multiplica per ${kBase(m)} = ${kPow(m)}.`);
+    await sleep(400); lock(false); await scale(m);
+  }
+
+  /* ---------- controls ---------- */
+  function radio(groupId, fn) {
+    $$('#' + groupId + ' [role=radio]').forEach(bn => bn.onclick = () => { $$('#' + groupId + ' [role=radio]').forEach(x => x.setAttribute('aria-checked', x === bn)); fn(bn); });
+  }
+  function syncK() {
+    ui('kslider').value = S.k; ui('kout').innerHTML = 'k = ' + (S.k === 0.5 ? '0,5' : fmt3(S.k));
+    $$('#ksel [role=radio]').forEach(x => x.setAttribute('aria-checked', Math.abs(+x.dataset.v - S.k) < 1e-9));
+  }
+  function changed() { [1, 2, 3].forEach(p => { if (S.sc[p - 1]) unscale(p); }); refresh(); if (S.built[0]) say('Valors canviats. Prem un botó ×<b class="kk">k</b> per tornar a ampliar.'); }
+  radio('Lsel', bn => { S.L = +bn.dataset.v; changed(); });
+  radio('ksel', bn => { S.k = +bn.dataset.v; syncK(); changed(); });
+  radio('isel', () => { });
+  ui('kslider').oninput = e => { S.k = Math.round(+e.target.value * 10) / 10; syncK(); changed(); };
+  ui('bBuild').onclick = build; ui('bAll').onclick = all; ui('bReset').onclick = () => { if (!S.busy) { resetAll(); ui('invS').innerHTML = ''; } };
+  $$('.dim .kbtn').forEach(bn => bn.onclick = () => scale(+bn.dataset.p));
+  ui('bInv').onclick = inverse;
+  S.built = [true, true, true]; S.p1.w = b; S.p2.w = b; S.p2.h = b; S.p3.w = b; S.p3.d = b; S.p3.h = b;
+  say('Aquest és el punt de partida: un segment, un quadrat i un cub de costat L. Prem «Construeix» per veure com es passa d’una dimensió a la següent.');
+  refresh();
+  window.__lab = { S, build, all, scale, inverse };
+})();
+
+APP.key = 'escala4tB_v1'; APP.title = 'Canvi d’escala'; APP.file = 'Informe_CanviEscala';
+boot();
+</script>
+</body></html>
