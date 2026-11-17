@@ -1,0 +1,1064 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>El Tresor de l'Illa dels Muntets</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&display=swap">
+<style>
+/* Layout: aventura gràfica clàssica — escena pixel a dalt, línia de frase, panell de verbs + inventari (o opcions de diàleg) a baix. Tema únic nocturn. */
+:root{
+  --night:#0b0d1f; --panel:#000000; --ink:#e9e4d4; --muted:#8f93b3;
+  --verb:#5fb3a8; --verb-hi:#f7e26b; --opt:#b48ef0; --opt-hi:#ffffff;
+  --gold:#f2c14e; --ok:#7bd88f; --ko:#ff7a6b; --line:#2a2d55;
+  --ui:"VT323", "Courier New", monospace;
+  --math:"Cambria Math", Cambria, Caladea, "Times New Roman", serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--night);color:var(--ink)}
+body{font-family:var(--ui);font-size:21px;line-height:1.2}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 32px}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0}
+button:focus-visible,input:focus-visible{outline:2px solid var(--verb-hi);outline-offset:2px}
+.m{font-family:var(--math);letter-spacing:.04em;font-size:.86em;white-space:nowrap}
+sup{font-size:.68em;line-height:0}
+sup.ix{font-size:.6em;margin-right:-.3em;vertical-align:.95em}
+h1,h2{margin:0;font-weight:400;text-wrap:balance}
+
+/* inici */
+.title-scene{position:relative;border:3px solid #000;box-shadow:0 0 0 2px var(--line)}
+.title-scene canvas{display:block;width:100%;image-rendering:pixelated}
+.logo{position:absolute;left:0;right:0;top:9%;text-align:center;pointer-events:none}
+.logo h1{font-size:clamp(34px,7vw,72px);color:var(--gold);text-shadow:3px 3px 0 #5a2a0a,6px 6px 0 #000;letter-spacing:.02em}
+.logo p{font-size:clamp(18px,3vw,26px);color:#cfd6ff;text-shadow:2px 2px 0 #000}
+.startbox{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px;margin-top:16px}
+.card{background:#000;border:2px solid var(--line);padding:14px 16px}
+.card p{margin:0 0 8px}
+.card ul{margin:0;padding-left:1.1em}
+.field{display:flex;flex-direction:column;gap:2px;margin-bottom:10px}
+.field label{color:var(--muted)}
+.field input{font:inherit;font-size:22px;background:#0b0d1f;color:var(--ink);border:2px solid var(--line);padding:4px 8px}
+.bigbtn{font-size:26px;color:#000;background:var(--gold);padding:6px 14px;box-shadow:inset -3px -3px 0 #a5781c,inset 3px 3px 0 #ffe9a0}
+.bigbtn.alt{background:#1c1f45;color:var(--ink);box-shadow:inset -3px -3px 0 #0b0d1f,inset 3px 3px 0 #3a3f7a}
+.err{color:var(--ko)}
+
+/* joc */
+.screen{position:relative;border:3px solid #000;box-shadow:0 0 0 2px var(--line);background:#000;overflow:hidden}
+#cv{display:block;width:100%;image-rendering:pixelated;image-rendering:crisp-edges;cursor:crosshair}
+.stage{display:grid;grid-template-columns:minmax(0,1.62fr) minmax(0,1fr);border:3px solid #000;box-shadow:0 0 0 2px var(--line);background:#000}
+.stage .screen{border:0;box-shadow:none}
+.dbox{position:relative;min-height:230px;border-left:3px solid #000;
+  background:radial-gradient(circle,#ecc97c 0 2px,#6b4a1a 2.6px 3.6px,transparent 4.2px) 4px 4px/12px 12px no-repeat,radial-gradient(circle,#ecc97c 0 2px,#6b4a1a 2.6px 3.6px,transparent 4.2px) calc(100% - 4px) 4px/12px 12px no-repeat,radial-gradient(circle,#ecc97c 0 2px,#6b4a1a 2.6px 3.6px,transparent 4.2px) 4px calc(100% - 4px)/12px 12px no-repeat,radial-gradient(circle,#ecc97c 0 2px,#6b4a1a 2.6px 3.6px,transparent 4.2px) calc(100% - 4px) calc(100% - 4px)/12px 12px no-repeat,
+  repeating-linear-gradient(0deg,#5c351a 0 21px,#2f1a0a 21px 23px,#6a3e1e 23px 44px,#2f1a0a 44px 46px)}
+.dbox-in{position:absolute;inset:0;display:flex;flex-direction:column;gap:8px;padding:14px 14px 16px}
+.dhead{display:flex;align-items:center;gap:10px}
+.port{flex:none;width:86px;height:86px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#3d7fb8,#123553 72%);border:7px solid #c08a2e;box-shadow:inset 0 0 0 2px #5e3f10,0 0 0 3px #2a1708,inset 0 0 12px rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;position:relative}
+.port::after{content:"";position:absolute;inset:-7px;border-radius:50%;background:radial-gradient(circle,#f3d58c 0 1.6px,transparent 2.2px) 50% 0/8px 8px no-repeat,radial-gradient(circle,#f3d58c 0 1.6px,transparent 2.2px) 50% 100%/8px 8px no-repeat,radial-gradient(circle,#f3d58c 0 1.6px,transparent 2.2px) 0 50%/8px 8px no-repeat,radial-gradient(circle,#f3d58c 0 1.6px,transparent 2.2px) 100% 50%/8px 8px no-repeat}
+.port canvas{width:66px;height:66px;image-rendering:pixelated}
+.nameplate{flex:1;min-width:0;background:linear-gradient(#f1e2bb,#d6bb84);color:#3a240c;font-size:20px;line-height:1;padding:5px 20px;clip-path:polygon(0 0,100% 0,92% 50%,100% 100%,0 100%,8% 50%);text-align:center;text-wrap:balance}
+.parch{background:radial-gradient(ellipse at 14% 8%,rgba(255,255,255,.45),transparent 42%),radial-gradient(ellipse at 88% 92%,rgba(140,90,30,.3),transparent 50%),radial-gradient(ellipse at 72% 18%,rgba(160,110,40,.16),transparent 32%),radial-gradient(ellipse at 30% 75%,rgba(160,110,40,.12),transparent 30%),linear-gradient(170deg,#f2e3bc,#e0c58e);box-shadow:inset 0 0 22px rgba(120,72,20,.6),inset 0 0 4px rgba(70,40,5,.75);border-radius:3px;color:#2b1d0e}
+.parch .m{color:#1a1208}
+.dlog{flex:1;min-height:0;overflow:auto;padding:10px 12px;font-size:19px;line-height:1.18}
+.dl{margin:0 0 7px}
+.dl b{font-weight:400}
+.dl i{color:#6b5531}
+.dsep{text-align:center;color:#8a6a3a;font-size:16px;margin:8px 0 6px;letter-spacing:.06em}
+.m.big{font-size:1.08em}
+.rollwrap{position:relative;margin:9px 6px}
+.rollwrap::before,.rollwrap::after{content:"";position:absolute;left:-7px;right:-7px;height:13px;border-radius:7px;background:linear-gradient(#e2c27a,#9a7434 55%,#6b4f1f);box-shadow:0 2px 0 rgba(0,0,0,.4);z-index:1}
+.rollwrap::before{top:-9px}.rollwrap::after{bottom:-9px}
+.hudtop{position:absolute;right:8px;top:6px;display:flex;gap:6px;font-size:18px}
+.hudtop span{background:rgba(0,0,0,.7);padding:1px 7px;border:1px solid var(--line)}
+.sentence{background:#000;color:var(--verb-hi);text-align:center;min-height:30px;padding:3px 8px;font-size:22px;border-inline:3px solid #000}
+.panel{background:#000;border:3px solid #000;border-top:0;box-shadow:0 0 0 2px var(--line);display:grid;grid-template-columns:minmax(0,0.9fr) minmax(0,1.6fr);gap:10px;padding:8px 10px 10px;min-height:150px}
+.verbs{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;align-content:start}
+.verb{color:var(--verb);font-size:26px;text-align:left;padding:2px 4px}
+.verb:hover,.verb[aria-pressed="true"]{color:var(--verb-hi)}
+.inv{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:4px;align-content:start}
+.item{border:2px solid #23264f;background:#0d0f26;color:#c9c3ff;font-size:17px;line-height:1.05;text-align:left;padding:4px 6px;min-height:40px}
+.item.tool{color:var(--gold);border-color:#4a3a14;background:#1a1408}
+.item.new{animation:glow 1.2s ease-in-out 3}
+.item:hover,.item[aria-pressed="true"]{border-color:var(--verb-hi);color:#fff}
+@keyframes glow{50%{box-shadow:0 0 0 3px var(--gold)}}
+.dialog{grid-column:1/-1;display:flex;flex-direction:column;gap:2px}
+.opt{text-align:left;color:var(--opt);font-size:23px;padding:2px 4px;line-height:1.15}
+.opt:hover,.opt:focus-visible{color:var(--opt-hi)}
+.opt .m{font-size:.92em}
+.opt.cont{color:var(--verb)}
+.chainbox{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:12px}
+.chain{padding:10px 12px;max-height:260px;overflow:auto}
+.chain h3{margin:0 0 4px;font-weight:400;color:#6b3a0a;font-size:21px}
+.cl{display:flex;flex-wrap:wrap;justify-content:space-between;gap:0 10px;border-bottom:1px dashed #b9995a;padding:2px 0}
+.cl .m{font-size:.95em}
+.cl i{font-style:normal;color:#6b5531;font-size:16px}
+.cl.alt i{color:#5a2a9a}
+.parch .log td,.parch .log th{border-bottom:1px dashed #b9995a}.parch .log th{color:#6b5531}
+.parch .okc{color:#1d6b2f}.parch .hlf{color:#8a5a00}.parch .koc{color:#a3221a}
+.logp{padding:12px 14px}
+.modal .logp h2{color:#6b3a0a}
+.parch .note{color:#6b5531}
+.parch .log{font-size:19px}
+.side{display:flex;flex-direction:column;gap:2px}
+.note{color:var(--muted);font-size:18px}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:16px;z-index:30}
+.modal{background:#000;border:3px solid var(--line);max-width:760px;width:100%;max-height:90vh;overflow:auto;padding:16px}
+.modal h2{color:var(--gold);font-size:30px;margin-bottom:8px}
+.modal canvas{width:100%;image-rendering:pixelated;display:block}
+.log{width:100%;border-collapse:collapse;font-size:19px}
+.log td,.log th{border-bottom:1px solid #23264f;padding:3px 6px;text-align:left;vertical-align:top}
+.log th{color:var(--muted);font-weight:400}
+.okc{color:var(--ok)} .hlf{color:var(--gold)} .koc{color:var(--ko)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.tbl{overflow-x:auto}
+
+/* final */
+.endgrid{display:grid;grid-template-columns:240px minmax(0,1fr);gap:16px;margin-top:14px}
+.grade{text-align:center}
+.grade .n{font-size:64px;color:var(--gold)}
+
+
+/* repte destacat al pergamí */
+.dl.q{background:rgba(196,60,30,.10);border-left:4px solid #a3221a;padding:3px 6px 4px;border-radius:2px}
+.dl.q .m{color:#a3221a;font-weight:700}
+/* pergamí que s'enrotlla i quadre que es retira */
+.dlog{transition:clip-path .45s ease-in-out,opacity .45s}
+.dbox.rolled .dlog{clip-path:inset(0 0 100% 0);opacity:.2}
+.dbox{transition:transform .35s ease-in-out,opacity .35s;transform-origin:right center}
+.stage.retract .dbox{transform:scaleX(0);opacity:0}
+.sentence,.panel{transition:opacity .35s}
+.stage.retract~.sentence,.stage.retract~.panel{opacity:0}
+/* laberint a pantalla completa */
+.screen.full{position:fixed;inset:0;z-index:60;border:0;box-shadow:none;background:radial-gradient(ellipse at center,rgba(20,24,51,.96),rgba(4,5,12,.97));animation:fadebg .45s ease-out}
+.screen.full .hudtop{font-size:22px;right:14px;top:10px}
+#cenefa{display:none;position:absolute;image-rendering:pixelated;pointer-events:none}
+.screen.full #cenefa{display:block;animation:fadein .5s ease-out}
+@keyframes fadein{from{opacity:0}}
+@keyframes fadebg{from{background:rgba(0,0,0,0)}}
+/* globus del repte */
+.balloon{position:absolute;z-index:5;width:min(69%,784px);background:#fffdf4;color:#1b120a;border:4px solid #1b120a;border-radius:24px;padding:14px 22px 12px;box-shadow:6px 6px 0 rgba(0,0,0,.55);font-size:clamp(21px,2.9vw,37px);line-height:1.15;text-align:center;animation:pop .35s cubic-bezier(.2,1.6,.4,1)}
+.balloon .who{display:inline-block;font-size:.62em;background:#1b120a;color:#f2c14e;padding:2px 14px;border-radius:12px;margin-bottom:8px}
+.balloon .m{color:#7a1408;font-size:1.05em}
+.balloon .m.big{font-size:1.3em;display:inline-block;margin-top:4px}
+.balloon .hint{display:block;font-size:.5em;color:#6b5531;margin-top:10px;animation:blink 1.2s steps(2) infinite}
+.balloon .tail{position:absolute;width:38px;height:30px;margin-left:-19px}
+.balloon .tail path{fill:#fffdf4;stroke:#1b120a;stroke-width:5;stroke-linejoin:round}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes blink{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.balloon,.balloon .hint{animation:none}.dlog,.dbox{transition:none}}
+
+/* banderola final */
+#v-end .title-scene{margin-bottom:34px}
+.ribbon{position:absolute;left:50%;bottom:-26px;transform:translateX(-50%);z-index:2;display:flex;align-items:stretch;max-width:88%;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.45))}
+.rb-paper{background:linear-gradient(#f7e9c6,#e6cb92);color:#3b2412;font-size:clamp(20px,3vw,32px);line-height:1.1;padding:7px clamp(22px,5vw,60px) 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;
+  clip-path:polygon(0 9%,4% 0,9% 7%,15% 1%,22% 8%,30% 0,38% 6%,46% 1%,54% 7%,62% 0,70% 6%,78% 1%,86% 8%,93% 0,100% 7%,100% 93%,95% 100%,88% 92%,80% 99%,72% 93%,64% 100%,56% 94%,48% 99%,40% 92%,32% 100%,24% 94%,16% 100%,8% 93%,0 99%)}
+.rb-end{flex:none;width:clamp(14px,2vw,22px);margin:-7px 0;background:linear-gradient(90deg,#6b4f1f,#e2c27a 40%,#b08a4a 70%,#5c3e14);border-radius:9px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
+.rb-end:first-child{margin-right:-3px}.rb-end:last-child{margin-left:-3px}
+/* informe (sempre clar) */
+.rep-host{position:fixed;left:-12000px;top:0;width:780px;background:#fff;color:#111}
+.rep{font-family:Arial,Helvetica,sans-serif;color:#111;background:#fff;font-size:13px;line-height:1.45}
+.rep .rep-blk{padding:6px 14px;background:#fff}
+.rep h1{font-size:20px;margin:0 0 4px} .rep h2{font-size:15px;margin:10px 0 4px;border-bottom:2px solid #6a35c2;padding-bottom:3px}
+.rep table{border-collapse:collapse;width:100%;margin:4px 0}
+.rep td,.rep th{border:1px solid #c9d0da;padding:4px 6px;vertical-align:top;text-align:left}
+.rep th{background:#f1ecfa}
+.rep .m{font-family:"Cambria Math",Cambria,serif;font-size:1em}
+.rep .ok{color:#1d7538;font-weight:700} .rep .half{color:#8c5b06;font-weight:700} .rep .ko{color:#b0281d;font-weight:700}
+#print-report{display:none}
+
+@media (max-width:760px){
+  .startbox,.endgrid{grid-template-columns:minmax(0,1fr)}
+  .panel{grid-template-columns:minmax(0,1fr)}
+  .chainbox{grid-template-columns:minmax(0,1fr)}
+  .verbs{grid-template-columns:repeat(4,auto);justify-content:start}
+  .verb{font-size:22px}
+  .hudtop{font-size:13px;gap:3px;right:4px;top:3px}
+  .hudtop span{padding:0 4px}
+  .stage{grid-template-columns:minmax(0,1fr)}
+  .dbox{height:290px;border-left:0;border-top:3px solid #000}
+}
+@media (prefers-reduced-motion:reduce){.item.new{animation:none}}
+@media print{
+  html,body{background:#fff!important}
+  .wrap,.overlay{display:none!important}
+  #print-report{display:block!important}
+  .rep .rep-blk{break-inside:avoid}
+}
+</style>
+
+<div class="wrap">
+  <section id="v-start">
+    <div class="title-scene"><canvas id="tcv" width="432" height="200" aria-hidden="true"></canvas>
+      <div class="logo"><h1>L'Illa dels Muntets</h1><p>Una aventura de taules, divisions i fraccions</p></div></div>
+    <div class="startbox">
+      <div class="card">
+        <p>En Pau Tramuntana, aprenent de pirata, ha desembarcat a l'Illa dels Muntets. Per sortir-ne ha de travessar el laberint de la jungla fins al temple de l'Esfinx. Hi ha <b>10 reptes</b>:</p>
+        <ul>
+          <li><b>5 guardians</b> t'aturaran al camí. Cadascun et proposa un càlcul: taules, divisions i fraccions.</li>
+          <li><b>2 portes encantades ✦</b> tallen el camí. Només s'obren si <b>inverteixes l'operació</b>: divisió → multiplicació o fracció → divisió.</li>
+          <li>Al temple, l'Esfinx guarda la sortida amb <b>3 segells</b>. Cada segell és un càlcul curt que has de fer pas a pas.</li>
+          <li>Cada resposta val 1 punt al primer intent i 0,5 al segon. Si t'equivoques, et donen una pista. Al final, descarrega l'informe.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="field"><label for="in-name">Nom i cognoms</label><input id="in-name" autocomplete="name"></div>
+        <div class="field"><label for="in-group">Grup</label><input id="in-group" placeholder="3r PIM"></div>
+        <p class="err" id="st-err" hidden></p>
+        <div class="row"><button class="bigbtn" id="b-start">Nova partida</button><button class="bigbtn alt" id="b-fresh">Partida amb reptes nous</button><button class="bigbtn alt" id="b-resume" hidden>Continua</button></div>
+        <p class="note" id="resume-note" style="margin-top:8px"></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="v-game" hidden>
+    <div class="stage">
+      <div class="screen" id="screen"><canvas id="cenefa" aria-hidden="true"></canvas><canvas id="cv" width="432" height="320" aria-label="Escena del joc"></canvas>
+        <div class="hudtop" id="hudtop"></div></div>
+      <aside class="dbox" aria-label="Diàleg"><div class="dbox-in">
+        <div class="dhead"><div class="port"><canvas id="pcv" width="24" height="24" aria-hidden="true"></canvas></div><div class="nameplate" id="dname">Pau Tramuntana</div></div>
+        <div class="dlog parch" id="dlog" aria-live="polite"></div></div></aside>
+    </div>
+    <div class="sentence" id="sentence">Camina a</div>
+    <div class="panel" id="panel"></div>
+  </section>
+
+  <section id="v-end" hidden>
+    <div class="title-scene"><canvas id="ecv" width="864" height="400" aria-hidden="true"></canvas>
+      <div class="logo"><h1>Has sortit de l'illa!</h1></div><div class="ribbon"><span class="rb-end"></span><span class="rb-paper" id="end-sub"></span><span class="rb-end"></span></div></div>
+    <div class="endgrid">
+      <div class="card grade"><div class="note">Nota orientativa</div><div class="n" id="e-grade"></div><div class="note" id="e-pts"></div></div>
+      <div class="card"><div class="tbl"><table class="log" id="e-table"></table></div>
+        <p class="note" style="margin-top:8px">L'informe recull cada repte: l'expressió, les teves respostes i la solució. Lliura'l al professor i guarda'l per estudiar.</p>
+        <div class="row" id="rep-btns"></div><p class="note" id="rep-msg" role="status"></p>
+        <div class="row" style="margin-top:8px"><button class="bigbtn" id="b-new">Juga amb reptes nous</button><button class="bigbtn alt" id="b-again">Torna a l'illa</button></div></div>
+    </div>
+  </section>
+</div>
+<div class="overlay" id="modal" hidden><div class="modal" id="modal-box"></div></div>
+<div id="print-report"></div>
+
+<script>const DATA={"W": 11, "H": 9, "adj": {"0,0": ["1,0"], "0,1": ["0,2", "1,1"], "0,2": ["0,1"], "0,3": ["0,4", "1,3"], "0,4": ["0,3", "1,4"], "0,5": ["0,6", "1,5"], "0,6": ["0,5", "0,7", "1,6"], "0,7": ["0,6", "0,8"], "0,8": ["0,7"], "1,0": ["0,0", "2,0"], "1,1": ["0,1", "2,1"], "1,2": ["1,3", "2,2"], "1,3": ["0,3", "1,2"], "1,4": ["0,4", "1,5"], "1,5": ["0,5", "1,4"], "1,6": ["0,6", "1,7"], "1,7": ["1,6", "1,8", "2,7"], "1,8": ["1,7", "2,8"], "2,0": ["1,0", "3,0"], "2,1": ["1,1", "2,2"], "2,2": ["1,2", "2,1", "2,3", "3,2"], "2,3": ["2,2"], "2,4": ["2,5", "3,4"], "2,5": ["2,4", "2,6"], "2,6": ["2,5", "3,6"], "2,7": ["1,7"], "2,8": ["1,8", "3,8"], "3,0": ["2,0", "3,1"], "3,1": ["3,0", "4,1"], "3,2": ["2,2"], "3,3": ["3,4", "4,3"], "3,4": ["2,4", "3,3"], "3,5": ["3,6", "4,5"], "3,6": ["2,6", "3,5"], "3,7": ["3,8", "4,7"], "3,8": ["2,8", "3,7"], "4,0": ["4,1", "5,0"], "4,1": ["3,1", "4,0"], "4,2": ["4,3", "5,2"], "4,3": ["3,3", "4,2"], "4,4": ["5,4"], "4,5": ["3,5", "5,5"], "4,6": ["4,7"], "4,7": ["3,7", "4,6", "4,8"], "4,8": ["4,7", "5,8"], "5,0": ["4,0", "5,1"], "5,1": ["5,0", "6,1"], "5,2": ["4,2", "6,2"], "5,3": ["5,4"], "5,4": ["4,4", "5,3", "5,5"], "5,5": ["4,5", "5,4", "6,5"], "5,6": ["5,7", "6,6"], "5,7": ["5,6", "5,8"], "5,8": ["4,8", "5,7"], "6,0": ["6,1", "7,0"], "6,1": ["5,1", "6,0"], "6,2": ["5,2", "6,3"], "6,3": ["6,2", "6,4"], "6,4": ["6,3", "7,4"], "6,5": ["5,5", "7,5"], "6,6": ["5,6", "6,7", "7,6"], "6,7": ["6,6", "6,8"], "6,8": ["6,7", "7,8"], "7,0": ["6,0", "8,0"], "7,1": ["7,2"], "7,2": ["7,1", "7,3", "8,2"], "7,3": ["7,2", "7,4"], "7,4": ["6,4", "7,3"], "7,5": ["6,5", "8,5"], "7,6": ["6,6", "7,7"], "7,7": ["7,6"], "7,8": ["6,8", "8,8"], "8,0": ["7,0", "8,1"], "8,1": ["8,0", "8,2"], "8,2": ["7,2", "8,1"], "8,3": ["8,4", "9,3"], "8,4": ["8,3", "9,4"], "8,5": ["7,5", "8,6"], "8,6": ["8,5", "9,6"], "8,7": ["8,8", "9,7"], "8,8": ["7,8", "8,7"], "9,0": ["10,0"], "9,1": ["9,2", "10,1"], "9,2": ["9,1", "9,3"], "9,3": ["8,3", "9,2"], "9,4": ["8,4", "9,5"], "9,5": ["9,4", "10,5"], "9,6": ["8,6", "10,6"], "9,7": ["8,7", "9,8"], "9,8": ["9,7", "10,8"], "10,0": ["9,0", "10,1"], "10,1": ["9,1", "10,0", "10,2"], "10,2": ["10,1", "10,3"], "10,3": ["10,2", "10,4"], "10,4": ["10,3"], "10,5": ["9,5", "10,6"], "10,6": ["9,6", "10,5", "10,7"], "10,7": ["10,6", "10,8"], "10,8": ["9,8", "10,7"]}, "path": [[0, 0], [1, 0], [2, 0], [3, 0], [3, 1], [4, 1], [4, 0], [5, 0], [5, 1], [6, 1], [6, 0], [7, 0], [8, 0], [8, 1], [8, 2], [7, 2], [7, 3], [7, 4], [6, 4], [6, 3], [6, 2], [5, 2], [4, 2], [4, 3], [3, 3], [3, 4], [2, 4], [2, 5], [2, 6], [3, 6], [3, 5], [4, 5], [5, 5], [6, 5], [7, 5], [8, 5], [8, 6], [9, 6], [10, 6], [10, 7], [10, 8]], "exit": "E", "corners": [{"l": "7 × 8", "r": "56", "w": [{"h": "54", "e": "Gairebé: 54 és 6 × 9."}, {"h": "63", "e": "63 és 7 × 9, una columna més enllà."}, {"h": "15", "e": "Has sumat 7 + 8. És una multiplicació."}], "steps": ["Busco a la taula la fila del 7 i la columna del 8.", "On es creuen hi ha el 56: <span class=\"m\">7 × 8 = 56</span>."], "prop": "Taula de multiplicar", "n": 1, "cell": [4, 1]}, {"l": "63 : 7", "r": "9", "w": [{"h": "8", "e": "Comprova-ho al revés: 7 × 8 = 56, i no 63."}, {"h": "56", "e": "Has restat 63 − 7. Dividir és repartir."}, {"h": "70", "e": "Has sumat 63 + 7. Dividir és repartir."}], "steps": ["Ho penso al revés: <span class=\"m\">7 × ? = 63</span>.", "A la fila del 7, el 63 és a la columna del 9.", "Per tant, <span class=\"m\">63 : 7 = 9</span>."], "prop": "Dividir és multiplicar al revés", "n": 2, "cell": [8, 0]}, {"l": "<sup>1</sup>⁄<sub>6</sub> de 42", "r": "7", "w": [{"h": "6", "e": "El 6 és el denominador: diu en quants muntets partim, no quant n'hi ha a cada un."}, {"h": "36", "e": "Has restat 42 − 6. Cal repartir el 42 en 6 muntets."}, {"h": "48", "e": "Has sumat 42 + 6. Cal repartir el 42 en 6 muntets."}], "steps": ["<span class=\"m\"><sup>1</sup>⁄<sub>6</sub> de 42</span> vol dir partir el 42 en 6 muntets iguals.", "<span class=\"m\">42 : 6 = 7</span>, perquè <span class=\"m\">6 × 7 = 42</span>.", "Cada muntet és un sisè: <span class=\"m\"><sup>1</sup>⁄<sub>6</sub> de 42 = 7</span>."], "prop": "Un muntet", "n": 3, "cell": [6, 2]}, {"l": "<sup>3</sup>⁄<sub>4</sub> de 24", "r": "18", "w": [{"h": "6", "e": "Això és només un muntet, un quart. N'agafem 3."}, {"h": "32", "e": "Has fet 24 : 3 × 4. El denominador és el 4: partim en 4 muntets."}, {"h": "27", "e": "Has sumat 24 + 3. Cal partir i després multiplicar."}], "steps": ["Parteixo el 24 en 4 muntets: <span class=\"m\">24 : 4 = 6</span>.", "N'agafo 3: <span class=\"m\">3 × 6 = 18</span>."], "prop": "Diversos muntets", "n": 4, "cell": [2, 6]}, {"l": "<sup>2</sup>⁄<sub>7</sub> + <sup>3</sup>⁄<sub>7</sub>", "r": "<sup>5</sup>⁄<sub>7</sub>", "w": [{"h": "<sup>5</sup>⁄<sub>14</sub>", "e": "El denominador no se suma: es queda 7."}, {"h": "<sup>6</sup>⁄<sub>7</sub>", "e": "Has multiplicat 2 × 3. Els numeradors se sumen."}, {"h": "<sup>1</sup>⁄<sub>7</sub>", "e": "Has restat. És una suma."}], "steps": ["Les dues fraccions tenen el mateix denominador, 7.", "Sumo només els numeradors: 2 + 3 = 5. Queda <span class=\"m\"><sup>5</sup>⁄<sub>7</sub></span>."], "prop": "Mateix denominador", "n": 5, "cell": [8, 5]}], "doors": [{"n": "P1", "l": "56 : 7 = 8", "r": "7 × 8 = 56", "kind": "divisió→multiplicació", "w": [{"h": "56 × 7 = 8", "e": "La multiplicació ha de donar el número gran: 7 × 8 = 56."}, {"h": "8 : 7 = 56", "e": "Has girat la divisió, però no l'has passat a multiplicació."}, {"h": "7 + 8 = 56", "e": "Dividir és multiplicar al revés, no sumar."}], "steps": ["Per invertir el sortilegi passo la divisió a multiplicació.", "Si <span class=\"m\">56 : 7 = 8</span>, aleshores <span class=\"m\">7 × 8 = 56</span>."], "cell": [7, 3], "to": [7, 4]}, {"n": "P2", "l": "<sup>1</sup>⁄<sub>9</sub> de 54", "r": "54 : 9", "kind": "fracció→divisió", "w": [{"h": "54 : 1", "e": "El denominador, 9, diu en quants muntets partim: es divideix entre 9."}, {"h": "54 × 9", "e": "Un muntet és més petit que el total: es divideix, no es multiplica."}, {"h": "9 : 54", "e": "És al revés: el total, 54, es reparteix en 9 muntets."}], "steps": ["Per invertir el sortilegi escric la fracció com a divisió.", "<span class=\"m\"><sup>1</sup>⁄<sub>9</sub> de 54</span> vol dir repartir 54 en 9 muntets: <span class=\"m\">54 : 9</span>."], "cell": [4, 5], "to": [5, 5]}], "decoys": [{"cell": [5, 3], "l": "9 × 6"}, {"cell": [10, 4], "l": "8 × 4"}, {"cell": [2, 7], "l": "36 : 4"}, {"cell": [9, 0], "l": "<sup>1</sup>⁄<sub>2</sub> de 10"}, {"cell": [7, 1], "l": "6 × 7"}, {"cell": [3, 2], "l": "45 : 5"}, {"cell": [7, 7], "l": "<sup>2</sup>⁄<sub>3</sub> de 9"}, {"cell": [0, 8], "l": "5 × 8"}], "riddles": [[0, 0], [0, 0], [0, 0]]};
+</script>
+<script>
+/* ======================= DADES ======================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const KEY='illa-muntets-v1';
+const isArtifact=!!(window.claude&&window.claude.use);
+const W=DATA.W,H=DATA.H,M=2,TS=16,TW=2*W+1+2*M,TH=2*H+1+2*M;
+const K=c=>c[0]+','+c[1];
+const ADJ={};for(const k in DATA.adj)ADJ[k]=DATA.adj[k];
+const cornerAt={},doorCellAt={},doorEdge={},decoyAt={};
+DATA.corners.forEach((c,i)=>cornerAt[K(c.cell)]=i);
+DATA.doors.forEach((d,i)=>{doorCellAt[K(d.cell)]=i;doorEdge[K(d.cell)+'|'+K(d.to)]=i;doorEdge[K(d.to)+'|'+K(d.cell)]=i});
+DATA.decoys.forEach((d,i)=>decoyAt[K(d.cell)]=i);
+const LAST=[W-1,H-1];
+const GTYPES=['skull','parrot','crab','ghost'];
+const GNAMES={skull:'la Calavera Cantaire',parrot:'el Lloro Calculador',crab:'el Cranc Repartidor',ghost:'el Fantasma Fraccionari'};
+const GCOL={skull:'#f3eed8',parrot:'#8fe388',crab:'#ff8f7a',ghost:'#a9d8ff'};
+const gtype=i=>GTYPES[i%4];
+const INTRO={
+  skull:["Alto, grumet! Els ossos em diuen que no passaràs sense calcular això:","Ningú no passa per davant de la Calavera Cantaire sense resoldre això:"],
+  parrot:["Rrrrrr! Calcula! Calcula! Rrrr:","Rrrrr! Una galeta per a qui calculi això, rrrr:"],
+  crab:["Clac, clac! Aquest passadís és meu. Calcula això i potser t'hi deixo passar:","Clac! Camines de cara com els humans. Calcula això:"],
+  ghost:["Uuuuh... fa tres-cents anys que ningú no calcula bé això:","Uuuuh... resol això o vagaràs per la jungla com jo:"]};
+const MOCK={skull:"Ha, ha! Fas més pena que un vaixell sense veles.",parrot:"Rrrr! Malament! Malament!",crab:"Clac! Això és més tort que jo caminant.",ghost:"Uuuuh... quin error tan espantós."};
+const OKS={skull:"Grrr... Correcte. Passa, passa.",parrot:"Rrrr! Correcte! Correcte!",crab:"Clac... Està bé. M'aparto de costat, com sempre.",ghost:"Uuuuh... per fi algú ho encerta. Ja puc descansar."};
+const PROPCARD={'Taula de multiplicar':['taula'],'Dividir és multiplicar al revés':['reves','taula'],'Un muntet':['muntet','reves'],'Diversos muntets':['muntets','muntet'],'Mateix denominador':['denom']};
+const ITEMS={
+  mapa:{n:"Mapa de l'illa",tool:1,desc:"Un mapa de l'illa amb tot el laberint dibuixat."},
+  pergami:{n:'Pergamí',tool:1,desc:"El pergamí on apuntes tots els reptes."},
+  taula:{n:'Taula de multiplicar',f:'fila × columna: 7 × 8 = 56'},
+  reves:{n:'Al revés',f:'63 : 7 = 9 ⇄ 7 × 9 = 63'},
+  partir:{n:'Partir el número',f:'84 : 7 = 70 : 7 + 14 : 7'},
+  muntet:{n:'Un muntet',f:'<sup>1</sup>⁄<sub>7</sub> de 63 = 63 : 7 = 9'},
+  muntets:{n:'Diversos muntets',f:'<sup>3</sup>⁄<sub>7</sub> de 63 = 3 × 9 = 27'},
+  denom:{n:'Mateix denominador',f:'<sup>2</sup>⁄<sub>7</sub> + <sup>3</sup>⁄<sub>7</sub> = <sup>5</sup>⁄<sub>7</sub>'},
+  ampl:{n:'Amplificar',f:'<sup>1</sup>⁄<sub>4</sub> = <sup>2</sup>⁄<sub>8</sub> (× 2 dalt i baix)'},
+  destroy:{n:'—',f:''}};
+const INV0=['mapa','pergami','taula','reves','partir','muntet','muntets','denom','ampl'];
+
+/* ---------- enigmes de l'Esfinx ---------- */
+const RID=[
+ [{t:`84 : 7`,prop:"Enunciat"},
+  {t:`70 : 7 + 14 : 7`,prop:"Partir el número: dos trossos de la fila del 7",w:[`80 : 7 + 4 : 7`,`60 : 7 + 24 : 7`],ex:"84 = 70 + 14, i tant el 70 com el 14 són a la fila del 7: són fàcils de dividir."},
+  {t:`10 + 2`,prop:"Divideixo cada tros: 70 : 7 = 10 i 14 : 7 = 2",w:[`10 + 7`,`1 + 2`],ex:"70 : 7 = 10, perquè 7 × 10 = 70. I 14 : 7 = 2, perquè 7 × 2 = 14."},
+  {t:`12`,prop:"Sumo els dos resultats",w:[`102`,`8`],ex:"10 + 2 = 12. Ho comprovo al revés: 7 × 12 = 84."}],
+ [{t:`<sup>3</sup>⁄<sub>5</sub> de 40`,prop:"Enunciat"},
+  {t:`40 : 5 × 3`,prop:"Fracció d'una quantitat: divideixo pel denominador i multiplico pel numerador",w:[`40 : 3 × 5`,`40 × 5 : 3`],ex:"Parteixo el 40 en 5 muntets (el denominador) i n'agafo 3 (el numerador)."},
+  {t:`8 × 3`,prop:"Un muntet: 40 : 5 = 8, perquè 5 × 8 = 40",w:[`7 × 3`,`35 × 3`],ex:"40 : 5 = 8. Cada muntet en té 8."},
+  {t:`24`,prop:"Diversos muntets: 8 × 3 = 24",w:[`11`,`83`],ex:"Tres muntets de 8: 8 × 3 = 24."}],
+ [{t:`<sup>1</sup>⁄<sub>4</sub> + <sup>3</sup>⁄<sub>8</sub>`,prop:"Enunciat"},
+  {t:`<sup>2</sup>⁄<sub>8</sub> + <sup>3</sup>⁄<sub>8</sub>`,prop:"Amplifico: multiplico dalt i baix per 2",w:[`<sup>1</sup>⁄<sub>8</sub> + <sup>3</sup>⁄<sub>8</sub>`,`<sup>2</sup>⁄<sub>4</sub> + <sup>3</sup>⁄<sub>8</sub>`],ex:"Per sumar cal el mateix denominador. 1/4 = 2/8: multiplico dalt i baix per 2."},
+  {t:`<sup>5</sup>⁄<sub>8</sub>`,prop:"Mateix denominador: sumo només els numeradors",w:[`<sup>5</sup>⁄<sub>16</sub>`,`<sup>4</sup>⁄<sub>12</sub>`],ex:"2/8 + 3/8 = 5/8. El denominador es queda 8."}]];
+const MAXPTS=DATA.corners.length+DATA.doors.length+RID.reduce((s,ch)=>s+ch.length-1,0);
+/* ---------- versions de reptes: A (original), B i C (fixes) i reptes nous aleatoris ---------- */
+const FRc=(n,d)=>`<sup>${n}</sup>⁄<sub>${d}</sub>`,MMc=x=>`<span class="m">${x}</span>`,gcdc=(a,b)=>b?gcdc(b,a%b):a;
+const UN={3:'un terç',4:'un quart',5:'un cinquè',6:'un sisè',7:'un setè',8:'un vuitè',9:'un novè'},NUMW={2:'Dos',3:'Tres',4:'Quatre',5:'Cinc',6:'Sis',7:'Set'};
+const BASE={corners:DATA.corners.map(c=>({l:c.l,r:c.r,w:c.w,steps:c.steps,prop:c.prop})),doors:DATA.doors.map(d=>({l:d.l,r:d.r,w:d.w,steps:d.steps})),rid:JSON.parse(JSON.stringify(RID))};
+const VSEED={B:20261,C:47113};
+const verName=v=>typeof v==='number'?`Reptes nous #${v}`:`Versió ${v||'A'}`;
+const VS=()=>typeof S.ver==='number'?S.ver%997:({A:0,B:77,C:191}[S.ver]||0);
+function genSet(seed){const R=rng(seed),ri=(a,b)=>a+Math.floor(R()*(b-a+1));
+  const pick=f=>{for(let k=0;k<500;k++){const v=f();if(v)return v}throw new Error('gen')};
+  const uniq=(r,ws)=>new Set([r,...ws.map(w=>w.h)]).size===ws.length+1;
+  const corners=[],doors=[],rid=[],used=new Set();
+  const fresh=k=>{if(used.has(k))return false;used.add(k);return true};
+  corners.push(pick(()=>{const a=ri(3,9),b=ri(4,9);if(a===b||!fresh('m'+a*b))return null;const r=a*b;
+    const w=[{h:String(a*(b-1)),e:`Gairebé: ${a*(b-1)} és ${a} × ${b-1}, una columna abans.`},{h:String(a*(b+1)),e:`${a*(b+1)} és ${a} × ${b+1}, una columna més enllà.`},{h:String(a+b),e:`Has sumat ${a} + ${b}. És una multiplicació.`}];
+    if(!uniq(String(r),w))return null;
+    return{l:`${a} × ${b}`,r:String(r),w,steps:[`Busco a la taula la fila del ${a} i la columna del ${b}.`,`On es creuen hi ha el ${r}: ${MMc(`${a} × ${b} = ${r}`)}.`],prop:'Taula de multiplicar'}}));
+  corners.push(pick(()=>{const a=ri(3,9),b=ri(4,9);if(a===b||!fresh('m'+a*b))return null;const p=a*b;
+    const w=[{h:String(b-1),e:`Comprova-ho al revés: ${a} × ${b-1} = ${a*(b-1)}, i no ${p}.`},{h:String(p-a),e:`Has restat ${p} − ${a}. Dividir és repartir.`},{h:String(p+a),e:`Has sumat ${p} + ${a}. Dividir és repartir.`}];
+    if(!uniq(String(b),w))return null;
+    return{l:`${p} : ${a}`,r:String(b),w,steps:[`Ho penso al revés: ${MMc(`${a} × ? = ${p}`)}.`,`A la fila del ${a}, el ${p} és a la columna del ${b}.`,`Per tant, ${MMc(`${p} : ${a} = ${b}`)}.`],prop:'Dividir és multiplicar al revés'}}));
+  corners.push(pick(()=>{const d=ri(3,9),k=ri(3,9);if(d===k||!fresh('m'+d*k))return null;const N=d*k;
+    const w=[{h:String(d),e:`El ${d} és el denominador: diu en quants muntets partim, no quant n'hi ha a cada un.`},{h:String(N-d),e:`Has restat ${N} − ${d}. Cal repartir el ${N} en ${d} muntets.`},{h:String(N+d),e:`Has sumat ${N} + ${d}. Cal repartir el ${N} en ${d} muntets.`}];
+    if(!uniq(String(k),w))return null;
+    return{l:`${FRc(1,d)} de ${N}`,r:String(k),w,steps:[`${MMc(FRc(1,d)+' de '+N)} vol dir partir el ${N} en ${d} muntets iguals.`,`${MMc(`${N} : ${d} = ${k}`)}, perquè ${MMc(`${d} × ${k} = ${N}`)}.`,`Cada muntet és ${UN[d]}: ${MMc(`${FRc(1,d)} de ${N} = ${k}`)}.`],prop:'Un muntet'}}));
+  corners.push(pick(()=>{const d=ri(3,8),k=ri(3,9),n=ri(2,d-1);if(gcdc(n,d)!==1)return null;const N=d*k,r=n*k;if(!fresh('m'+N))return null;
+    const w=[{h:String(k),e:`Això és només un muntet, ${UN[d]}. N'agafem ${n}.`},{h:String(N+n),e:`Has sumat ${N} + ${n}. Cal partir i després multiplicar.`},{h:String(N*n),e:`Has fet ${N} × ${n} sense partir. Primer cal partir el ${N} en ${d} muntets.`}];
+    if(!uniq(String(r),w))return null;
+    return{l:`${FRc(n,d)} de ${N}`,r:String(r),w,steps:[`Parteixo el ${N} en ${d} muntets: ${MMc(`${N} : ${d} = ${k}`)}.`,`N'agafo ${n}: ${MMc(`${n} × ${k} = ${r}`)}.`],prop:'Diversos muntets'}}));
+  corners.push(pick(()=>{const d=ri(5,9),a=ri(1,d-2),b=ri(1,d-1-a);if(a===b||a*b===a+b||gcdc(a+b,d)!==1)return null;const s=a+b;
+    const w=[{h:FRc(s,2*d),e:`El denominador no se suma: es queda ${d}.`},{h:FRc(a*b,d),e:`Has multiplicat ${a} × ${b}. Els numeradors se sumen.`},{h:FRc(Math.abs(a-b),d),e:'Has restat. És una suma.'}];
+    if(!uniq(FRc(s,d),w))return null;
+    return{l:`${FRc(a,d)} + ${FRc(b,d)}`,r:FRc(s,d),w,steps:[`Les dues fraccions tenen el mateix denominador, ${d}.`,`Sumo només els numeradors: ${a} + ${b} = ${s}. Queda ${MMc(FRc(s,d))}.`],prop:'Mateix denominador'}}));
+  doors.push(pick(()=>{const a=ri(3,9),b=ri(4,9);if(a===b||!fresh('m'+a*b))return null;const p=a*b;
+    return{l:`${p} : ${a} = ${b}`,r:`${a} × ${b} = ${p}`,w:[{h:`${p} × ${a} = ${b}`,e:`La multiplicació ha de donar el número gran: ${a} × ${b} = ${p}.`},{h:`${b} : ${a} = ${p}`,e:"Has girat la divisió, però no l'has passat a multiplicació."},{h:`${a} + ${b} = ${p}`,e:'Dividir és multiplicar al revés, no sumar.'}],
+      steps:['Per invertir el sortilegi passo la divisió a multiplicació.',`Si ${MMc(`${p} : ${a} = ${b}`)}, aleshores ${MMc(`${a} × ${b} = ${p}`)}.`]}}));
+  doors.push(pick(()=>{const d=ri(3,9),k=ri(3,9);if(d===k||!fresh('m'+d*k))return null;const N=d*k;
+    return{l:`${FRc(1,d)} de ${N}`,r:`${N} : ${d}`,w:[{h:`${N} : 1`,e:`El denominador, ${d}, diu en quants muntets partim: es divideix entre ${d}.`},{h:`${N} × ${d}`,e:'Un muntet és més petit que el total: es divideix, no es multiplica.'},{h:`${d} : ${N}`,e:`És al revés: el total, ${N}, es reparteix en ${d} muntets.`}],
+      steps:['Per invertir el sortilegi escric la fracció com a divisió.',`${MMc(FRc(1,d)+' de '+N)} vol dir repartir ${N} en ${d} muntets: ${MMc(`${N} : ${d}`)}.`]}}));
+  rid.push(pick(()=>{const a=ri(3,8),q=ri(12,16),N=a*q,u=q-10,rest=a*u,ok=`${a*10} : ${a} + ${rest} : ${a}`;
+    let w1=`${Math.floor(N/10)*10} : ${a} + ${N%10} : ${a}`;if(w1===ok||N%10===0)w1=`${N-10} : ${a} + 10 : ${a}`;
+    const w2=`${a*10-10} : ${a} + ${N-(a*10-10)} : ${a}`,s2w=[`10 + ${rest}`,`1 + ${u}`],s3w=[`10${u}`,String(10-u)];
+    if(new Set([ok,w1,w2]).size<3||new Set([`10 + ${u}`,...s2w]).size<3||new Set([String(q),...s3w]).size<3)return null;
+    return[{t:`${N} : ${a}`,prop:'Enunciat'},
+      {t:ok,prop:`Partir el número: dos trossos de la fila del ${a}`,w:[w1,w2],ex:`${N} = ${a*10} + ${rest}, i tant el ${a*10} com el ${rest} són a la fila del ${a}: són fàcils de dividir.`},
+      {t:`10 + ${u}`,prop:`Divideixo cada tros: ${a*10} : ${a} = 10 i ${rest} : ${a} = ${u}`,w:s2w,ex:`${a*10} : ${a} = 10, perquè ${a} × 10 = ${a*10}. I ${rest} : ${a} = ${u}, perquè ${a} × ${u} = ${rest}.`},
+      {t:String(q),prop:'Sumo els dos resultats',w:s3w,ex:`10 + ${u} = ${q}. Ho comprovo al revés: ${a} × ${q} = ${N}.`}]}));
+  rid.push(pick(()=>{const d=ri(3,8),k=ri(4,9),n=ri(2,d-1);if(k===n||gcdc(n,d)!==1)return null;const N=d*k,r=n*k;
+    const w1=[`${N} : ${n} × ${d}`,`${N} × ${d} : ${n}`],w2=[`${k-1} × ${n}`,`${N-d} × ${n}`],w3=[String(k+n),`${k}${n}`];
+    if(new Set([String(r),...w3]).size<3||new Set([`${k} × ${n}`,...w2]).size<3)return null;
+    return[{t:`${FRc(n,d)} de ${N}`,prop:'Enunciat'},
+      {t:`${N} : ${d} × ${n}`,prop:"Fracció d'una quantitat: divideixo pel denominador i multiplico pel numerador",w:w1,ex:`Parteixo el ${N} en ${d} muntets (el denominador) i n'agafo ${n} (el numerador).`},
+      {t:`${k} × ${n}`,prop:`Un muntet: ${N} : ${d} = ${k}, perquè ${d} × ${k} = ${N}`,w:w2,ex:`${N} : ${d} = ${k}. Cada muntet en té ${k}.`},
+      {t:String(r),prop:`Diversos muntets: ${k} × ${n} = ${r}`,w:w3,ex:`${NUMW[n]} muntets de ${k}: ${k} × ${n} = ${r}.`}]}));
+  rid.push(pick(()=>{const a=ri(2,5),m=ri(2,3),b=a*m;if(b>12)return null;const c=ri(1,b-1),top=m+c;if(top>=b||gcdc(top,b)!==1||gcdc(c,b)!==1)return null;
+    const w1=[`${FRc(1,b)} + ${FRc(c,b)}`,`${FRc(m,a)} + ${FRc(c,b)}`],w2=[FRc(top,2*b),FRc(1+c,a+b)];
+    if(new Set([FRc(top,b),...w2]).size<3)return null;
+    return[{t:`${FRc(1,a)} + ${FRc(c,b)}`,prop:'Enunciat'},
+      {t:`${FRc(m,b)} + ${FRc(c,b)}`,prop:`Amplifico: multiplico dalt i baix per ${m}`,w:w1,ex:`Per sumar cal el mateix denominador. 1/${a} = ${m}/${b}: multiplico dalt i baix per ${m}.`},
+      {t:FRc(top,b),prop:'Mateix denominador: sumo només els numeradors',w:w2,ex:`${m}/${b} + ${c}/${b} = ${top}/${b}. El denominador es queda ${b}.`}]}));
+  return{corners,doors,rid}}
+function applySet(v){const set=(!v||v==='A')?BASE:genSet(typeof v==='number'?v:VSEED[v]);
+  set.corners.forEach((c,i)=>Object.assign(DATA.corners[i],JSON.parse(JSON.stringify(c))));set.doors.forEach((d,i)=>Object.assign(DATA.doors[i],JSON.parse(JSON.stringify(d))));
+  RID.splice(0,RID.length,...JSON.parse(JSON.stringify(set.rid)))}
+function freshGame(){applySet(S.ver);for(const k in GONE)delete GONE[k];walk=[];walkGoal=null;encounter=false;resume=null;curDoor=null;save();startGame()}
+
+/* ======================= ESTAT ======================= */
+let S=null;
+const blank=()=>({tries:[],status:'pending',pts:0});
+function newState(name,group){return{name,group,start:new Date().toISOString(),cell:[0,0],face:1,
+  c:DATA.corners.map(blank),d:DATA.doors.map(blank),r:RID.map(ch=>ch.slice(1).map(blank)),rk:0,ri:1,
+  phase:'map',seen:{},inv:INV0.slice(),introDone:false,sphinxIntro:false,end:null}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){return null}}
+function totals(){let p=0;S.c.forEach(x=>p+=x.pts);S.d.forEach(x=>p+=x.pts);S.r.forEach(r=>r.forEach(x=>p+=x.pts));return p}
+const fmt=x=>String(Math.round(x*10)/10).replace('.',',');
+const cornerDone=i=>S.c[i].status!=='pending', doorDone=i=>S.d[i].status!=='pending';
+const rng=seed=>{let a=seed|0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}};
+const shuffle=(arr,seed)=>{const r=rng(seed),x=arr.slice();for(let i=x.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[x[i],x[j]]=[x[j],x[i]]}return x};
+
+/* ======================= SPRITES (pixel art propi) ======================= */
+const SPR={
+ pau:{p:{R:'#c8322b',r:'#8e1f1a',S:'#f0c08a',K:'#1a1a1a',W:'#e8e4d8',B:'#2f4f8a',T:'#6b4423',O:'#3a2414',Y:'#f2c14e'},
+  f:[["................",".....RRRRRR.....","....RRRRRRRRr...","....KSSSSSSK.rr.","....SSKSSKSS....","....SSSSSSSSY...",".....SSSSSS.....","......SSSS......","....WBBWWBBW....","...SWBBWWBBWS...","...SWBBWWBBWS...","....WWWWWWWW....",".....TTTTTT.....",".....TT..TT.....",".....TT..TT.....","....OOO..OOO...."],
+     ["................",".....RRRRRR.....","....RRRRRRRRr...","....KSSSSSSK.rr.","....SSKSSKSS....","....SSSSSSSSY...",".....SSSSSS.....","......SSSS......","....WBBWWBBW....","...SWBBWWBBWS...","...SWBBWWBBWS...","....WWWWWWWW....",".....TTTTTT.....",".....TT..TT.....","....TT....TT....","...OOO....OOO..."]]},
+ skull:{p:{H:'#1a1a22',h:'#c8322b',W:'#f3eed8',K:'#1a1a1a'},
+  f:[["................","....HHHHHHHH....","...HHHHHHHHHH...","..HHhhhhhhhhHH..","....WWWWWWWW....","....WKKWWKKW....","....WWWWWWWW....",".....WKWKWKW....","......WWWW......","....W..WW..W....","...W.WWWWWW.W...","......W..W......","......WWWW......",".....W....W.....",".....W....W.....","....WW....WW...."]]},
+ parrot:{p:{R:'#d8352b',G:'#3fa34d',g:'#2a7a38',B:'#2f6fd0',Y:'#f2c14e',K:'#1a1a1a',P:'#6b4423'},
+  f:[["................","......RRRR......",".....RRRRRR.....",".....RKRRRRYY...",".....RRRRRRYY...","......RRRR......",".....GGGGGG.....","....GGGGGGGG....","....GgBBGGGG....","....GgBBBGGG....",".....gBBBGG.....","......GGGG......","......YY.YY.....","..PPPPPPPPPPPP..","......P....P....","......P....P...."]]},
+ crab:{p:{C:'#e0533a',c:'#a8341f',W:'#ffffff',K:'#1a1a1a'},
+  f:[["................","................","..CC........CC..",".CCC........CCC.",".CC..W....W..CC.","..C..K....K..C..","...C.C....C.C...","....CCCCCCCC....","...CCCCCCCCCC...","..CCCCCCCCCCCC..","..CCCcCCCCcCCC..","...CCCCCCCCCC...","..C.C.C..C.C.C..",".C..C..CC..C..C.","................","................"]]},
+ ghost:{p:{L:'#bfe3ff',l:'#8cc1ea',K:'#1b2a4a'},
+  f:[["................","......LLLL......","....LLLLLLLL....","...LLLLLLLLLL...","...LLKKLLKKLL...","...LLKKLLKKLL...","...LLLLLLLLLL...","...LLLLKKLLLL...","...LLLLKKLLLL...","...LLLLLLLLLL...","..LLLLLLLLLLLL..","..LlLLLLLLLLlL..","..LLLLLLLLLLLL..","..LL.LLL.LLL.L..","..L...L...L.....","................"]]},
+ scarab:{p:{k:'#2a1a0a',H:'#1e4f6b',S:'#2f7fa8',s:'#7fd0ea',L:'#f2c14e'},f:[["k.........k",".k..HHH..k.","..kHHHHHk..","...LLLLL...","kkSSsLSSSkk","..SsSLSSS..","kkSsSLSSSkk","..SSSLSSS..","kkSSSLSSSkk","...SSLSS...","....SSS...."]]},
+ sphinx:{p:{Y:'#e8b74a',B:'#2b5ea8',s:'#d9a066',K:'#1a1a1a',m:'#7a4a2a',L:'#c9a26b',l:'#a07a45',P:'#6b6170',E:'#b583ff'},
+  f:[["......YBYBYBYB......",".....YBYBYBYBYB.....","....YBYBYBYBYBYB....","....YYssssssssYY....","....BYsKKssKKsYB....","....YYssssssssYY....","....BYsssmmsssYB....",".....YYssssssYY.....","......BYssssYB......","....LLLLLLLLLLLL....","...LLLLLLLLLLLLLL...","..LLLLLLLLLLLLLLLL..","..LLLLLLLLLLLLLLLL..","..LLlLLLLLLLLLLlLL..","..LLlLL......LLlLL..",".PPPPPPPPPPPPPPPPPP."]]}
+};
+const HEAD={pau:8,skull:9,parrot:6,crab:7,ghost:10,sphinx:9};
+function drawSpr(g,name,x,y,{frame=0,flip=false,scale=1,alpha=1,talk=false}={}){const s=SPR[name],f=s.f[frame%s.f.length],hd=talk&&Math.floor(performance.now()/150)%2?HEAD[name]||0:0;g.save();g.globalAlpha=alpha;
+  for(let r=0;r<f.length;r++)for(let c=0;c<f[r].length;c++){const ch=(flip?f[r][f[r].length-1-c]:f[r][c]);if(ch==='.')continue;g.fillStyle=s.p[ch];g.fillRect(Math.round(x+c*scale),Math.round(y+r*scale-(r<hd?scale:0)),scale,scale)}g.restore()}
+
+/* ======================= MÓN ======================= */
+const cellTile=c=>[M+2*c[0]+1,M+2*c[1]+1];
+const tt=[...Array(TH)].map(()=>Array(TW).fill(2));   // 0 jungla · 1 camí · 2 mar · 3 moll · 4 temple · 5 porta del temple · 6 sorra
+for(let y=M;y<M+2*H+1;y++)for(let x=M;x<M+2*W+1;x++)tt[y][x]=0;
+
+for(const k in ADJ){const [cx,cy]=k.split(',').map(Number);const [tx,ty]=cellTile([cx,cy]);tt[ty][tx]=1;
+  for(const n of ADJ[k]){const [nx,ny]=n.split(',').map(Number);const [ux,uy]=cellTile([nx,ny]);tt[(ty+uy)/2][(tx+ux)/2]=1}}
+const ENT=cellTile([0,0]);tt[ENT[1]][M]=1;for(let x=0;x<M;x++)tt[ENT[1]][x]=3;
+const EXT=cellTile(LAST);tt[EXT[1]][M+2*W]=1;for(let x=M+2*W+1;x<TW;x++)for(let y=EXT[1]-1;y<=EXT[1]+1;y++)if(y>=0&&y<TH)tt[y][x]=4;tt[EXT[1]][TW-1]=5;tt[EXT[1]][TW-2]=5;
+function noise(x,y,s){const v=Math.sin(x*12.9898+y*78.233+s*37.7)*43758.5453;return v-Math.floor(v)}
+let BG=null;
+function prerender(){BG=document.createElement('canvas');BG.width=TW*TS;BG.height=TH*TS;const g=BG.getContext('2d');
+  for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){const t=tt[y][x],X=x*TS,Y=y*TS;
+    if(t===2){g.fillStyle='#163a5c';g.fillRect(X,Y,TS,TS);g.fillStyle='#1d4a73';for(let i=0;i<3;i++)g.fillRect(X+Math.floor(noise(x,y,i)*12),Y+Math.floor(noise(x,y,i+5)*14),4,1)}
+    else if(t===6){g.fillStyle='#c9a46a';g.fillRect(X,Y,TS,TS);g.fillStyle='#b38f58';for(let i=0;i<5;i++)g.fillRect(X+Math.floor(noise(x,y,i)*15),Y+Math.floor(noise(x,y,i+7)*15),1,1)}
+    else if(t===1){g.fillStyle='#b8925c';g.fillRect(X,Y,TS,TS);g.fillStyle='#a6804c';for(let i=0;i<6;i++)g.fillRect(X+Math.floor(noise(x,y,i)*15),Y+Math.floor(noise(x,y,i+3)*15),1,1);g.fillStyle='#cfa86f';g.fillRect(X+Math.floor(noise(x,y,9)*13),Y+Math.floor(noise(x,y,8)*13),2,1)}
+    else if(t===3){g.fillStyle='#163a5c';g.fillRect(X,Y,TS,TS);g.fillStyle='#7a5530';g.fillRect(X,Y+3,TS,10);g.fillStyle='#5c3e22';for(let i=0;i<4;i++)g.fillRect(X+i*4,Y+3,1,10);g.fillStyle='#3d2914';g.fillRect(X+2,Y+13,2,3);g.fillRect(X+12,Y+13,2,3)}
+    else if(t===4){g.fillStyle='#6b6170';g.fillRect(X,Y,TS,TS);g.fillStyle='#857a8b';g.fillRect(X,Y,TS,1);g.fillRect(X,Y+8,TS,1);g.fillStyle='#4f4756';g.fillRect(X+(y%2?4:10),Y,1,8);g.fillRect(X+(y%2?12:2),Y+8,1,8)}
+    else if(t===5){g.fillStyle='#6b6170';g.fillRect(X,Y,TS,TS);g.fillStyle='#120f18';g.fillRect(X+2,Y+2,TS-2,TS-4)}
+    else{g.fillStyle='#14301f';g.fillRect(X,Y,TS,TS);
+      for(let i=0;i<7;i++){const lx=X+Math.floor(noise(x,y,i)*13),ly=Y+Math.floor(noise(x,y,i+11)*13);g.fillStyle=noise(x,y,i+20)>.5?'#245a35':'#1d4a2c';g.fillRect(lx,ly,4,3);g.fillStyle='#3c8a4c';g.fillRect(lx+1,ly,2,1)}
+      if(noise(x,y,40)>.86){g.fillStyle='#5a3d22';g.fillRect(X+7,Y+6,2,10);g.fillStyle='#2f7a3c';g.fillRect(X+2,Y+3,12,3);g.fillRect(X+4,Y+1,8,2);g.fillStyle='#4aa35a';g.fillRect(X+3,Y+3,4,1);g.fillRect(X+9,Y+3,4,1)}}}
+  // barca
+  const bx=0,by=ENT[1]*TS;g.fillStyle='#5c3e22';g.fillRect(bx+2,by+9,20,5);g.fillStyle='#7a5530';g.fillRect(bx+4,by+8,16,2);g.fillStyle='#e8e4d8';g.fillRect(bx+10,by-8,2,16);g.fillRect(bx+12,by-6,7,9)}
+const bossX=(TW-1)*TS;
+
+/* ======================= ESCENA / CÀMERA ======================= */
+const cv=$('#cv'),ctx=cv.getContext('2d');ctx.imageSmoothingEnabled=false;
+const VW=cv.width,VH=cv.height;
+let cam=0,P={x:0,y:0},walk=[],walkT=0,frameN=0,parts=[],busy=false,verb='walk',selItem=null,shake=0;
+function cellPx(c){const t=cellTile(c);return[t[0]*TS,t[1]*TS]}
+function placePlayer(){const [x,y]=cellPx(S.cell);P.x=x;P.y=y}
+function guardOffset(i){const c=DATA.corners[i].cell,k=K(c);const dirs=[[0,-1],[1,0],[0,1],[-1,0]];
+  for(const [dx,dy] of dirs){const n=K([c[0]+dx,c[1]+dy]);if(!(ADJ[k]||[]).includes(n))return[dx*6,dy*6]}return[5,-5]}
+function lightCanvas(){if(!lightCanvas.c){lightCanvas.c=document.createElement('canvas');lightCanvas.c.width=VW;lightCanvas.c.height=VH}return lightCanvas.c}
+function frame(ts){requestAnimationFrame(frame);if($('#v-game').hidden||!S)return;frameN++;
+  if(S.phase==='sphinx'){drawSphinx(ts);drawMarker();return}
+  if(!BG)prerender();
+  stepWalk();
+  const target=Math.max(0,Math.min(TH*TS-VH,P.y+8-VH/2));cam+=(target-cam)*.15;if(Math.abs(target-cam)<.5)cam=target;
+  ctx.save();ctx.clearRect(0,0,VW,VH);if(shake>0){ctx.translate(Math.round((Math.random()-.5)*4),0);shake--}
+  ctx.translate(0,-Math.round(cam));
+  ctx.drawImage(BG,0,0);
+  // ones
+  for(let y=Math.floor(cam/TS);y<Math.min(TH,Math.ceil((cam+VH)/TS)+1);y++)for(let x=0;x<TW;x++){if(tt[y][x]!==2)continue;if(noise(x,y,Math.floor(ts/600))>.9){ctx.fillStyle='#4f86b8';ctx.fillRect(x*TS+4,y*TS+8,6,1)}}
+  // inscripcions de passadissos sense sortida
+  DATA.decoys.forEach(d=>{const [x,y]=cellPx(d.cell);ctx.fillStyle='#e9dcbc';ctx.fillRect(x+4,y+9,8,5);ctx.fillStyle='#b9a77c';ctx.fillRect(x+3,y+9,1,5);ctx.fillRect(x+12,y+9,1,5)});
+  // portes encantades
+  DATA.doors.forEach((d,i)=>{const a=cellTile(d.cell),b=cellTile(d.to),X=(a[0]+b[0])/2*TS,Y=(a[1]+b[1])/2*TS;
+    if(doorDone(i)){ctx.fillStyle=`rgba(181,131,255,${.35+.2*Math.sin(ts/400)})`;ctx.fillRect(X+5,Y+5,6,6)}
+    else{ctx.fillStyle='#4a2a12';ctx.fillRect(X+1,Y+1,14,14);ctx.fillStyle='#6b3f1c';for(let j=0;j<3;j++)ctx.fillRect(X+2+j*5,Y+2,4,12);
+      const a2=.6+.4*Math.sin(ts/300+i);ctx.fillStyle=`rgba(190,140,255,${a2})`;ctx.fillRect(X+7,Y+3,2,10);ctx.fillRect(X+4,Y+7,8,2);ctx.fillRect(X+5,Y+5,1,1);ctx.fillRect(X+10,Y+10,1,1)}});
+  // torxes del temple
+  for(const dy of [-1,1]){const tx=(TW-3)*TS+6,ty=(EXT[1]+dy)*TS+2;ctx.fillStyle='#5a3d22';ctx.fillRect(tx+1,ty+6,2,7);const f=Math.floor(ts/120)%2;ctx.fillStyle='#ff8a3d';ctx.fillRect(tx,ty+2+f,4,4);ctx.fillStyle='#ffd54a';ctx.fillRect(tx+1,ty+3+f,2,2)}
+  // guardians
+  const bob=Math.round(Math.sin(ts/300));
+  DATA.corners.forEach((c,i)=>{const [x,y]=cellPx(c.cell),t=gtype(i);
+    if(cornerDone(i))drawGone(i,t,x,y)
+    else drawSpr(ctx,t,x,y+(t==='ghost'?bob:0),{alpha:t==='ghost'?.85:1,flip:P.x<x,talk:isTalking(i)})});
+  // aura del protagonista quan té una acció
+  if(encounter){const ax=P.x+8,ay=P.y+6,pu=.5+.5*Math.sin(ts/220),g=ctx.createRadialGradient(ax,ay,2,ax,ay,24+5*pu);
+    g.addColorStop(0,'rgba(255,240,150,.85)');g.addColorStop(.5,'rgba(255,205,80,.4)');g.addColorStop(1,'rgba(255,205,80,0)');ctx.fillStyle=g;ctx.fillRect(ax-32,ay-32,64,64);
+    ctx.strokeStyle=`rgba(255,226,120,${.5+.4*pu})`;ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(ax,ay+9,11+2*pu,4+pu,0,0,Math.PI*2);ctx.stroke();
+    for(let k=0;k<6;k++){const an=ts/480+k*Math.PI/3,r=16+2*pu;ctx.fillStyle=k%2?'#fff6c0':'#ffd54a';ctx.fillRect(Math.round(ax+Math.cos(an)*r),Math.round(ay+Math.sin(an)*r*.75),2,2)}}
+  // jugador
+  const moving=walk.length>0;drawSpr(ctx,'pau',P.x,P.y-2,{frame:moving?Math.floor(ts/140)%2:0,flip:S.face<0,talk:isTalking('pau')});
+  // partícules
+  parts=parts.filter(p=>p.l-->0);for(const p of parts){p.x+=p.vx;p.y+=p.vy;ctx.fillStyle=p.c;ctx.fillRect(Math.round(p.x),Math.round(p.y),2,2)}
+  ctx.restore();
+  drawMarker()}
+
+/* ---------- caminar ---------- */
+function neighbors(k){return ADJ[k]||[]}
+function bfs(a,b){const A=K(a),B=K(b);const prev={[A]:null},q=[A];while(q.length){const c=q.shift();if(c===B)break;for(const n of neighbors(c))if(!(n in prev)){prev[n]=c;q.push(n)}}
+  if(!(B in prev))return null;const p=[];let c=B;while(c!==A){p.push(c);c=prev[c]}return p.reverse().map(s=>s.split(',').map(Number))}
+let walkGoal=null;
+function walkTo(cell,goal){if(busy)return;const p=bfs(S.cell,cell);if(!p)return;walk=p;walkGoal=goal||null;if(!p.length)arrive()}
+function stepWalk(){if(!walk.length)return;const nxt=walk[0],[tx,ty]=cellPx(nxt);
+  if(walkT===0){// abans d'entrar a la casella següent: obstacles
+    const from=K(S.cell),to=K(nxt);
+    if(doorEdge[from+'|'+to]!=null&&!doorDone(doorEdge[from+'|'+to])){resume={cell:walk[walk.length-1],goal:walkGoal};walk=[];walkGoal=null;openDoor(doorEdge[from+'|'+to]);return}
+    if(cornerAt[to]!=null&&!cornerDone(cornerAt[to])){resume={cell:walk[walk.length-1],goal:walkGoal};walk=[];walkGoal=null;S.face=Math.sign(nxt[0]-S.cell[0])||S.face;openDuel(cornerAt[to]);return}}
+  const dx=tx-P.x,dy=ty-P.y,d=Math.hypot(dx,dy),sp=2.2;if(dx)S.face=Math.sign(dx);
+  if(d<=sp){P.x=tx;P.y=ty;S.cell=nxt;walk.shift();walkT=0;onEnter(nxt);if(!walk.length)arrive();return}
+  P.x+=dx/d*sp;P.y+=dy/d*sp;walkT=1}
+function onEnter(c){const k=K(c);S.seen[k]=1;if(decoyAt[k]!=null&&!S.seen['d'+k]){S.seen['d'+k]=1;const d=DATA.decoys[decoyAt[k]];sayPau(`Una inscripció vella: <span class="m">${d.l}</span>. Ningú no la vigila… deu ser un passadís sense sortida.`)}save()}
+function arrive(){const g=walkGoal;walkGoal=null;if(!g)return;
+  if(g.type==='exit'){if(K(S.cell)===K(LAST))enterTemple()}
+  else if(g.type==='talk'){if(!cornerDone(g.i))openDuel(g.i)}
+  else if(g.type==='door'){if(!doorDone(g.i))openDoor(g.i)}}
+
+/* ---------- quadre de diàleg ---------- */
+const WHO={pau:{n:'Pau Tramuntana',s:'pau',c:'#1f3f7a'},door:{n:'Porta encantada',s:'door',c:'#5a2a9a'},sph:{n:"L'Esfinx",s:'sphinx',c:'#8a4a00'}};
+const GINK={skull:'#3a3328',parrot:'#1f6b2a',crab:'#a3321f',ghost:'#2a5a8a'};
+function whoInfo(w){if(typeof w==='number'){const t=gtype(w);return{n:cap(GNAMES[t]),s:t,c:GINK[t]}}return WHO[w]}
+let speaker=null,curDoor=null,TALKMS=600;
+const FAST=/[?&]fast/.test(location.search);if(FAST)TALKMS=40;
+const RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+const wait=ms=>new Promise(r=>setTimeout(r,FAST?Math.min(ms,30):ms));
+let encounter=false,resume=null,focusing=false;
+function flip(el,change){const a=el.getBoundingClientRect();change();const b=el.getBoundingClientRect();
+  if(FAST||RM||!el.animate||!b.width||!b.height)return Promise.resolve();
+  const an=el.animate([{transformOrigin:'0 0',transform:`translate(${a.left-b.left}px,${a.top-b.top}px) scale(${a.width/b.width},${a.height/b.height})`},{transformOrigin:'0 0',transform:'none'}],{duration:600,easing:'cubic-bezier(.25,.8,.25,1)'});
+  return an.finished.catch(()=>{})}
+function layoutFull(){const vw=innerWidth,vh=innerHeight;let w=Math.min(vw*.8,vh*.8*VW/VH),h=w*VH/VW;
+  const band=Math.round(Math.max(24,Math.min(56,w*.05)));
+  if(w+2*band>vw-8){w=vw-8-2*band;h=w*VH/VW}if(h+2*band>vh-8){h=vh-8-2*band;w=h*VW/VH}
+  const L=(vw-w)/2,T=(vh-h)/2;Object.assign(cv.style,{position:'absolute',left:L+'px',top:T+'px',width:w+'px',height:h+'px'});
+  const f=$('#cenefa'),u=band/16;f.width=Math.round((w+2*band)/u);f.height=Math.round((h+2*band)/u);
+  Object.assign(f.style,{left:(L-band)+'px',top:(T-band)+'px',width:(w+2*band)+'px',height:(h+2*band)+'px'});drawCenefa(f,S.phase==='sphinx'?'temple':'pirate')}
+function unlayoutFull(){['position','left','top','width','height'].forEach(p=>cv.style[p]='')}
+addEventListener('resize',()=>{if($('#screen').classList.contains('full'))layoutFull()});
+function flipCv(change){const a=cv.getBoundingClientRect();change();const b=cv.getBoundingClientRect();
+  if(FAST||RM||!cv.animate||!b.width)return Promise.resolve();
+  return cv.animate([{transformOrigin:'0 0',transform:`translate(${a.left-b.left}px,${a.top-b.top}px) scale(${a.width/b.width})`},{transformOrigin:'0 0',transform:'none'}],{duration:600,easing:'cubic-bezier(.25,.8,.25,1)'}).finished.catch(()=>{})}
+/* cenefa: motius pirates (laberint) o de tresors i temples antics (esfinx) */
+const CEN={
+ skull:{p:{W:'#f3eed8',B:'#cfc6aa',K:'#1a1a1a'},f:[["BB........BB","BBB.WWWW.BBB","..BWWWWWWB..","..WWWWWWWW..","..WKKWWKKW..","..WKKWWKKW..","..WWWKKWWW..","...WWWWWW...","...WKWKWW...","BBB.WWWW.BBB","BB........BB","............"]]},
+ anchor:{p:{A:'#cfd8e0',a:'#7d8a96'},f:[[".....AA.....","....A..A....",".....AA.....","...AAAAAA...",".....AA.....",".....AA.....",".....aA.....","A....aA....A","AA...aA...AA",".AA..aA..AA.","..AAAAAAAA..","....aaaa...."]]},
+ wave:{p:{C:'#d6f0ff',c:'#5fa3d0'},f:[["............","....CCCC....","...C....C...","..C..cc..C..","..C.c..c.C..","...c...C....","..c..CC.....","CCc.C...CCC.","c..C...C...C","..c...C..c..","cc...c..c...","............"]]},
+ ankh:{p:{Y:'#f2c14e',y:'#a5781c'},f:[["....YYYY....","...Y....Y...","...Y....y...","...Y....y...","....Y..y....","YYYYYYYYYYYY","yyyyyYYyyyyy",".....YY.....",".....YY.....",".....Yy.....",".....Yy.....","....yyyy...."]]}};
+function cenSpr(g,name,x,y){const s=CEN[name],f=s.f[0];for(let r=0;r<f.length;r++)for(let c=0;c<f[r].length;c++){const ch=f[r][c];if(ch==='.')continue;g.fillStyle=s.p[ch];g.fillRect(x+c,y+r,1,1)}}
+function motif(g,theme,i,x,y){const L=theme==='pirate'?['skull','anchor','wheel','wave']:['scarab','coin','ankh','gem'],n=L[((i%4)+4)%4];
+  if(CEN[n])return cenSpr(g,n,x,y);
+  if(n==='scarab')return drawSpr(g,'scarab',x,y);
+  if(n==='wheel'){g.strokeStyle='#c8883a';g.lineWidth=1;for(let k=0;k<8;k++){const a=k*Math.PI/4;g.beginPath();g.moveTo(x+6,y+6);g.lineTo(x+6+Math.cos(a)*6,y+6+Math.sin(a)*6);g.stroke()}
+    g.strokeStyle='#e2a95a';g.lineWidth=1.4;g.beginPath();g.arc(x+6,y+6,3.6,0,Math.PI*2);g.stroke();g.fillStyle='#6b4423';g.fillRect(x+5,y+5,2,2);return}
+  if(n==='coin'){g.fillStyle='#a5781c';g.beginPath();g.arc(x+6,y+6,5.6,0,Math.PI*2);g.fill();g.fillStyle='#f2c14e';g.beginPath();g.arc(x+6,y+6,4.4,0,Math.PI*2);g.fill();g.fillStyle='#fff1a8';g.fillRect(x+4,y+3,2,1);g.fillStyle='#a5781c';g.fillRect(x+5,y+5,2,3);return}
+  if(n==='gem'){g.fillStyle='#8b1e2e';g.beginPath();g.moveTo(x+6,y+1);g.lineTo(x+11,y+6);g.lineTo(x+6,y+11);g.lineTo(x+1,y+6);g.closePath();g.fill();g.fillStyle='#e0455a';g.beginPath();g.moveTo(x+6,y+2);g.lineTo(x+10,y+6);g.lineTo(x+6,y+6);g.lineTo(x+2,y+6);g.closePath();g.fill();g.fillStyle='#ffd0d8';g.fillRect(x+5,y+3,1,2)}}
+function corner(g,theme,x,y){if(theme==='pirate'){g.fillStyle='#0d2740';g.fillRect(x,y,16,16);g.fillStyle='#f3eed8';g.beginPath();g.moveTo(x+8,y+1);g.lineTo(x+10,y+8);g.lineTo(x+8,y+15);g.lineTo(x+6,y+8);g.closePath();g.fill();
+    g.fillStyle='#c8322b';g.beginPath();g.moveTo(x+1,y+8);g.lineTo(x+8,y+6);g.lineTo(x+15,y+8);g.lineTo(x+8,y+10);g.closePath();g.fill();g.fillStyle='#f2c14e';g.fillRect(x+7,y+7,2,2)}
+  else{g.fillStyle='#2a1c0c';g.fillRect(x,y,16,16);g.fillStyle='#f2c14e';g.beginPath();g.arc(x+8,y+8,5,0,Math.PI*2);g.fill();g.strokeStyle='#f2c14e';g.lineWidth=1;for(let k=0;k<8;k++){const a=k*Math.PI/4;g.beginPath();g.moveTo(x+8+Math.cos(a)*6,y+8+Math.sin(a)*6);g.lineTo(x+8+Math.cos(a)*7.6,y+8+Math.sin(a)*7.6);g.stroke()}
+    g.fillStyle='#2b5ea8';g.fillRect(x+7,y+6,2,4)}}
+function drawCenefa(f,theme){const g=f.getContext('2d'),W=f.width,H=f.height,B=16;g.imageSmoothingEnabled=false;g.clearRect(0,0,W,H);
+  const band=c=>{g.fillStyle=c;g.fillRect(0,0,W,B);g.fillRect(0,H-B,W,B);g.fillRect(0,0,B,H);g.fillRect(W-B,0,B,H)};
+  if(theme==='pirate'){band('#163a5a');
+    for(let x=0;x<W;x++)for(let y=0;y<H;y++){if(x>=B&&x<W-B&&y>=B&&y<H-B){y=H-B-1;continue}if(noise(x,y,5)>.93){g.fillStyle='#24557f';g.fillRect(x,y,2,1)}}
+    const rope=o=>{for(let x=o;x<W-o;x++){g.fillStyle=((x+o)%4<2)?'#e2c27a':'#8a6a3a';g.fillRect(x,o,1,2);g.fillRect(x,H-o-2,1,2)}for(let y=o;y<H-o;y++){g.fillStyle=((y+o)%4<2)?'#e2c27a':'#8a6a3a';g.fillRect(o,y,2,1);g.fillRect(W-o-2,y,2,1)}};
+    rope(0);rope(B-2)}
+  else{band('#4a3418');
+    for(let x=0;x<W;x+=6){g.fillStyle='#7a5a28';g.fillRect(x,3,4,1);g.fillRect(x,12,4,1);g.fillRect(x,H-4,4,1);g.fillRect(x,H-13,4,1)}
+    for(let y=0;y<H;y+=6){g.fillStyle='#7a5a28';g.fillRect(3,y,1,4);g.fillRect(12,y,1,4);g.fillRect(W-4,y,1,4);g.fillRect(W-13,y,1,4)}
+    const gold=o=>{g.fillStyle='#f2c14e';g.fillRect(o,o,W-2*o,1);g.fillRect(o,H-o-1,W-2*o,1);g.fillRect(o,o,1,H-2*o);g.fillRect(W-o-1,o,1,H-2*o)};gold(0);gold(1);gold(B-1);g.fillStyle='#a5781c';g.fillRect(B-2,B-2,W-2*B+4,1);g.fillRect(B-2,H-B+1,W-2*B+4,1);g.fillRect(B-2,B-2,1,H-2*B+4);g.fillRect(W-B+1,B-2,1,H-2*B+4)}
+  const SP=22,nx=Math.max(1,Math.floor((W-2*B)/SP)),ox=B+((W-2*B)-nx*SP)/2+SP/2;
+  for(let i=0;i<nx;i++){const cx=Math.round(ox+i*SP)-6;motif(g,theme,i,cx,2);motif(g,theme,i+2,cx,H-14)}
+  const ny=Math.max(1,Math.floor((H-2*B)/SP)),oy=B+((H-2*B)-ny*SP)/2+SP/2;
+  for(let i=0;i<ny;i++){const cy=Math.round(oy+i*SP)-6;motif(g,theme,i+1,2,cy);motif(g,theme,i+3,W-14,cy)}
+  corner(g,theme,0,0);corner(g,theme,W-16,0);corner(g,theme,0,H-16);corner(g,theme,W-16,H-16)}
+function partBoxes(w){if(S.phase==='sphinx'){const sp=[SPH.x,SPH.y+OY-6,80,70],pa=[SPAU.x,SPAU.y+OY-6,32,38];return{spk:w==='sph'?sp:pa,all:[sp,pa]}}
+  const pau=[P.x,P.y-cam-14,16,30];let o=pau;
+  if(typeof w==='number'){const [x,y]=cellPx(DATA.corners[w].cell);o=[x,y-cam-4,16,20]}
+  else if(w==='door'&&curDoor!=null)o=[doorX(curDoor)-8,doorY(curDoor)-cam-8,16,16];
+  return{spk:o,all:[pau,o]}}
+function showBalloon(w,html){const sc=$('#screen');const b=document.createElement('div');b.className='balloon';b.id='balloon';
+  b.innerHTML=`<span class="who">${esc(whoInfo(w).n)}</span><div>${html}</div><span class="hint">Toca la pantalla per contestar ▸</span>`;sc.appendChild(b);
+  const r=cv.getBoundingClientRect(),k=r.width/VW,vw=innerWidth,vh=innerHeight,pb=partBoxes(w);
+  const toS=([x,y,ww,hh])=>[r.left+x*k,r.top+y*k,r.left+(x+ww)*k,r.top+(y+hh)*k],bx=pb.all.map(toS);
+  const U=[Math.min(...bx.map(q=>q[0])),Math.min(...bx.map(q=>q[1])),Math.max(...bx.map(q=>q[2])),Math.max(...bx.map(q=>q[3]))];
+  const sp=toS(pb.spk),spx=(sp[0]+sp[2])/2,bw=b.offsetWidth,bh=b.offsetHeight,GAP=44,M=10,up=U[1]-M,dn=vh-U[3]-M;
+  const fitsUp=bh+GAP<=up,fitsDn=bh+GAP<=dn,above=fitsUp&&fitsDn?up>=dn:fitsUp?true:fitsDn?false:up>=dn;
+  const top=Math.max(M,Math.min(vh-bh-M,above?U[1]-GAP-bh:U[3]+GAP)),cx=((U[0]+U[2])/2+spx)/2,left=Math.max(M,Math.min(vw-bw-M,cx-bw/2));
+  b.style.left=left+'px';b.style.top=top+'px';
+  const tail=document.createElementNS('http://www.w3.org/2000/svg','svg');tail.setAttribute('viewBox','0 0 38 30');tail.classList.add('tail');
+  const tx=Math.max(34,Math.min(bw-34,spx-left));tail.style.left=tx+'px';
+  if(above){tail.style.bottom='-27px';tail.innerHTML='<path d="M4 0 L19 28 L34 0"/>'}else{tail.style.top='-27px';tail.innerHTML='<path d="M4 30 L19 2 L34 30"/>'}
+  b.style.transformOrigin=`${tx}px ${above?'100%':'0'}`;b.appendChild(tail);return b}
+function waitDismiss(ms){return new Promise(res=>{let done=false;const sc=$('#screen');const fin=()=>{if(done)return;done=true;sc.removeEventListener('pointerdown',fin);document.removeEventListener('keydown',kd);clearTimeout(tm);res()};
+  const kd=e=>{if([' ','Enter','Escape','ArrowRight'].includes(e.key)){e.preventDefault();fin()}};
+  const tm=setTimeout(fin,FAST?30:ms);setTimeout(()=>{sc.addEventListener('pointerdown',fin);document.addEventListener('keydown',kd)},FAST?0:250)})}
+async function focusChallenge(w,html){focusing=true;const sc=$('#screen'),db=$('.dbox'),stg=$('.stage');$('#panel').innerHTML='<div class="dialog"><span class="note">…</span></div>';sentence('');
+  try{db.classList.add('rolled');await wait(480);stg.classList.add('retract');await wait(380);
+    await flipCv(()=>{sc.classList.add('full');layoutFull()});
+    const b=showBalloon(w,html),txt=b.textContent.length;speaking={w,until:Infinity};await waitDismiss(Math.max(5000,2600+70*txt));speaking=null;
+    b.remove();await wait(150);
+    await flipCv(()=>{sc.classList.remove('full');unlayoutFull()});
+    stg.classList.remove('retract');await wait(380);db.classList.remove('rolled');await wait(350)}
+  finally{sc.classList.remove('full');unlayoutFull();stg.classList.remove('retract');db.classList.remove('rolled');const bb=$('#balloon');if(bb)bb.remove();focusing=false}}
+function talkSlow(lines,done){busy=true;$('#panel').innerHTML='<div class="dialog"><span class="note">…</span></div>';sentence('');let k=0;
+  const nx=()=>{if(k<lines.length){const [w,h]=lines[k++];say(w,h);setTimeout(nx,FAST?20:Math.max(1800,45*h.replace(/<[^>]+>/g,'').length))}else if(done)done()};nx()}
+function portrait(w){const c=$('#pcv'),g=c.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,24,24);const inf=whoInfo(w);
+  if(inf.s==='door'){g.fillStyle='#4a2a12';g.fillRect(4,3,16,19);g.fillStyle='#6b3f1c';for(let j=0;j<3;j++)g.fillRect(5+j*5,4,4,17);g.fillStyle='#be8cff';g.fillRect(11,6,2,12);g.fillRect(7,11,10,2)}
+  else if(inf.s==='sphinx')drawSpr(g,'sphinx',2,5);else drawSpr(g,inf.s,4,5);
+  $('#dname').textContent=inf.n}
+function logLine(w,html,q){const inf=whoInfo(w),d=document.createElement('p');d.className=q?'dl q':'dl';d.innerHTML=`<b style="color:${inf.c}">${esc(inf.n)}:</b> ${html}`;const L=$('#dlog');L.appendChild(d);while(L.children.length>80)L.firstChild.remove();L.scrollTop=L.scrollHeight}
+function logSep(t){const d=document.createElement('p');d.className='dsep';d.textContent='— '+t+' —';$('#dlog').appendChild(d)}
+let speaking=null;const isTalking=w=>!!speaking&&speaking.w===w&&performance.now()<speaking.until;
+function say(w,html,q){portrait(w);logLine(w,html,q);speaker={w};speaking={w,until:performance.now()+Math.max(900,Math.min(4000,String(html).replace(/<[^>]+>/g,'').length*40))}}
+const sayPau=html=>say('pau',html);
+function talk(lines,done){busy=true;$('#panel').innerHTML='<div class="dialog"><span class="note">…</span></div>';sentence('');let k=0;
+  const nx=()=>{if(k<lines.length){const [w,h]=lines[k++];say(w,h);setTimeout(nx,TALKMS)}else if(done)done()};nx()}
+const doorX=i=>{const d=DATA.doors[i],a=cellTile(d.cell),b=cellTile(d.to);return(a[0]+b[0])/2*TS+8};
+const doorY=i=>{const d=DATA.doors[i],a=cellTile(d.cell),b=cellTile(d.to);return(a[1]+b[1])/2*TS+8};
+function speakerPos(){if(!speaker||!busy)return null;const w=speaker.w;
+  if(S.phase==='sphinx')return w==='sph'?[SPH.x+40,SPH.y-4+OY]:w==='pau'?[SPAU.x+16,SPAU.y-4+OY]:null;
+  if(w==='pau')return[P.x+8,P.y-cam-3];if(typeof w==='number'){const [x,y]=cellPx(DATA.corners[w].cell);return[x+8,y-cam-2]}
+  if(w==='door'&&curDoor!=null)return[doorX(curDoor),doorY(curDoor)-cam-9];return null}
+function drawMarker(){return;const p=speakerPos();if(!p)return;const [x,y]=p,b=Math.floor(performance.now()/300)%3;
+  ctx.fillStyle='#ffffff';ctx.fillRect(x-6,y-10,13,7);ctx.fillRect(x-1,y-3,2,2);ctx.fillStyle='#1a1a1a';for(let k=0;k<=b;k++)ctx.fillRect(x-4+k*4,y-7,2,1)}
+
+/* ======================= INTERFÍCIE ======================= */
+const VERBS=[['look','Mira'],['walk','Camina a'],['talk','Parla amb'],['use','Usa']];
+function hud(){const done=S.c.filter(x=>x.status!=='pending').length,dd=S.d.filter(x=>x.status!=='pending').length;
+  $('#hudtop').innerHTML=`<span>★ ${fmt(totals())}/${MAXPTS}</span><span>☠ ${done}/${DATA.corners.length}</span><span>✦ ${dd}/${DATA.doors.length}</span>${S.phase==='sphinx'?`<span>Segells ${S.r.filter(r=>r.every(x=>x.status!=='pending')).length}/3</span>`:''}`}
+function sentence(t){$('#sentence').innerHTML=t||'&nbsp;'}
+function baseSentence(){const v=VERBS.find(v=>v[0]===verb)[1];return verb==='use'&&selItem?`Usa ${ITEMS[selItem].n} amb`:v}
+function panelVerbs(){busy=false;const p=$('#panel');
+  p.innerHTML=`<div class="verbs">${VERBS.map(([id,n])=>`<button class="verb" data-v="${id}" aria-pressed="${verb===id}">${n}</button>`).join('')}</div>
+  <div class="inv">${S.inv.map(id=>`<button class="item${ITEMS[id].tool?' tool':''}${id==='destroy'&&!S.seen.destroyNew?' new':''}" data-i="${id}" aria-pressed="${selItem===id}">${ITEMS[id].n}</button>`).join('')}</div>`;
+  p.querySelectorAll('.verb').forEach(b=>b.onclick=()=>{verb=b.dataset.v;selItem=null;panelVerbs();sentence(baseSentence())});
+  p.querySelectorAll('.item').forEach(b=>b.onclick=()=>itemClick(b.dataset.i));
+  sentence(baseSentence());hud()}
+function itemClick(id){if(id==='destroy')S.seen.destroyNew=1;
+  if(verb==='use'){if(id==='mapa'){openMap();return}if(id==='pergami'){openLog();return}selItem=id;panelVerbs();return}
+  if(id==='mapa'&&verb!=='look'){openMap();return}if(id==='pergami'&&verb!=='look'){openLog();return}
+  const it=ITEMS[id];sayPau(it.f?`${it.n}: <span class="m">${it.f}</span>`:it.desc,3600)}
+function options(list,onPick,extra){busy=true;const p=$('#panel');
+  p.innerHTML=(extra||'')+`<div class="dialog ${extra?'side':''}">${list.map((o,i)=>`<button class="opt${o.cont?' cont':''}" data-o="${i}">${o.html}</button>`).join('')}</div>`;
+  if(extra){const box=p.querySelector('.chainbox .side');const dl=p.querySelector('.dialog');box.appendChild(dl)}
+  p.querySelectorAll('.opt').forEach(b=>b.onclick=()=>onPick(+b.dataset.o));sentence('')}
+const cont=(html,fn)=>options([{html:html||'▸ Continua',cont:1}],fn);
+
+/* ---------- objectius de clic ---------- */
+function hitAt(ev){const r=cv.getBoundingClientRect(),x=(ev.clientX-r.left)/r.width*VW,y=(ev.clientY-r.top)/r.height*VH+cam;const tx=Math.floor(x/TS),ty=Math.floor(y/TS);
+  if(tx<0||ty<0||tx>=TW||ty>=TH)return null;const t=tt[ty][tx];
+  if(t===4||t===5)return{kind:'temple',name:"l'entrada del temple"};
+  if(t===2)return{kind:'sea',name:'el mar'};if(t===3)return{kind:'pier',name:'el moll'};if(t===6)return{kind:'sand',name:'la platja'};
+  if(t===0)return{kind:'jungle',name:'la jungla'};
+  const cx=Math.round((tx-M-1)/2),cy=Math.round((ty-M-1)/2);
+  if((tx-M)%2===1&&(ty-M)%2===1){const k=K([cx,cy]);
+    if(cornerAt[k]!=null&&!cornerDone(cornerAt[k])){const i=cornerAt[k];return{kind:'guard',i,cell:[cx,cy],name:GNAMES[gtype(i)]+(cornerDone(i)?' (ja vençut)':'')}}
+    if(doorCellAt[k]!=null&&!doorDone(doorCellAt[k]))return{kind:'doorcell',i:doorCellAt[k],cell:[cx,cy],name:'l\'atzucac de la porta encantada'};
+    if(decoyAt[k]!=null)return{kind:'decoy',i:decoyAt[k],cell:[cx,cy],name:'una inscripció vella'};
+    if(tx===M+1&&ty===ENT[1]&&false)return null;
+    return{kind:'floor',cell:[cx,cy],name:'el camí'}}
+  // passadís entre caselles
+  const a=[Math.floor((tx-M-1)/2),Math.floor((ty-M-1)/2)],b=[Math.ceil((tx-M-1)/2),Math.ceil((ty-M-1)/2)];
+  const e=doorEdge[K(a)+'|'+K(b)];if(e!=null&&!doorDone(e))return{kind:'door',i:e,cell:DATA.doors[e].cell,name:'la porta encantada ✦'};
+  if(tx===M+2*W&&ty===EXT[1])return{kind:'temple',name:"l'entrada del temple"};
+  if(tx<=M)return{kind:'floor',cell:[0,0],name:'el camí'};
+  return{kind:'floor',cell:b[0]<W&&b[1]<H?b:a,name:'el camí'}}
+cv.addEventListener('mousemove',ev=>{if(busy||S.phase!=='map')return;const h=hitAt(ev);sentence(baseSentence()+(h?' '+h.name:''))});
+cv.addEventListener('click',ev=>{if(S.phase==='sphinx'||busy)return;const h=hitAt(ev);if(!h)return;act(h)});
+function act(h){
+  if(verb==='look'){const T={sea:"El mar del Carib. La barca m'espera al moll… però primer he de sortir del laberint.",pier:'El moll on he desembarcat.',sand:'Sorra blanca. Hi ha massa sorra en aquesta illa.',jungle:'Jungla espessa. No hi ha manera de passar-hi.',temple:"El temple de l'Esfinx. Diuen que és l'única sortida de l'illa.",floor:'Un camí de sorra entre la jungla.',
+      guard:h.i!=null?(cornerDone(h.i)?`${cap(GNAMES[gtype(h.i)])}. Ja l'he vençut.`:`${cap(GNAMES[gtype(h.i)])}. No em deixarà passar sense un repte.`):'',
+      door:"Una porta encantada amb un sortilegi. Hi ha una expressió gravada: si en vull sortir, l'hauré d'invertir.",doorcell:"Un atzucac… però a la paret hi ha una porta encantada.",decoy:h.i!=null?`Una inscripció: <span class="m">${DATA.decoys[h.i].l}</span>. No la vigila ningú.`:''};
+    sayPau(T[h.kind]||'No veig res d\'especial.');return}
+  if(verb==='talk'){if(h.kind==='guard'&&!cornerDone(h.i)){goNextTo(h.cell,{type:'talk',i:h.i});return}
+    sayPau(h.kind==='guard'?'Ja hem parlat prou.':h.kind==='door'||h.kind==='doorcell'?'Hola, porta. … No contesta.':"No crec que em contesti.");return}
+  if(verb==='use'){if(!selItem){sayPau('Què vols fer servir? Tria primer un objecte de l\'inventari.');return}
+    if(h.kind==='guard'&&!cornerDone(h.i)){const c=DATA.corners[h.i],good=(PROPCARD[c.prop]||[]).includes(selItem);
+      say(h.i,good?`Grrr… sí, amb la carta «${ITEMS[selItem].n}» te'n pots sortir.`:`Ha! La carta «${ITEMS[selItem].n}» no et servirà de res aquí.`);selItem=null;verb='walk';panelVerbs();return}
+    if(h.kind==='door'||h.kind==='doorcell'){const good=['reves','muntet'].includes(selItem);sayPau(good?`La porta brilla una mica amb ${ITEMS[selItem].n.toLowerCase()}. Vaig bé.`:'La porta no reacciona.');selItem=null;verb='walk';panelVerbs();return}
+    sayPau('Això no funciona.');selItem=null;verb='walk';panelVerbs();return}
+  // caminar
+  if(h.kind==='temple'){walkTo(LAST,{type:'exit'});return}
+  if(h.kind==='guard'){if(cornerDone(h.i))walkTo(h.cell);else goNextTo(h.cell,{type:'talk',i:h.i});return}
+  if(h.kind==='door'){walkTo(DATA.doors[h.i].cell,{type:'door',i:h.i});return}
+  if(h.cell)walkTo(h.cell);else sayPau('Per aquí no hi puc anar.')}
+function goNextTo(cell,goal){const p=bfs(S.cell,cell);if(!p)return;if(p.length<=1){walk=[];walkGoal=null;if(goal.type==='talk')openDuel(goal.i);return}walk=p.slice(0,-1);walkGoal=goal}
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+document.addEventListener('keydown',e=>{if(!S||S.phase!=='map'||busy||$('#v-game').hidden||!$('#modal').hidden)return;
+  const d={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]}[e.key];if(!d||walk.length)return;e.preventDefault();
+  const n=[S.cell[0]+d[0],S.cell[1]+d[1]];if(K(S.cell)===K(LAST)&&e.key==='ArrowRight'){enterTemple();return}
+  if(neighbors(K(S.cell)).includes(K(n)))walkTo(n)});
+
+/* ======================= DUELS DELS GUARDIANS ======================= */
+const DEMANA={skull:"Ah, sí? Demostra-ho, grumet.",parrot:"Rrrr! Explica! Explica!",crab:"Clac! I com hi arribes, eh?",ghost:"Uuuuh… explica-m'ho a poc a poc…"};
+const wErr=(list,pick)=>{const w=list.find(x=>x.h===pick);return w?w.e:''};
+const rate=st=>{st.status=st.tries.length===1?'ok1':'ok2';st.pts=st.tries.length===1?1:.5};
+function openDuel(i){busy=true;encounter=true;walk=[];const c=DATA.corners[i],t=gtype(i),st=S.c[i];
+  const intro=`${INTRO[t][i%2]} <span class="m big">${c.l}</span>`;
+  const opts=shuffle([c.r,...c.w.map(w=>w.h)],1000+i+VS());
+  const ask=()=>{window.__ans={k:opts.indexOf(c.r)};options(opts.map(o=>({html:`És <span class="m">${o}</span>.`})).concat([{html:"Ara torno. (Me'n vaig)",cont:1}]),k=>{
+    if(k===opts.length){encounter=false;resume=null;sayPau("Millor que m'ho pensi una mica…");panelVerbs();return}
+    const pick=opts[k],ok=pick===c.r,said=['pau',`És <span class="m">${pick}</span>.`];st.tries.push({a:pick,ok});
+    if(ok){rate(st);save();talk([said,[i,DEMANA[t]],...c.steps.map(x=>['pau',x]),[i,`${OKS[t]} <i>(${c.prop})</i>`]],()=>{defeat(i);finishEncounter(GDUR[t]+150)})}
+    else if(st.tries.length>=2){st.status='fail';st.pts=0;shake=8;save();
+      talk([said,[i,`${MOCK[t]} ${wErr(c.w,pick)}`],[i,`La resposta era <span class="m">${c.r}</span>. Mira com es fa:`],...c.steps.map(x=>[i,x]),[i,'Passa, que em fas pena.']],()=>{defeat(i);finishEncounter(GDUR[t]+150)})}
+    else{shake=8;save();talk([said,[i,`${MOCK[t]} ${wErr(c.w,pick)}`],[i,`Pista: ${c.prop.toLowerCase()}. Torna-ho a provar.`]],ask)}})};
+  focusChallenge(i,intro).then(()=>{logSep(cap(GNAMES[t]));say(i,intro,1);ask();hud()})}
+function finishEncounter(delay){save();hud();encounter=false;const r=resume;resume=null;panelVerbs();
+  if(r&&r.cell)setTimeout(()=>{if(!busy&&!walk.length&&S.phase==='map')walkTo(r.cell,r.goal)},FAST?40:(delay||900))}
+/* ---------- portes encantades ---------- */
+const dsep=d=>d.l.includes('=')?'», <i>per tant</i>, «':' = ';
+function openDoor(i){busy=true;encounter=true;walk=[];curDoor=i;const d=DATA.doors[i],st=S.d[i],toMul=d.kind==='divisió→multiplicació';
+  const intro=`«Només passarà qui inverteixi el meu sortilegi.» <span class="m big">${d.l}</span> <i>(${toMul?'escriu-la com a multiplicació':'escriu-la com a divisió'})</i>`;
+  const opts=shuffle([d.r,...d.w.map(w=>w.h)],2000+i+VS());
+  const ask=()=>{window.__ans={k:opts.indexOf(d.r)};options(opts.map(o=>({html:`Pronuncia: «<span class="m">${d.l}</span>${dsep(d)}<span class="m">${o}</span>»`})).concat([{html:'Ara torno.',cont:1}]),k=>{
+    if(k===opts.length){encounter=false;resume=null;panelVerbs();return}
+    const pick=opts[k],ok=pick===d.r,said=['pau',`«<span class="m">${d.l}</span>${dsep(d)}<span class="m">${pick}</span>»!`];st.tries.push({a:pick,ok});
+    if(ok){rate(st);save();talk([said,...d.steps.map(x=>['pau',x]),['door',"✦ El sortilegi es trenca i la porta s'obre!"]],()=>{burstAt(doorX(i),doorY(i),'#b583ff');finishEncounter()})}
+    else if(st.tries.length>=2){st.status='fail';st.pts=0;shake=8;save();
+      talk([said,['door',`La porta no es mou. ${wErr(d.w,pick)}`],['door',`El sortilegi invers era <span class="m">${d.r}</span>.`],...d.steps.slice(1).map(x=>['door',x]),['door',"La porta s'obre de mala gana."]],finishEncounter)}
+    else{shake=8;save();talk([said,['door',`La porta no es mou. ${wErr(d.w,pick)}`],['door',`Pista: ${toMul?'dividir és multiplicar al revés: el divisor per el resultat dona el número gran':'el denominador diu entre quants muntets es reparteix el total'}.`]],ask)}})};
+  focusChallenge('door',intro).then(()=>{logSep(`Porta encantada ${d.n}`);say('door',intro,1);ask();hud()})}
+function burst(x,y,col){burstAt(x+8,y+8,col)}
+const GONE={},GDUR={ghost:1300,skull:1600,parrot:1800,crab:1500};
+function defeat(i){GONE[i]={t0:performance.now(),fx:0};const t=gtype(i),[x,y]=cellPx(DATA.corners[i].cell);
+  if(t==='parrot')for(let k=0;k<10;k++)parts.push({x:x+8,y:y+8,vx:(Math.random()-.5)*1.6,vy:-Math.random()*1.2,l:40+Math.random()*30,c:k%2?'#3fa34d':'#d8352b'})}
+const SEA={};
+function seaFor(i){if(SEA[i])return SEA[i];const [cx,cy]=cellTile(DATA.corners[i].cell);let best=null,bd=1e9;
+  for(let y=0;y<TH;y++)for(let x=0;x<TW;x++)if(tt[y][x]===2){const d=(x-cx)**2+(y-cy)**2;if(d<bd){bd=d;best=[x,y]}}return SEA[i]=[best[0]*TS,best[1]*TS]}
+function dustPile(x,y,k){if(k<=0)return;const w=Math.round(4+10*k),h=Math.max(1,Math.round(5*k));
+  for(let r=0;r<h;r++){const ww=Math.round(w*(1-r/(h+1)));ctx.fillStyle=r%2?'#d8cfb4':'#bfb497';ctx.fillRect(Math.round(x+8-ww/2),y+15-r,ww,1)}
+  if(k>=1){ctx.fillStyle='#f3eed8';ctx.fillRect(x+5,y+12,2,1);ctx.fillRect(x+9,y+13,1,1)}}
+function drawGone(i,t,x,y){const g=GONE[i];const k=g?Math.min(1,(performance.now()-g.t0)/GDUR[t]):1;
+  if(t==='skull'){if(k<1){const sink=Math.round(13*k*k),jit=k<.85?Math.round(Math.sin(performance.now()/30)):0;ctx.save();ctx.beginPath();ctx.rect(x-4,y-6,24,22-Math.round(6*k));ctx.clip();
+      drawSpr(ctx,'skull',x+jit,y+sink,{alpha:1-k*.5});ctx.restore();
+      if(Math.random()<.6)parts.push({x:x+3+Math.random()*10,y:y+4+sink+Math.random()*6,vx:(Math.random()-.5)*.6,vy:.4+Math.random()*.6,l:12+Math.random()*10,c:Math.random()<.5?'#e9e1c6':'#bfb497'})}
+    dustPile(x,y,k);return}
+  if(k>=1)return;
+  if(t==='ghost'){if(k<.4)drawSpr(ctx,'ghost',x,y-Math.round(k*12),{alpha:.85*(1-k/.4)});
+    for(let j=0;j<8;j++){const an=j/8*Math.PI*2+k,r=3+k*16,rad=4+k*5;ctx.fillStyle=`rgba(236,242,252,${.9*(1-k)})`;ctx.beginPath();ctx.arc(x+8+Math.cos(an)*r,y+8+Math.sin(an)*r*.55-k*10,rad,0,Math.PI*2);ctx.fill()}
+    ctx.fillStyle=`rgba(255,255,255,${.95*(1-k)})`;ctx.beginPath();ctx.arc(x+8,y+7-k*10,5+k*7,0,Math.PI*2);ctx.fill();return}
+  if(t==='parrot'){const px=x+k*k*260,py=y-k*170-Math.sin(k*18)*3,flap=Math.floor(performance.now()/90)%2;drawSpr(ctx,'parrot',px,py,{});
+    ctx.fillStyle='#3fa34d';if(flap)ctx.fillRect(px+3,py+5,3,3),ctx.fillRect(px+10,py+5,3,3);else ctx.fillRect(px+2,py+9,3,2),ctx.fillRect(px+11,py+9,3,2);return}
+  if(t==='crab'){const [sx,sy]=seaFor(i),px=x+(sx-x)*k,py=y+(sy-y)*k-Math.sin(Math.PI*k)*46;drawSpr(ctx,'crab',px,py,{flip:sx<x});
+    if(k>.92&&!g.fx){g.fx=1;for(let q=0;q<26;q++)parts.push({x:sx+8,y:sy+8,vx:(Math.random()-.5)*2.4,vy:-Math.random()*2.6,l:24+Math.random()*16,c:q%3?'#7fc4ee':'#ffffff'})}}}
+function burstAt(x,y,col){for(let i=0;i<30;i++)parts.push({x,y,vx:(Math.random()-.5)*2.6,vy:(Math.random()-.5)*2.6,l:30+Math.random()*20,c:col})}
+
+/* ======================= TEMPLE DE L'ESFINX ======================= */
+const SPAU={x:40,y:164};
+function enterTemple(){if(S.phase!=='map')return;S.phase='sphinx';walk=[];curDoor=null;save();hud();
+  if(!S.sphinxIntro)sphinxIntro();else riddleStep()}
+const SPH={x:104,y:132};
+const sphSay=(html,q)=>say('sph',html,q);
+function sphinxIntro(){busy=true;logSep("Temple de l'Esfinx");const seq=[
+  ()=>sphSay("Benvingut al meu temple, aprenent de pirata. La porta de la sortida té tres segells."),
+  ()=>sphSay("Cada segell és un càlcul. Has d'escriure'l al pergamí igualtat a igualtat i explicar-me cada pas."),
+  ()=>sphSay("Són pocs passos, però cal anar amb compte. Si dubtes, recorda les teves cartes: la taula, al revés, partir el número i els muntets.")];
+  let k=0;const next=()=>{if(k<seq.length){seq[k++]();setTimeout(next,FAST?20:4200)}else{S.sphinxIntro=true;save();riddleStep()}};$('#panel').innerHTML='<div class="dialog"><span class="note">…</span></div>';next()}
+function chainHTML(){const rk=S.rk,ch=RID[rk],st=S.r[rk];let h=`<h3>Pergamí · segell ${rk+1} de 3</h3><div class="cl"><span class="m">${ch[0].t}</span><i>enunciat</i></div>`;
+  for(let j=1;j<S.ri;j++){const s=st[j-1];if(s.status==='skip')continue;h+=`<div class="cl${s.viaAlt?' alt':''}"><span class="m">= ${ch[j].t}</span><i>${s.viaAlt?"Destruir l'arrel · drecera (−3 passos)":ch[j].prop}${s.status==='fail'?' · solució':''}</i></div>`}
+  return`<div class="chainbox"><div class="rollwrap"><div class="chain parch">${h}</div></div><div class="side"></div></div>`}
+function riddleStep(){busy=true;hud();const rk=S.rk;
+  if(rk>=RID.length){finale();return}
+  const ch=RID[rk],j=S.ri,a=0;
+  if(j>=ch.length){solvedRiddle();return}
+  if(j===1&&!S.seen['rid'+rk]){const q=`Segell ${rk+1}. Calcula pas a pas: <span class="m big">${ch[0].t}</span>`;encounter=true;focusChallenge('sph',q).then(()=>{S.seen['rid'+rk]=1;save();logSep(`Segell ${rk+1}`);sphSay(q,1);riddleStep()});return}
+  const step=ch[j],st=S.r[rk][j-1];
+  let opts=[{t:step.t,ok:1}].concat(step.w.map(w=>({t:w})));if(step.alt)opts.push({t:ch[step.alt].t,ok:1,alt:1});opts=shuffle(opts,3000+rk*50+j+VS());
+  window.__ans={k:opts.findIndex(o=>o.ok&&!o.alt),alt:opts.findIndex(o=>o.alt)};
+  options(opts.map(o=>({html:`= <span class="m">${o.t}</span>`})),k=>{const o=opts[k],said=['pau',`= <span class="m">${o.t}</span>`];st.tries.push({a:o.t,ok:!!o.ok});
+    if(o.ok&&o.alt){const pts=st.tries.length===1?1:.5,stat=st.tries.length===1?'ok1':'ok2';for(let q=j;q<step.alt;q++){S.r[rk][q-1].status='skip';S.r[rk][q-1].pts=pts}
+      const last=S.r[rk][step.alt-1];last.status=stat;last.pts=pts;last.viaAlt=true;last.tries=[{a:o.t,ok:true}];S.ri=step.alt+1;shake=6;save();
+      talk([said,['pau',`L'arrel quadrada i el quadrat són operacions oposades i es destrueixen: (√x)<sup>2</sup> = x. Per tant, x = ${a}<sup>2</sup>, sense passar per x<sup>1/2 · 2</sup> ni per x<sup>1</sup>.`],['sph',"Astut! Has destruït l'arrel amb el quadrat. T'estalvies tres passos."]],riddleStep);return}
+    if(o.ok){rate(st);S.ri++;save();talk([said,['pau',step.ex],['sph',`Correcte. <i>${step.prop}</i>.`]],riddleStep);return}
+    if(st.tries.length>=2){st.status='fail';st.pts=0;S.ri++;shake=8;save();talk([said,['sph',`No. La igualtat era <span class="m">= ${step.t}</span>.`],['sph',step.ex]],riddleStep);return}
+    shake=8;save();talk([said,['sph',`Aquesta igualtat no és certa, viatger. Pista: ${step.prop.split(':')[0].toLowerCase()}.`]],riddleStep)},chainHTML());
+  const side=$('#panel .chainbox .side');side.insertAdjacentHTML('afterbegin',`<p class="note">Tria la igualtat següent del pergamí:</p>`);const chn=$('#panel .chain');chn.scrollTop=chn.scrollHeight}
+function solvedRiddle(){const rk=S.rk,used=S.r[rk].some(x=>x.status==='skip'),lines=1+S.r[rk].filter(x=>x.status!=='skip').length;sealBreak(rk);
+  sphSay(`El segell ${rk+1} es trenca! Pergamí de ${lines} línies.`);
+  S.rk++;S.ri=1;save();hud();setTimeout(riddleStep,FAST?30:1800)}
+function sealBreak(k){const [x,y]=sealXY(k);for(let i=0;i<40;i++)parts.push({x,y,vx:(Math.random()-.5)*3,vy:(Math.random()-.5)*3,l:40+Math.random()*25,c:'#b583ff'})}
+function drawSeal(x,y,b,ts,k){
+  if(!b){const a=.6+.4*Math.sin(ts/350+k),gl=ctx.createRadialGradient(x,y,9,x,y,21);gl.addColorStop(0,`rgba(181,131,255,${.55*a})`);gl.addColorStop(1,'rgba(181,131,255,0)');ctx.fillStyle=gl;ctx.fillRect(x-21,y-21,42,42);
+    ctx.fillStyle='#8a6418';ctx.beginPath();ctx.arc(x,y,14,0,Math.PI*2);ctx.fill();ctx.fillStyle='#e8c25a';ctx.beginPath();ctx.arc(x,y,12.6,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#c99a36';ctx.beginPath();ctx.arc(x,y,10.6,0,Math.PI*2);ctx.fill();
+    for(let q=0;q<12;q++){const an=q*Math.PI/6;ctx.fillStyle='#fff1a8';ctx.fillRect(Math.round(x+Math.cos(an)*11.8),Math.round(y+Math.sin(an)*11.8),1,1)}
+    drawSpr(ctx,'scarab',x-11,y-11,{scale:2})}
+  else{ctx.fillStyle='#4a4352';ctx.beginPath();ctx.arc(x-2,y,13,Math.PI*.55,Math.PI*1.45);ctx.fill();ctx.beginPath();ctx.arc(x+2,y+2,13,-Math.PI*.45,Math.PI*.45);ctx.fill();
+    ctx.save();ctx.globalAlpha=.3;drawSpr(ctx,'scarab',x-11,y-11,{scale:2});ctx.restore();ctx.fillStyle=open3()?'#ffe9a8':'#0c0a12';ctx.fillRect(x-1,y-15,2,30)}}
+const open3=()=>S.r.filter(r=>r.every(x=>x.status!=='pending')).length>=3;
+function sealXY(k){return[216,52+k*34]}
+function finale(){sphSay("Els tres segells s'han trencat. El tresor de l'illa és teu: has après a dividir i a fer muntets. Que el vent et sigui favorable.");S.end=S.end||new Date().toISOString();save();
+  cont('▸ Surt a l\'exterior',()=>{S.phase='end';save();goEnd()})}
+const OY=40;
+function drawSphinx(ts){ctx.save();ctx.clearRect(0,0,VW,VH);ctx.fillStyle='#1b1630';ctx.fillRect(0,0,VW,VH);ctx.fillStyle='#3a3048';ctx.fillRect(0,196+OY,VW,VH);if(shake>0){ctx.translate(Math.round((Math.random()-.5)*4),0);shake--}ctx.translate(0,OY);
+  const broken=S.r.filter(r=>r.every(x=>x.status!=='pending')).length,open=broken>=3;
+  const gr=ctx.createLinearGradient(0,-OY,0,196);gr.addColorStop(0,'#1b1630');gr.addColorStop(1,'#2a2238');ctx.fillStyle=gr;ctx.fillRect(0,-OY,VW,196+OY);
+  for(let y=-OY;y<150;y+=10)for(let x=(((y+OY)/10)%2)*12;x<VW;x+=24){ctx.fillStyle='#241d33';ctx.fillRect(x,y,22,8)}
+  ctx.fillStyle='#3a3048';ctx.fillRect(0,196,VW,44);for(let x=0;x<VW;x+=32){ctx.fillStyle='#463a56';ctx.fillRect(x,196,30,2)}
+  for(const cx of [24,392]){ctx.fillStyle='#5f566a';ctx.fillRect(cx,40,18,156);ctx.fillStyle='#776d82';ctx.fillRect(cx,40,4,156);ctx.fillStyle='#3a3340';ctx.fillRect(cx-4,34,26,7);ctx.fillRect(cx-4,192,26,6)}
+  for(const tx of [70,350]){ctx.fillStyle='#5a3d22';ctx.fillRect(tx+2,96,3,14);const f=Math.floor(ts/120)%2;ctx.fillStyle='#ff8a3d';ctx.fillRect(tx,88+f,7,8);ctx.fillStyle='#ffd54a';ctx.fillRect(tx+2,90+f,3,4);
+    const g=ctx.createRadialGradient(tx+3,92,2,tx+3,92,50);g.addColorStop(0,'rgba(255,170,80,.25)');g.addColorStop(1,'rgba(255,170,80,0)');ctx.fillStyle=g;ctx.fillRect(tx-50,40,106,110)}
+  // porta amb segells
+  ctx.fillStyle=open?'#ffe9a8':'#0c0a12';ctx.fillRect(196,30,40,166);ctx.fillStyle='#8a7a5a';ctx.fillRect(190,24,6,172);ctx.fillRect(236,24,6,172);ctx.fillRect(190,22,52,6);
+  if(open){const g=ctx.createRadialGradient(216,110,6,216,110,120);g.addColorStop(0,'rgba(255,233,168,.6)');g.addColorStop(1,'rgba(255,233,168,0)');ctx.fillStyle=g;ctx.fillRect(96,0,240,240)}
+  for(let k=0;k<3;k++){const [x,y]=sealXY(k);drawSeal(x,y,k<broken,ts,k)}
+  // esfinx
+  const sx=open?262:SPH.x,sy=SPH.y+Math.round(Math.sin(ts/700));drawSpr(ctx,'sphinx',sx,sy,{scale:4,talk:isTalking('sph')});
+  if(!open){const a=.4+.4*Math.sin(ts/260);ctx.fillStyle=`rgba(181,131,255,${a})`;ctx.fillRect(sx+6*4+1,sy+4*4+1,6,2);ctx.fillRect(sx+11*4+1,sy+4*4+1,6,2)}
+  // Pau
+  const px=open?200:SPAU.x;drawSpr(ctx,'pau',px,SPAU.y,{scale:2,frame:0,talk:isTalking('pau')});
+  parts=parts.filter(p=>p.l-->0);for(const p of parts){p.x+=p.vx;p.y+=p.vy;ctx.fillStyle=p.c;ctx.fillRect(Math.round(p.x),Math.round(p.y),2,2)}
+  ctx.restore()}
+
+/* ======================= MAPA I PERGAMÍ ======================= */
+function openMap(){const m=$('#modal'),b=$('#modal-box');m.hidden=false;
+  b.innerHTML=`<h2>Mapa de l'illa</h2><canvas id="mapcv" width="${TW*4}" height="${TH*4}"></canvas><p class="note">● tu · ● guardians per vèncer · ✦ portes encantades · ▲ temple</p><div class="row"><button class="bigbtn alt" id="b-close">Tanca</button></div>`;
+  const g=$('#mapcv').getContext('2d');g.imageSmoothingEnabled=false;
+  const COL=['#183a26','#d9b77c','#173a5c','#7a5530','#8a7f94','#120f18','#c9a46a'];
+  for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){g.fillStyle=COL[tt[y][x]];g.fillRect(x*4,y*4,4,4)}
+  DATA.corners.forEach((c,i)=>{if(!cornerDone(i)){const t=cellTile(c.cell);g.fillStyle='#ff7a6b';g.fillRect(t[0]*4,t[1]*4,4,4)}});
+  DATA.doors.forEach((d,i)=>{const a=cellTile(d.cell),bb=cellTile(d.to);g.fillStyle=doorDone(i)?'#5b4a80':'#b583ff';g.fillRect((a[0]+bb[0])/2*4,(a[1]+bb[1])/2*4,4,4)});
+  const t=cellTile(S.cell);g.fillStyle='#ffffff';g.fillRect(t[0]*4-1,t[1]*4-1,6,6);
+  $('#b-close').onclick=()=>m.hidden=true}
+function statusTxt(s){return{ok1:'<span class="okc">1</span>',ok2:'<span class="hlf">0,5</span>',fail:'<span class="koc">0</span>',skip:`<span class="okc">${fmt(s.pts)} · drecera</span>`,pending:'—'}[s.status]}
+function openLog(){const m=$('#modal'),b=$('#modal-box');m.hidden=false;
+  const steps=i=>DATA.corners[i].steps.map(x=>`<div class="note" style="color:#5b4626">${x}</div>`).join('');
+  const rows=DATA.corners.map((c,i)=>S.c[i].status==='pending'?'':`<tr><td>${c.n}</td><td><span class="m">${c.l}</span></td><td><span class="m">${c.r}</span>${steps(i)}</td><td>${statusTxt(S.c[i])}</td></tr>`).join('');
+  const drows=DATA.doors.map((d,i)=>S.d[i].status==='pending'?'':`<tr><td>${d.n}</td><td><span class="m">${d.l}</span></td><td><span class="m">${d.r}</span></td><td>${statusTxt(S.d[i])}</td></tr>`).join('');
+  b.innerHTML=`<div class="rollwrap"><div class="parch logp"><h2>Pergamí</h2><div class="tbl"><table class="log"><tr><th>Nº</th><th>Repte</th><th>Resposta</th><th>Punts</th></tr>${rows||'<tr><td colspan="4" class="note">Encara no has vençut cap guardià.</td></tr>'}</table></div>
+  <h2 style="margin-top:12px">Portes encantades</h2><div class="tbl"><table class="log"><tr><th>Porta</th><th>Sortilegi</th><th>Invers</th><th>Punts</th></tr>${drows||'<tr><td colspan="4" class="note">Encara no has obert cap porta.</td></tr>'}</table></div></div></div>
+  <div class="row" style="margin-top:14px"><button class="bigbtn alt" id="b-close">Tanca</button></div>`;$('#b-close').onclick=()=>m.hidden=true}
+
+/* ======================= INICI / FINAL ======================= */
+function show(v){for(const id of['v-start','v-game','v-end'])$('#'+id).hidden=id!==v;window.scrollTo(0,0)}
+function titleScene(id,sunrise){const c=$('#'+id),g=c.getContext('2d');g.imageSmoothingEnabled=false;const w=c.width,h=c.height;
+  const gr=g.createLinearGradient(0,0,0,h*.6);if(sunrise){gr.addColorStop(0,'#f6a35b');gr.addColorStop(1,'#fbe1a1')}else{gr.addColorStop(0,'#0b0d2a');gr.addColorStop(1,'#2a2a6a')}g.fillStyle=gr;g.fillRect(0,0,w,h*.62);
+  if(!sunrise){for(let i=0;i<60;i++){g.fillStyle=noise(i,1,2)>.7?'#ffffff':'#9aa4ff';g.fillRect(Math.floor(noise(i,3,1)*w),Math.floor(noise(i,5,2)*h*.5),1,1)}g.fillStyle='#f3efcf';g.beginPath();g.arc(w*.82,h*.18,14,0,Math.PI*2);g.fill()}
+  else{g.fillStyle='#ffe28a';g.beginPath();g.arc(w*.5,h*.62,30,Math.PI,0);g.fill()}
+  g.fillStyle=sunrise?'#3a78a8':'#10284a';g.fillRect(0,h*.62,w,h*.38);for(let i=0;i<40;i++){g.fillStyle=sunrise?'#7fb3d8':'#2b4f7d';g.fillRect(Math.floor(noise(i,7,3)*w),Math.floor(h*.64+noise(i,9,4)*h*.34),8,1)}
+  // illa
+  g.fillStyle=sunrise?'#2a4a2a':'#0b1f14';g.beginPath();g.moveTo(w*.18,h*.62);g.quadraticCurveTo(w*.42,h*.3,w*.7,h*.62);g.fill();
+  g.fillStyle=sunrise?'#3f2a18':'#120c08';g.fillRect(w*.47,h*.38,3,h*.2);g.fillStyle=sunrise?'#2f6a3a':'#0f2d1a';g.fillRect(w*.43,h*.36,12,3);g.fillRect(w*.47,h*.34,12,3);
+  g.fillStyle=sunrise?'#8a7f94':'#2a2433';g.fillRect(w*.58,h*.47,18,14);g.fillStyle=sunrise?'#5f566a':'#15111c';g.fillRect(w*.58+6,h*.47+5,6,9);
+  // vaixell
+  const bx=sunrise?w*.12:w*.08,by=h*.66;g.fillStyle=sunrise?'#3d2914':'#1a120a';g.fillRect(bx,by,40,7);g.fillRect(bx+4,by+7,32,3);g.fillStyle=sunrise?'#f3efe0':'#9aa0c0';g.fillRect(bx+18,by-26,2,26);g.fillRect(bx+20,by-24,14,16);g.fillRect(bx+6,by-20,11,12)}
+(function initStart(){titleScene('tcv',false);const o=load();if(o&&o.name&&o.phase!=='end'){$('#b-resume').hidden=false;$('#resume-note').textContent=`Partida desada de ${o.name}.`;$('#b-resume').onclick=()=>{S=o;applySet(S.ver||'A');startGame()}}})();
+$('#b-start').onclick=()=>{const n=$('#in-name').value.trim();if(!n){const e=$('#st-err');e.hidden=false;e.textContent="Escriu el teu nom per començar.";return}S=newState(n,$('#in-group').value.trim()||'3r PIM');S.ver=['A','B','C'][Math.floor(Math.random()*3)];freshGame()};
+function startGame(){show('v-game');$('#dlog').innerHTML='';placePlayer();cam=Math.max(0,P.y+8-VH/2);verb='walk';selItem=null;
+  if(S.phase==='end'){goEnd();return}
+  if(S.phase==='sphinx'){hud();if(!S.sphinxIntro)sphinxIntro();else riddleStep();return}
+  panelVerbs();
+  if(!S.introDone){busy=true;logSep("L'Illa dels Muntets · "+verName(S.ver));sayPau("Ja hi som: l'Illa dels Muntets. Per sortir-ne he d'arribar al temple de l'Esfinx, a l'altra banda de la jungla.");
+    $('#panel').innerHTML='<div class="dialog"><span class="note">…</span></div>';
+    setTimeout(()=>{sayPau("Fes clic al camí per caminar. Els guardians i les portes encantades m'aturaran. Al pergamí quedarà escrit tot el que ens diguem, amb els reptes destacats.");S.introDone=true;save();panelVerbs()},FAST?20:3500)}
+  else{logSep('De tornada a l\'illa');sayPau("On ho havia deixat? Ah, sí.")}}
+requestAnimationFrame(frame);
+
+/* ---------- escena final animada: l'illa i el galió que se'n va ---------- */
+let END_T0=0;
+function endLoop(ts){if($('#v-end').hidden){endLoop.on=0;return}endScene(ts-END_T0,ts);requestAnimationFrame(endLoop)}
+const EHZ=104;
+function eShoreY(x){return 160+2.2*Math.sin((x-170)/23)+1.5*Math.sin(x/9)}
+function eSandTop(x){return x<196?160-(x-172)*.42:150+1.6*Math.sin(x/17)}
+function ePalm(g,x,y,h,lean,t,ph){g.fillStyle='#6b4a2a';for(let k=0;k<h;k++){const xx=x+lean*(k/h)*(k/h)*h*.35;g.fillRect(Math.round(xx),y-k,2,1);if(k%3===0){g.fillStyle='#4f3520';g.fillRect(Math.round(xx),y-k,2,1);g.fillStyle='#6b4a2a'}}
+  const tx=x+lean*h*.35+1,ty=y-h,sw=Math.sin(t/900+ph)*1.2;g.lineCap='round';
+  for(const [ang,len,col] of [[-2.7,13,'#2f6a34'],[-.4,13,'#2f6a34'],[-2.1,11,'#4f9a45'],[-1,11,'#4f9a45'],[-1.57,8,'#3f8a3c'],[2.9,9,'#2f6a34'],[.2,9,'#2f6a34']]){
+    const a=ang+sw*.05,ex=tx+Math.cos(a)*len,ey=ty+Math.sin(a)*len*.7+len*.25;g.strokeStyle=col;g.lineWidth=2;g.beginPath();g.moveTo(tx,ty);g.quadraticCurveTo((tx+ex)/2,ty+Math.sin(a)*len*.4-3,ex,ey+sw);g.stroke()}
+  g.fillStyle='#5a3a1a';g.fillRect(tx-1,ty+1,2,2);g.fillRect(tx+1,ty+2,2,2)}
+function eBush(g,x,y,r,dark){g.fillStyle=dark?'#1f4a28':'#2f6a34';g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.fill();g.fillStyle=dark?'#2f6a34':'#4f9a45';g.beginPath();g.arc(x-r*.3,y-r*.35,r*.55,0,Math.PI*2);g.fill()}
+function eGalleon(g,t){const p=Math.min(1,t/60000),e=1-(1-p)*(1-p),x=128-88*e,y=182-58*e,s=1-.6*e;
+  for(let k=1;k<10;k++){const a=.55*(1-k/10),wx=x+(32+k*7)*s,wob=Math.sin(t/260+k);g.fillStyle=`rgba(255,255,255,${a})`;g.fillRect(wx,y+1-k*.4*s+wob*.4,5*s+1,1);g.fillRect(wx-2*s,y+4+k*.7*s,4*s+1,1)}
+  g.save();g.translate(x,y);g.scale(s,s);g.rotate(Math.sin(t/800)*.025);
+  g.fillStyle='rgba(8,28,48,.35)';g.beginPath();g.ellipse(0,6,40,3.5,0,0,Math.PI*2);g.fill();
+  g.strokeStyle='#3a2410';g.lineWidth=1.5;g.beginPath();g.moveTo(-34,-9);g.lineTo(-52,-19);g.stroke();
+  g.fillStyle='#efe4c8';g.beginPath();g.moveTo(-50,-18);g.lineTo(-14,-54);g.lineTo(-22,-12);g.closePath();g.fill();
+  g.fillStyle='#3a2410';[[-12,-58],[6,-68],[22,-50]].forEach(([mx,top])=>g.fillRect(mx-1,top,2,-top-6));
+  g.strokeStyle='rgba(58,36,16,.6)';g.lineWidth=.6;g.beginPath();g.moveTo(-12,-58);g.lineTo(-30,-8);g.moveTo(6,-68);g.lineTo(34,-14);g.moveTo(22,-50);g.lineTo(36,-14);g.stroke();
+  const sail=(mx,y0,y1,wd)=>{g.fillStyle='#f4ebd3';g.beginPath();g.moveTo(mx-wd,y0);g.lineTo(mx+wd,y0);g.quadraticCurveTo(mx+wd-4,(y0+y1)/2,mx+wd,y1);g.lineTo(mx-wd,y1);g.quadraticCurveTo(mx-wd-5,(y0+y1)/2,mx-wd,y0);g.fill();
+    g.fillStyle='rgba(150,120,80,.35)';g.fillRect(mx-wd,y1-2,wd*2,2);g.fillStyle='#5c3e22';g.fillRect(mx-wd-1,y0-1,wd*2+2,1)};
+  sail(-12,-54,-38,9);sail(-12,-35,-19,11);sail(6,-64,-46,10);sail(6,-43,-23,13);sail(22,-46,-32,8);sail(22,-29,-17,9);
+  const fw=Math.sin(t/180)*1.5;g.fillStyle='#141414';g.beginPath();g.moveTo(7,-68);g.lineTo(20,-67+fw);g.lineTo(20,-60+fw);g.lineTo(7,-61);g.closePath();g.fill();
+  g.fillStyle='#f3eed8';g.fillRect(11,-66+fw*.5,3,3);g.fillRect(10,-62+fw*.5,1,1);g.fillRect(15,-62+fw*.5,1,1);
+  g.fillStyle='#4a2c14';g.beginPath();g.moveTo(-36,-10);g.lineTo(-24,-8);g.lineTo(18,-8);g.lineTo(20,-17);g.lineTo(37,-17);g.lineTo(39,-6);g.lineTo(31,4);g.lineTo(-24,4);g.closePath();g.fill();
+  g.fillStyle='#6b4423';g.fillRect(-24,-8,42,3);g.fillRect(20,-17,17,3);g.fillStyle='#f2c14e';g.fillRect(-28,-3,64,1);
+  g.fillStyle='#1a0f06';for(let k=-18;k<28;k+=8)g.fillRect(k,0,3,2);
+  g.fillStyle='#f6c35a';g.fillRect(29,-13,2,2);g.fillRect(33,-13,2,2);
+  g.restore()}
+function endScene(t,ts){const c=$('#ecv'),g=c.getContext('2d'),w=432,h=200,HZ=EHZ;g.setTransform(c.width/w,0,0,c.height/h,0,0);g.imageSmoothingEnabled=false;
+  // cel
+  let gr=g.createLinearGradient(0,0,0,HZ);gr.addColorStop(0,'#4f5fa8');gr.addColorStop(.38,'#c9849a');gr.addColorStop(.72,'#f4ad6c');gr.addColorStop(1,'#fde3a6');g.fillStyle=gr;g.fillRect(0,0,w,HZ);
+  const sx=118;let sg=g.createRadialGradient(sx,HZ,3,sx,HZ,95);sg.addColorStop(0,'rgba(255,244,190,.95)');sg.addColorStop(.25,'rgba(255,214,140,.5)');sg.addColorStop(1,'rgba(255,214,140,0)');g.fillStyle=sg;g.fillRect(sx-95,HZ-95,190,95);
+  g.fillStyle='#fff3c2';g.beginPath();g.arc(sx,HZ,17,Math.PI,0);g.fill();
+  for(const [cx0,cy,len,sp] of [[30,20,52,.0035],[220,12,64,.0025],[330,34,40,.0045],[140,44,34,.0055],[400,52,28,.005]]){const cx=((cx0+t*sp)%(w+90))-60;
+    g.fillStyle='rgba(255,226,206,.8)';g.fillRect(cx,cy,len,3);g.fillRect(cx+7,cy-2,len-16,2);g.fillRect(cx+16,cy-3,len-34>0?len-34:4,1);g.fillStyle='rgba(176,104,124,.45)';g.fillRect(cx+4,cy+3,len-6,1)}
+  for(let k=0;k<3;k++){const gx=((60+k*26+t*.012*(1+k*.15))%(w+40))-20,gy=34+k*8+Math.sin(t/500+k)*2,f=Math.floor(t/220+k)%2;g.fillStyle='#3b2a3a';g.fillRect(gx-3,gy-(f?1:0),2,1);g.fillRect(gx-1,gy,1,1);g.fillRect(gx+1,gy,1,1);g.fillRect(gx+2,gy-(f?1:0),2,1)}
+  // illes llunyanes amb boira de distància
+  const blob=(x0,x1,top,col)=>{g.fillStyle=col;g.beginPath();g.moveTo(x0,HZ+.5);g.bezierCurveTo(x0+(x1-x0)*.25,top,x0+(x1-x0)*.6,top-3,x1,HZ+.5);g.fill()};
+  blob(-20,96,HZ-16,'#e7b59a');blob(250,340,HZ-11,'#e7b59a');blob(355,452,HZ-20,'#dcab95');blob(6,70,HZ-9,'#cf9d90');blob(300,372,HZ-6,'#c99590');
+  // mar
+  gr=g.createLinearGradient(0,HZ,0,h);gr.addColorStop(0,'#eab47e');gr.addColorStop(.14,'#86a9c4');gr.addColorStop(.5,'#3b77a6');gr.addColorStop(1,'#1c4672');g.fillStyle=gr;g.fillRect(0,HZ,w,h-HZ);
+  for(let y=HZ+2;y<h;y+=3){const spread=5+(y-HZ)*.55,al=.75-(y-HZ)/(h-HZ)*.6;for(let k=0;k<3;k++){const off=noise(k,y,Math.floor(t/280))*2-1;g.fillStyle=`rgba(255,236,170,${al})`;g.fillRect(Math.round(sx+off*spread),y,2+((k+y)%4),1)}}
+  for(let i=0;i<60;i++){const y=HZ+5+Math.floor(noise(i,9,4)*(h-HZ-5)),sp=.004*(1+(y-HZ)/30),x=(noise(i,7,3)*w+t*sp)%(w+20)-10;g.fillStyle=`rgba(200,228,245,${.25+.3*(y-HZ)/(h-HZ)})`;g.fillRect(Math.round(x),y,3+Math.round((y-HZ)/16),1)}
+  // illa: turó
+  const hill=new Path2D();hill.moveTo(170,160);hill.bezierCurveTo(192,122,232,86,268,80);hill.bezierCurveTo(298,58,342,64,374,86);hill.bezierCurveTo(402,100,422,128,440,150);hill.lineTo(440,162);hill.lineTo(170,162);hill.closePath();
+  gr=g.createLinearGradient(0,60,0,160);gr.addColorStop(0,'#6f9f58');gr.addColorStop(.5,'#3f7a3c');gr.addColorStop(1,'#1f4628');g.fillStyle=gr;g.fill(hill);
+  for(let i=0;i<220;i++){const x=170+noise(i,1,8)*270,y=60+noise(i,2,8)*96;if(!g.isPointInPath(hill,x,y))continue;const r=2+noise(i,3,8)*3.5;g.fillStyle=noise(i,4,8)>.5?'rgba(32,74,40,.85)':'rgba(102,160,84,.75)';g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.fill()}
+  // sorra
+  for(let x=170;x<w;x++){const a=eSandTop(x),b=eShoreY(x);if(b<=a)continue;gr=g.createLinearGradient(0,a,0,b);gr.addColorStop(0,'#f0dba6');gr.addColorStop(1,'#cfae74');g.fillStyle=gr;g.fillRect(x,a,1,b-a+1)}
+  // cova calavera
+  const kx=226,ky=118;g.save();const rock=new Path2D();rock.moveTo(kx-26,ky+4);rock.bezierCurveTo(kx-28,ky-24,kx+28,ky-24,kx+26,ky+4);rock.lineTo(kx+24,ky+18);rock.lineTo(kx+18,ky+34);rock.lineTo(kx-18,ky+34);rock.lineTo(kx-24,ky+18);rock.closePath();
+  gr=g.createLinearGradient(kx-26,0,kx+26,0);gr.addColorStop(0,'#c2b8ac');gr.addColorStop(.55,'#9a9088');gr.addColorStop(1,'#625a55');g.fillStyle=gr;g.fill(rock);g.clip(rock);
+  g.fillStyle='rgba(60,54,50,.35)';g.fillRect(kx+12,ky-20,16,60);g.strokeStyle='rgba(50,44,40,.6)';g.lineWidth=.8;g.beginPath();g.moveTo(kx-14,ky-14);g.lineTo(kx-8,ky-6);g.lineTo(kx-11,ky);g.moveTo(kx+16,ky+6);g.lineTo(kx+20,ky+14);g.stroke();
+  for(let i=0;i<14;i++){g.fillStyle=i%2?'#4f8a45':'#3a6e38';g.beginPath();g.arc(kx-22+i*3.4,ky-16+Math.abs(i-6.5)*1.3+noise(i,5,2)*2,2.4,0,Math.PI*2);g.fill()}
+  g.restore();
+  g.fillStyle='#1b1517';g.beginPath();g.ellipse(kx-10,ky,6.5,5.5,.15,0,Math.PI*2);g.fill();g.beginPath();g.ellipse(kx+10,ky,6.5,5.5,-.15,0,Math.PI*2);g.fill();
+  g.fillStyle=`rgba(255,180,80,${.35+.25*Math.sin(t/400)})`;g.fillRect(kx-11,ky,2,2);g.fillRect(kx+9,ky,2,2);
+  g.fillStyle='#1b1517';g.beginPath();g.moveTo(kx,ky+6);g.lineTo(kx-3,ky+12);g.lineTo(kx+3,ky+12);g.closePath();g.fill();
+  g.beginPath();g.moveTo(kx-13,ky+34);g.quadraticCurveTo(kx,ky+10,kx+13,ky+34);g.closePath();g.fill();
+  g.fillStyle='#e2d8c8';for(const [dx,dy] of [[-8,22],[-4,19],[1,19],[5,21]])g.fillRect(kx+dx,ky+dy,3,4);
+  // façana del laberint
+  const fx=320;g.fillStyle='#7d715c';g.fillRect(fx-2,118,76,32);g.fillStyle='#b3a58a';g.fillRect(fx,118,72,30);g.fillStyle='#a39578';g.fillRect(fx+8,104,56,14);g.fillStyle='#c7b997';g.fillRect(fx+18,94,36,10);
+  g.fillStyle='#d9ccaa';g.fillRect(fx,118,72,1);g.fillRect(fx+8,104,56,1);g.fillRect(fx+18,94,36,1);g.fillStyle='#6a5f4c';g.fillRect(fx+64,104,1,14);g.fillRect(fx+54,94,1,10);
+  g.fillStyle='#5e5444';for(let gx=0;gx<8;gx++)for(let gy=0;gy<3;gy++){const X=fx+4+gx*8,Y=121+gy*8;if(gx>=3&&gx<=4)continue;const n=noise(gx,gy,3);if(n<.5)g.fillRect(X,Y,8,1);else g.fillRect(X,Y,1,8);if(n>.75)g.fillRect(X+4,Y+3,4,1)}
+  g.fillRect(fx+2,120,68,1);g.fillRect(fx+2,120,1,27);g.fillRect(fx+69,120,1,27);for(let gx=0;gx<5;gx++){g.fillRect(fx+12+gx*10,106,1,1+gx%3*3);g.fillRect(fx+10,108+gx%2*4,8+gx*4,1)}
+  g.fillStyle='#120e0c';g.fillRect(fx+29,128,14,22);g.beginPath();g.arc(fx+36,128,7,Math.PI,0);g.fill();
+  const fl=Math.floor(t/120)%2;for(const tx of [fx+22,fx+48]){g.fillStyle='#4a3420';g.fillRect(tx,132,2,6);g.fillStyle='#ff8a3d';g.fillRect(tx-1,128+fl,4,4);g.fillStyle='#ffd54a';g.fillRect(tx,129+fl,2,2)}
+  g.fillStyle='#3f7a3c';for(let i=0;i<10;i++){const vx=fx+3+i*7+Math.round(noise(i,6,1)*3),vl=4+Math.round(noise(i,7,1)*9);g.fillRect(vx,118,1,vl);if(i%3===0)g.fillRect(vx+8,104,1,vl-2)}
+  // vegetació i palmeres
+  ePalm(g,fx-8,150,30,-1,t,0);ePalm(g,fx+84,151,26,1,t,1.3);ePalm(g,262,151,22,.6,t,2.1);ePalm(g,196,155,18,-.8,t,.7);ePalm(g,410,152,24,.4,t,2.8);
+  for(const [x,y,r,d] of [[fx-4,149,5,1],[fx+6,151,4,0],[fx+66,150,5,1],[fx+76,151,4,0],[fx+20,151,3,0],[fx+52,151,3,0],[252,152,4,1],[268,153,3,0],[204,154,3,1],[392,152,4,0],[420,152,5,1]])eBush(g,x,y,r,d);
+  // escuma que llepa la riba
+  const ph=(Math.sin(t/1300)+1)/2;
+  for(let x=172;x<w;x++){const y0=eShoreY(x),reach=y0-1-ph*4.5+Math.sin(x*.27+t/520)*.8;
+    g.fillStyle='rgba(176,224,238,.55)';g.fillRect(x,reach,1,y0+3-reach);g.fillStyle='rgba(150,112,62,.25)';g.fillRect(x,reach-2.5+ph*1.5,1,2);
+    g.fillStyle='rgba(255,255,255,.95)';g.fillRect(x,Math.round(reach),1,1);if(noise(x,1,Math.floor(t/240))>.55){g.fillStyle='rgba(255,255,255,.7)';g.fillRect(x,Math.round(reach)+2,1,1)}
+    if(noise(x,2,Math.floor(t/300))>.8){g.fillStyle='rgba(255,255,255,.5)';g.fillRect(x,Math.round(y0)+5,2,1)}}
+  eGalleon(g,t);
+  for(let i=0;i<14;i++){const y=184+(i%4)*4,x=((noise(i,3,6)*w+t*.012)%(w+30))-15,f=Math.sin(t/500+i);g.fillStyle='rgba(225,242,252,.6)';g.fillRect(Math.round(x),y,6,1);g.fillRect(Math.round(x)+2,y-1+(f>0?0:1),3,1)}}
+
+function goEnd(){show('v-end');END_T0=performance.now();if(!endLoop.on){endLoop.on=1;requestAnimationFrame(endLoop)};const p=totals();$('#end-sub').textContent=`${S.name} · ${S.group} · ${verName(S.ver)}`;$('#e-grade').textContent=fmt(p/MAXPTS*10);$('#e-pts').textContent=`${fmt(p)} de ${MAXPTS} punts`;
+  const sum=a=>a.reduce((x,y)=>x+y.pts,0);
+  $('#e-table').innerHTML=`<tr><th>Repte</th><th>Punts</th></tr><tr><td>Guardians (calcular)</td><td>${fmt(sum(S.c))} / ${DATA.corners.length}</td></tr><tr><td>Portes encantades (invertir)</td><td>${fmt(sum(S.d))} / ${DATA.doors.length}</td></tr>${S.r.map((r,k)=>`<tr><td>Segell ${k+1} · <span class="m">${RID[k][0].t}</span>${r.some(x=>x.status==='skip')?' · drecera':''}</td><td>${fmt(sum(r))} / ${RID[k].length-1}</td></tr>`).join('')}`;
+  renderRepButtons()}
+$('#b-new').onclick=()=>{S=newState(S.name,S.group);S.ver=1+Math.floor(Math.random()*999999);freshGame()};
+$('#b-fresh').onclick=()=>{const n=$('#in-name').value.trim();if(!n){const e=$('#st-err');e.hidden=false;e.textContent="Escriu el teu nom per començar.";return}S=newState(n,$('#in-group').value.trim()||'3r PIM');S.ver=1+Math.floor(Math.random()*999999);freshGame()};
+$('#b-again').onclick=()=>{S.phase='map';S.cell=[...LAST];save();startGame()};
+
+/* ======================= INFORME ======================= */
+function fdate(iso){const d=new Date(iso);return d.toLocaleDateString('ca-ES')+' '+d.toLocaleTimeString('ca-ES',{hour:'2-digit',minute:'2-digit'})}
+const lab=s=>({ok1:['ok','1 punt'],ok2:['half','0,5 punts'],fail:['ko','0 punts'],pending:['ko','Sense fer · 0'],skip:['ok',`Estalviat (drecera) · ${fmt(s.pts)}`]}[s.status]);
+const triesTxt=(s,pre='')=>s.tries.length?s.tries.map((t,q)=>`Intent ${q+1}: ${pre}<span class="m">${t.a}</span> <span class="${t.ok?'ok':'ko'}">${t.ok?'✓':'✗'}</span>`).join('<br>'):'<em>Sense intents</em>';
+const PIRATA="data:font/woff2;base64,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";
+const REPCSS=`@font-face{font-family:'Pirata One';src:url(${PIRATA}) format('woff2');font-display:block}
+.rp-host{position:fixed;left:-12000px;top:0;z-index:-1}
+.rp-book{font-family:"Trebuchet MS","Segoe UI",Arial,sans-serif;color:#3b2412;font-size:14px;line-height:1.4}
+.rp-page{position:relative;width:794px;height:1123px;box-sizing:border-box;padding:50px 78px 42px;display:flex;flex-direction:column;background:#fbf3df;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.rp-frm{position:absolute;top:22px;left:22px;right:22px;bottom:22px;border:2px solid #c9a96a;border-radius:8px}
+.rp-frm2{position:absolute;top:28px;left:28px;right:28px;bottom:28px;border:1px solid #e0c896;border-radius:5px}
+.rp-hd{position:relative;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;border-bottom:2px solid #8b1e1e;padding-bottom:6px;margin-bottom:22px;font-size:12px;color:#6b4a25}
+.rp-hl{font-family:'Pirata One',Georgia,serif;font-size:20px;line-height:1;color:#8b1e1e}
+.rp-body{position:relative;flex:1;min-height:0}
+.rp-ft{position:relative;display:flex;justify-content:space-between;gap:12px;border-top:1.5px solid #c9a96a;padding-top:6px;margin-top:12px;font-size:11.5px;color:#6b4a25}
+.rp-sec{margin:0 0 18px}
+.rp-h2{font-family:'Pirata One',Georgia,serif;font-weight:400;font-size:26px;line-height:1.1;color:#8b1e1e;margin:0 0 6px;display:flex;align-items:center;gap:10px}
+.rp-h2 .m{font-family:"Cambria Math",Cambria,Georgia,serif;font-size:.78em;color:#3b2412}
+.rp-ln{flex:1;border-top:2px dashed #c9a96a;height:0;min-width:20px}
+.rp-intro{margin:0 0 10px;color:#6b4a25;font-style:italic}
+.rp-item{display:flex;gap:12px;align-items:flex-start;background:#fffaf0;border:1.5px solid #dcc391;border-radius:10px;padding:9px 12px;margin-bottom:8px}
+.rp-ico{flex:none;width:48px;height:48px;border-radius:9px;background:#f1e3c2;display:flex;align-items:center;justify-content:center}
+.rp-ico img{display:block}
+.rp-main{flex:1;min-width:0}
+.rp-q{font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rp-n{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#3b2412;color:#fbf3df;font-size:12.5px}
+.rp-who{font-size:12px;font-weight:400;color:#8b6a3a;text-transform:uppercase;letter-spacing:.06em}
+.rp-prop{color:#6b4a25;font-style:italic;font-size:13px;margin-top:3px}
+.rp-tries{font-size:13px;margin-top:4px;color:#3b2412}
+.rp-tries .ok{color:#1d6b2f;font-weight:700}.rp-tries .ko{color:#a3221a;font-weight:700}
+.rp-badge{flex:none;align-self:center;font-weight:700;font-size:12.5px;padding:4px 10px;border-radius:14px;border:1.5px solid;white-space:nowrap}
+.rp-badge.ok{color:#1d6b2f;background:#e4f1dc;border-color:#9dc58f}.rp-badge.half{color:#8a5a00;background:#fbecc8;border-color:#e0bb6a}.rp-badge.ko{color:#a3221a;background:#f8ddd6;border-color:#e09c90}
+.rp-book .m{font-family:"Cambria Math",Cambria,Georgia,serif;white-space:nowrap;font-size:1.05em;letter-spacing:.02em}
+.rp-tries .m{font-weight:700;font-size:1.12em}
+.rp-book sup{font-size:.7em}.rp-book sub{font-size:.7em}
+.rp-t{width:100%;border-collapse:collapse;font-size:14px;background:#fffaf0}
+.rp-t th,.rp-t td{border:1.5px solid #dcc391;padding:7px 10px;text-align:left}
+.rp-t th{background:#f1e3c2;font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:#6b4a25}
+.rp-t .c{text-align:center;white-space:nowrap}.rp-t .tot td{font-weight:700;background:#f6e9cc;font-size:15px}
+.rp-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:13px}
+.rp-legend span{padding:4px 10px;border-radius:14px;border:1.5px solid #dcc391;background:#fffaf0}
+.rp-cover .rp-cv{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:22px}
+.rp-kick{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#8b6a3a}
+.rp-title{font-family:'Pirata One',Georgia,serif;font-weight:400;font-size:64px;line-height:.98;color:#8b1e1e;margin:14px 0 8px}
+.rp-sub{font-size:17px;font-style:italic;color:#6b4a25}
+.rp-map{display:block;width:100%;margin:22px 0 20px}
+.rp-cards{display:flex;gap:26px;align-items:center;width:100%;text-align:left}
+.rp-id{flex:1;display:flex;flex-direction:column;gap:10px}
+.rp-id div{display:flex;flex-direction:column;border-bottom:1.5px dashed #c9a96a;padding-bottom:5px}
+.rp-id span{font-size:11.5px;text-transform:uppercase;letter-spacing:.12em;color:#8b6a3a}
+.rp-id b{font-size:20px}
+.rp-seal{flex:none;width:156px;height:156px;border-radius:50%;background:#9b2a22;border:6px solid #7a1b15;color:#fbe9c8;display:flex;flex-direction:column;align-items:center;justify-content:center;box-sizing:border-box}
+.rp-seal span{font-size:12px;letter-spacing:.16em;text-transform:uppercase}
+.rp-seal b{font-family:'Pirata One',Georgia,serif;font-weight:400;font-size:58px;line-height:1}
+.rp-seal small{font-size:12.5px}
+.rp-stats{display:flex;gap:12px;justify-content:center;margin-top:24px;width:100%}
+.rp-stats div{flex:1;background:#fffaf0;border:1.5px solid #dcc391;border-radius:10px;padding:8px 6px}
+.rp-stats b{display:block;font-size:22px;color:#8b1e1e}
+.rp-stats span{font-size:12.5px;color:#6b4a25}
+.rp-rule{margin-top:auto;font-size:12.5px;color:#6b4a25;font-style:italic}
+@media print{@page{size:A4;margin:0}
+  html,body{margin:0!important;padding:0!important;background:#fff!important}
+  .rp-page{width:210mm;height:297mm;margin:0!important;box-shadow:none!important;break-after:page;page-break-after:always}
+  .rp-page:last-child{break-after:auto;page-break-after:auto}}`;
+document.head.insertAdjacentHTML('beforeend',`<style>${REPCSS}</style>`);
+const SPRURL={};
+function sprURL(name,sc){const k=name+sc;if(SPRURL[k])return SPRURL[k];const f=SPR[name].f[0],c=document.createElement('canvas');c.width=f[0].length*sc;c.height=f.length*sc;drawSpr(c.getContext('2d'),name,0,0,{scale:sc});return SPRURL[k]=c.toDataURL()}
+const DOORSVG=`<svg width="36" height="40" viewBox="0 0 18 20"><rect x="1" y="1" width="16" height="19" rx="1" fill="#4a2a12"/><rect x="2" y="2" width="4" height="17" fill="#6b3f1c"/><rect x="7" y="2" width="4" height="17" fill="#6b3f1c"/><rect x="12" y="2" width="4" height="17" fill="#6b3f1c"/><rect x="8" y="5" width="2" height="11" fill="#be8cff"/><rect x="4" y="9" width="10" height="2" fill="#be8cff"/></svg>`;
+const rpBadge=s=>{const [cl,lb]=lab(s);return`<span class="rp-badge ${cl}">${lb}</span>`};
+const rpTries=(s,pre)=>`<div class="rp-tries">${triesTxt(s,pre).replace(/<br>/g,' &nbsp;·&nbsp; ')}</div>`;
+function repSections(){const sum=a=>a.reduce((x,y)=>x+y.pts,0),secs=[],all=[...S.c,...S.d,...S.r.flat()].filter(x=>x.status!=='skip');
+  const row=(n,a,b)=>`<tr><td>${n}</td><td class="c">${a}</td><td class="c">${b}</td></tr>`,fet=a=>a.filter(x=>x.status!=='pending').length;
+  const H=(t,intro)=>`<h2 class="rp-h2">${t}<i class="rp-ln"></i></h2>${intro?`<p class="rp-intro">${intro}</p>`:''}`;
+  secs.push({head:H("Resum de l'aventura"),items:[`<table class="rp-t"><tr><th>Repte</th><th class="c">Fets</th><th class="c">Punts</th></tr>`+
+    row('☠ Guardians · resoldre el càlcul',`${fet(S.c)} / ${S.c.length}`,`${fmt(sum(S.c))} / ${S.c.length}`)+
+    row("✦ Portes encantades · invertir l'operació",`${fet(S.d)} / ${S.d.length}`,`${fmt(sum(S.d))} / ${S.d.length}`)+
+    S.r.map((r,k)=>row(`◈ Segell ${k+1} de l'Esfinx · <span class="m">${RID[k][0].t}</span>`,`${fet(r)} / ${r.length}`,`${fmt(sum(r))} / ${r.length}`)).join('')+
+    `<tr class="tot"><td>Total</td><td></td><td class="c">${fmt(totals())} / ${MAXPTS}</td></tr></table>`+
+    `<div class="rp-legend"><span>✓ Al primer intent: <b>${all.filter(x=>x.status==='ok1').length}</b></span><span>↻ Al segon intent: <b>${all.filter(x=>x.status==='ok2').length}</b></span><span>✗ No resolts: <b>${all.filter(x=>x.status==='fail'||x.status==='pending').length}</b></span></div>`]});
+  secs.push({head:H('Guardians · resoldre el càlcul','Cada guardià barrava el pas amb un càlcul. Aquí tens el càlcul, la manera de fer-lo i les teves respostes.'),
+    items:DATA.corners.map((c,i)=>{const s=S.c[i],t=gtype(i);return`<div class="rp-item"><div class="rp-ico"><img src="${sprURL(t,3)}" width="48" height="48" alt=""></div><div class="rp-main"><div class="rp-q"><span class="rp-n">${c.n}</span><span class="m">${c.l}</span> = <span class="m">${c.r}</span><span class="rp-who">${esc(GNAMES[t])}</span></div><div class="rp-prop">${c.prop}</div>${rpTries(s,'')}</div>${rpBadge(s)}</div>`})});
+  secs.push({head:H("Portes encantades · invertir l'operació",'Per obrir cada porta calia escriure el sortilegi amb l\'operació inversa.'),
+    items:DATA.doors.map((d,i)=>{const s=S.d[i];return`<div class="rp-item"><div class="rp-ico">${DOORSVG}</div><div class="rp-main"><div class="rp-q"><span class="rp-n">${d.n}</span><span class="m">${d.l}</span> → <span class="m">${d.r}</span><span class="rp-who">${d.kind}</span></div>${rpTries(s,'')}</div>${rpBadge(s)}</div>`})});
+  RID.forEach((ch,k)=>secs.push({head:H(`Segell ${k+1} de l'Esfinx: <span class="m">${ch[0].t}</span>`,k?'':'Al temple, cada segell es trencava escrivint el càlcul igualtat a igualtat.'),
+    items:ch.slice(1).map((st,j)=>{const s=S.r[k][j];return`<div class="rp-item"><div class="rp-ico"><img src="${sprURL('sphinx',2)}" width="40" height="32" alt=""></div><div class="rp-main"><div class="rp-q"><span class="rp-n">${j+1}</span><span class="m">= ${st.t}</span></div><div class="rp-prop">${st.prop}</div>${s.status==='skip'?'':rpTries(s,'= ')}</div>${rpBadge(s)}</div>`})}));
+  return secs}
+const MAPSVG=`<svg class="rp-map" viewBox="0 0 640 250" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="638" height="248" rx="16" fill="#d6e8ea" stroke="#b9d3d6" stroke-width="2"/>
+<g fill="none" stroke="#a9cbd1" stroke-width="2.5" stroke-linecap="round"><path d="M40 52q10-7 20 0t20 0"/><path d="M70 214q10-7 20 0t20 0"/><path d="M520 210q10-7 20 0t20 0"/><path d="M560 120q10-7 20 0t20 0"/><path d="M250 30q10-7 20 0t20 0"/><path d="M30 140q10-7 20 0t20 0"/></g>
+<path d="M120 140C108 80 205 44 300 62C380 36 492 56 508 118C530 178 446 220 352 206C268 232 142 214 120 140Z" fill="#ecd39b" stroke="#b08a4a" stroke-width="3"/>
+<path d="M170 132C170 98 236 80 300 92C372 74 452 92 458 128C462 164 400 182 344 176C276 192 170 172 170 132Z" fill="#8fb26a" opacity=".85"/>
+<g fill="#5d8a40"><circle cx="215" cy="118" r="9"/><circle cx="262" cy="104" r="8"/><circle cx="330" cy="98" r="9"/><circle cx="392" cy="112" r="8"/><circle cx="300" cy="150" r="9"/><circle cx="240" cy="152" r="7"/><circle cx="420" cy="150" r="7"/></g>
+<path d="M150 168C196 132 234 182 284 140S372 120 400 148S430 150 446 132" fill="none" stroke="#8b1e1e" stroke-width="3.5" stroke-dasharray="9 7" stroke-linecap="round"/>
+<g stroke="#8b1e1e" stroke-width="6" stroke-linecap="round"><path d="M438 120l18 18M456 120l-18 18"/></g>
+<rect x="470" y="104" width="24" height="18" fill="#8a7f94" stroke="#5f566a" stroke-width="2"/><rect x="478" y="110" width="8" height="12" fill="#3a3048"/>
+<g transform="translate(62 160)"><path d="M0 14h46l-6 10H6z" fill="#5c3e22"/><rect x="22" y="-22" width="3" height="36" fill="#5c3e22"/><path d="M25-20h18l-4 22H25z" fill="#f6efdc" stroke="#b9a77c"/><path d="M21-16H7l4 20h10z" fill="#f6efdc" stroke="#b9a77c"/></g>
+<g transform="translate(574 58)"><circle r="30" fill="#fbf3df" stroke="#b08a4a" stroke-width="2"/><path d="M0-26L6 0L0 26L-6 0Z" fill="#8b1e1e"/><path d="M-26 0L0-6L26 0L0 6Z" fill="#3b2412"/><text y="-33" text-anchor="middle" font-size="13" font-family="Georgia,serif" fill="#3b2412">N</text></g></svg>`;
+function repCover(N){const p=totals(),sum=a=>a.reduce((x,y)=>x+y.pts,0);
+  return`<section class="rp-page rp-cover"><div class="rp-frm"></div><div class="rp-frm2"></div><div class="rp-cv">
+  <div class="rp-kick">Matemàtiques · ${esc(S.group)}</div><h1 class="rp-title">El Tresor de<br>l'Illa dels Muntets</h1><div class="rp-sub">Quadern de bitàcola · Informe de l'aventura</div>${MAPSVG}
+  <div class="rp-cards"><div class="rp-id"><div><span>Pirata</span><b>${esc(S.name)}</b></div><div><span>Tripulació</span><b>${esc(S.group)}</b></div><div><span>Reptes</span><b>${verName(S.ver)}</b></div><div><span>Data de l'aventura</span><b>${fdate(S.end||new Date().toISOString())}</b></div></div>
+  <div class="rp-seal"><span>Nota</span><b>${fmt(p/MAXPTS*10)}</b><small>${fmt(p)} / ${MAXPTS} punts</small></div></div>
+  <div class="rp-stats"><div><b>${fmt(sum(S.c))} / ${S.c.length}</b><span>☠ Guardians</span></div><div><b>${fmt(sum(S.d))} / ${S.d.length}</b><span>✦ Portes</span></div><div><b>${fmt(S.r.reduce((x,r)=>x+sum(r),0))} / ${S.r.reduce((x,r)=>x+r.length,0)}</b><span>◈ Segells de l'Esfinx</span></div></div>
+  <p class="rp-rule">Cada repte val 1 punt al primer intent, 0,5 al segon i 0 si es falla dues vegades. La nota és orientativa.</p></div>${repFoot(1,N)}</section>`}
+const repHead=()=>`<header class="rp-hd"><span class="rp-hl">☠ El Tresor de l'Illa dels Muntets</span><span>Quadern de bitàcola de <b>${esc(S.name)}</b> · ${verName(S.ver)}</span></header>`;
+const repFoot=(n,N)=>`<footer class="rp-ft"><span>${fdate(S.end||new Date().toISOString())}</span><span>Matemàtiques · ${esc(S.group)}</span><span>Pàgina ${n} de ${N}</span></footer>`;
+const repPage=(body,n,N)=>`<section class="rp-page"><div class="rp-frm"></div><div class="rp-frm2"></div>${repHead()}<div class="rp-body">${body}</div>${repFoot(n,N)}</section>`;
+async function repPages(){const secs=repSections(),host=document.createElement('div');host.className='rp-host';
+  host.innerHTML=`<div class="rp-book">${repPage('',1,1)}</div>`;document.body.appendChild(host);
+  try{try{await document.fonts.load("26px 'Pirata One'");await document.fonts.ready}catch(e){}
+    const body=host.querySelector('.rp-body'),avail=body.clientHeight,GAP=18;
+    const hOf=html=>{body.innerHTML=html;const h=body.firstElementChild.getBoundingClientRect().height;body.innerHTML='';return h};
+    const pages=[];let cur=[],used=0;
+    const flush=()=>{if(cur.length)pages.push(cur.join(''));cur=[];used=0};
+    const add=(html,h)=>{cur.push(html);used+=h+GAP};
+    for(const sec of secs){const whole=`<div class="rp-sec">${sec.head}${sec.items.join('')}</div>`,h=hOf(whole);
+      if(used+h<=avail){add(whole,h);continue}
+      if(h<=avail){flush();add(whole,h);continue}
+      // l'apartat no cap en una pàgina sencera: comença en pàgina nova i es parteix per elements
+      flush();let items=[],head=sec.head;
+      for(const it of sec.items){const tryH=hOf(`<div class="rp-sec">${head}${items.concat(it).join('')}</div>`);
+        if(tryH>avail&&items.length){const html=`<div class="rp-sec">${head}${items.join('')}</div>`;add(html,hOf(html));flush();items=[];head=sec.head.replace('<i class="rp-ln">',' <small>(continuació)</small><i class="rp-ln">').replace(/<p class="rp-intro">.*?<\/p>/,'')}
+        items.push(it)}
+      const html=`<div class="rp-sec">${head}${items.join('')}</div>`;add(html,hOf(html))}
+    flush();const N=pages.length+1;
+    return`<div class="rp-book">${repCover(N)}${pages.map((b,k)=>repPage(b,k+2,N)).join('')}</div>`}
+  finally{host.remove()}}
+async function reportFile(){const pages=await repPages();
+  return`<!doctype html><html lang="ca"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Informe · ${esc(S.name)}</title><style>${REPCSS}
+body{margin:0;background:#7d6a4c}.rp-page{margin:24px auto;box-shadow:0 6px 24px rgba(0,0,0,.35)}</style></head><body>${pages}</body></html>`}
+const fileBase=()=>`Informe_IllaMuntets_${S.name.replace(/[^\p{L}\p{N}]+/gu,'_')}`;
+function loadScript(src){return new Promise((res,rej)=>{if(document.querySelector(`script[src="${src}"]`))return res();const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('script'));document.head.appendChild(s)})}
+async function makePDF(){await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+  const host=document.createElement('div');host.className='rp-host';host.innerHTML=await repPages();document.body.appendChild(host);
+  try{const pdf=new window.jspdf.jsPDF({unit:'mm',format:'a4'});const pgs=host.querySelectorAll('.rp-page');
+    for(let k=0;k<pgs.length;k++){const c=await html2canvas(pgs[k],{scale:2,backgroundColor:'#fbf3df',logging:false,width:794,height:1123,windowWidth:900});if(k)pdf.addPage();pdf.addImage(c.toDataURL('image/jpeg',.92),'JPEG',0,0,210,297)}
+    return pdf.output('blob')}finally{host.remove()}}
+let dl=null;
+function renderRepButtons(){const box=$('#rep-btns'),msg=$('#rep-msg');msg.textContent='';
+  if(isArtifact){box.innerHTML=`<button class="bigbtn" id="b-pdf">Informe PDF</button><button class="bigbtn alt" id="b-html">Informe HTML</button>`;
+    const go2=async kind=>{if(!dl){try{dl=await window.claude.use('downloads')}catch(e){dl=null}}
+      if(!dl){msg.textContent="Aquí no es poden descarregar fitxers. Obre el joc com a fitxer al navegador per desar l'informe.";return}
+      try{msg.textContent=kind==='pdf'?'Preparant el PDF…':"Preparant l'informe…";const data=kind==='pdf'?await makePDF():await reportFile();await dl.save({filename:fileBase()+'.'+kind,data});msg.textContent='Informe desat.'}
+      catch(e){msg.textContent=e&&e.code==='declined'?'Descàrrega cancel·lada.':"No s'ha pogut generar l'informe. Torna-ho a provar."}};
+    $('#b-pdf').onclick=()=>go2('pdf');$('#b-html').onclick=()=>go2('html')}
+  else{box.innerHTML=`<button class="bigbtn" id="b-print">Imprimeix o desa en PDF</button><button class="bigbtn alt" id="b-html">Informe HTML</button>`;
+    $('#b-print').onclick=async()=>{msg.textContent="Preparant l'informe…";$('#print-report').innerHTML=await repPages();msg.textContent="A la finestra d'impressió, tria «Desa com a PDF» (sense marges).";setTimeout(()=>window.print(),80)};
+    $('#b-html').onclick=async()=>{const u=URL.createObjectURL(new Blob([await reportFile()],{type:'text/html'}));const a=document.createElement('a');a.href=u;a.download=fileBase()+'.html';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)}}}
+</script>
+
+</body></html>
