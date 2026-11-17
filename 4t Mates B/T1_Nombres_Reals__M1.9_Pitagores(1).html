@@ -1,0 +1,730 @@
+<!doctype html><html lang="ca"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body><title>Teorema de Pitàgores</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Laboratori sobre paper mil·limetrat: tinta blava-grisa, un color per dimensió (1 blau, 2 ambre, 3 lila) i el factor k en taronja */
+:root{
+  --paper:#F6F8F6; --grid:#E1E8E3; --card:#FFFFFF; --ink:#1D2830; --muted:#5D6A71; --line:#CBD5CF;
+  --d1:#1F6FB2; --d2:#C27A0E; --d3:#8E3AA0; --k:#D9541E; --kbg:#FCE6DC;
+  --d1bg:#DCEAF6; --d2bg:#F7E6C6; --d3bg:#EBD9EF; --ok:#1B7F4B; --okbg:#DDF1E5; --bad:#B3261E; --badbg:#F8DEDC; --data:#1F4E9E;
+  --shadow:0 1px 2px rgba(29,40,48,.06),0 4px 14px rgba(29,40,48,.05);
+  --font:Arial,"Helvetica Neue",Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#12181B; --grid:#1B2428; --card:#182126; --ink:#E5ECEF; --muted:#9AA8AF; --line:#2E3B41;
+  --d1:#6FB0EA; --d2:#E9A945; --d3:#C88AD6; --k:#FF8A57; --kbg:#3A2219;
+  --d1bg:#18324A; --d2bg:#3A2D14; --d3bg:#33213A; --ok:#5CC48D; --okbg:#173326; --bad:#FF8A80; --badbg:#3A1C1A; --data:#8DB4F2;
+  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#12181B; --grid:#1B2428; --card:#182126; --ink:#E5ECEF; --muted:#9AA8AF; --line:#2E3B41;
+  --d1:#6FB0EA; --d2:#E9A945; --d3:#C88AD6; --k:#FF8A57; --kbg:#3A2219;
+  --d1bg:#18324A; --d2bg:#3A2D14; --d3bg:#33213A; --ok:#5CC48D; --okbg:#173326; --bad:#FF8A80; --badbg:#3A1C1A; --data:#8DB4F2;
+  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:15px/1.5 var(--font);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px}
+.wrap{max-width:1180px;margin:0 auto;padding-block:18px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+header.top{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px}
+header.top h1{margin:0;font-size:1.65rem;letter-spacing:-.01em;text-wrap:balance}
+header.top .sub{color:var(--muted);font-size:.9rem;margin:2px 0 0}
+.tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:4px}
+.tab{border:0;background:none;color:var(--ink);font:600 .92rem var(--font);padding:8px 14px;border-radius:7px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--paper)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:var(--shadow)}
+.eyebrow{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h2,h3{margin:.1em 0 .35em;text-wrap:balance} h2{font-size:1.3rem} h3{font-size:1.05rem}
+.muted{color:var(--muted)} .small{font-size:.85rem}
+.kk{color:var(--k);font-style:italic;font-weight:700}
+sup{font-size:.68em;line-height:0;vertical-align:.55em}
+sup.e1{color:var(--d1);font-weight:700} sup.e2{color:var(--d2);font-weight:700} sup.e3{color:var(--d3);font-weight:700}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .15em;line-height:1.15;font-size:.92em}
+.fr>span:first-child{border-bottom:1.5px solid currentColor;padding:0 .2em}.fr>span:last-child{padding:0 .2em}
+.rad{white-space:nowrap}.rad .rc,.ov{border-top:1.5px solid currentColor;padding:0 .12em;margin-left:-.05em}.idx{font-size:.62em;vertical-align:.9em;margin-right:-.35em}
+.dat{color:var(--data);font-weight:700} .res{color:var(--ok);font-weight:700}
+.btn{font:600 .9rem var(--font);border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 14px;border-radius:8px;cursor:pointer;min-height:40px}
+.btn:hover:not(:disabled){border-color:var(--ink)} .btn:disabled{opacity:.45;cursor:default}
+.btn.pri{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn.kbtn{background:var(--kbg);color:var(--k);border-color:var(--k)}
+.btn.ghost{background:transparent} .btn.bad{background:var(--bad);color:#fff;border-color:var(--bad)}
+.btn.sm{padding:5px 10px;min-height:32px;font-size:.84rem}
+button:focus-visible,input:focus-visible{outline:3px solid var(--k);outline-offset:2px}
+/* laboratori */
+.labintro{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:20px;align-items:start}
+.ctrls{display:flex;flex-direction:column;gap:12px}
+.ctl{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}.ctl .lab{font-weight:700;font-size:.88rem;min-width:118px}
+.ctl.acts{gap:8px}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--paper)}
+.seg button{border:0;border-right:1px solid var(--line);background:none;color:var(--ink);font:600 .9rem var(--font);padding:7px 12px;cursor:pointer;min-height:38px}
+.seg button:last-child{border-right:0}.seg button[aria-checked="true"]{background:var(--ink);color:var(--paper)}
+.slide{display:flex;align-items:center;gap:8px}.slide input{accent-color:var(--k);width:150px}
+#kout{font-weight:700;color:var(--k);min-width:62px;font-variant-numeric:tabular-nums}
+.narr{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;margin:0;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--k);border-radius:10px;padding:12px 16px;min-height:3.2em;font-size:.98rem}
+.dims{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.dim{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow)}
+.dim header{display:flex;align-items:baseline;gap:8px}.dim header h3{margin:0;flex:1}
+.dim .dn{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:2px 7px;border-radius:5px}
+.d1 .dn{background:var(--d1bg);color:var(--d1)}.d2 .dn{background:var(--d2bg);color:var(--d2)}.d3 .dn{background:var(--d3bg);color:var(--d3)}
+.dim svg{width:100%;height:auto;max-height:300px;display:block}
+.chips{min-height:38px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:baseline;gap:1px;background:var(--kbg);color:var(--k);border:1.5px solid var(--k);border-radius:999px;padding:2px 11px;font-weight:700;font-style:italic;transition:transform .5s ease,opacity .4s}
+.chip.big{font-size:1.15rem;padding:3px 14px}.chip .eq{font-style:normal;color:var(--ink);font-weight:600;margin-left:4px}
+.chip.e1{border-color:var(--d1)}.chip.e2{border-color:var(--d2)}.chip.e3{border-color:var(--d3)}
+.chip.e1 sup{color:var(--d1)}.chip.e2 sup{color:var(--d2)}.chip.e3 sup{color:var(--d3)}
+.chip sup{vertical-align:baseline;position:relative;top:-.5em}.chip.go{opacity:0}.dot{color:var(--k);font-weight:700;transition:opacity .3s}.dot.fade{opacity:0}
+.pop{animation:pop .45s ease}@keyframes pop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+sup.flash{animation:flash 1.1s ease}@keyframes flash{0%,100%{text-shadow:none}40%{text-shadow:0 0 10px currentColor;font-size:.95em}}
+.fx{font-size:.95rem;min-height:2.6em;border-top:1px dashed var(--line);padding-top:8px;overflow-wrap:anywhere}.fx b{color:var(--ok)}
+svg text{font-family:var(--font)} svg .hint{fill:var(--muted);font-size:13px}
+svg .small{fill:var(--muted);font-size:11px} svg .lbl{font-size:14px;font-weight:700}
+svg .c1{fill:var(--d1)} svg .c2{fill:var(--d2)} svg .c3{fill:var(--d3)}
+svg .seg1{stroke:var(--d1);stroke-width:6;stroke-linecap:round} svg .seg1.t0{stroke:var(--d1bg);stroke-width:14} svg .seg1.t1{stroke:var(--d1);stroke-opacity:.25;stroke-width:14}
+svg .tick{stroke:var(--ink);stroke-width:1.5} svg .cap{stroke:var(--d1);stroke-width:2.5}
+svg .ghost{fill:none;stroke:var(--muted);stroke-width:1.5;stroke-dasharray:4 4}
+svg .area{fill:var(--d2bg);stroke:none} svg .edge2{fill:none;stroke:var(--d2);stroke-width:2.5}
+svg .grid{stroke:var(--d2);stroke-opacity:.45;stroke-width:1;fill:none}
+svg .tile2.t0{fill:var(--d2);fill-opacity:.35} svg .tile2.t1{fill:var(--d2);fill-opacity:.2}
+svg .vol.top{fill:var(--d3bg)} svg .vol.rgt{fill:var(--d3);fill-opacity:.35} svg .vol.lft{fill:var(--d3);fill-opacity:.22}
+svg .vol{stroke:var(--d3);stroke-width:2}
+svg .cu{stroke:var(--card);stroke-width:1} svg .cu.top{fill:var(--d3bg)} svg .cu.rgt{fill:var(--d3);fill-opacity:.55} svg .cu.lft{fill:var(--d3);fill-opacity:.35}
+svg .cu.t1.top{fill:var(--d3);fill-opacity:.25}
+svg .floor{fill:var(--d3bg);fill-opacity:.4;stroke:var(--d3);stroke-dasharray:3 3} svg .wire{fill:none;stroke:var(--d3);stroke-dasharray:3 3}
+svg g.kchip rect{fill:var(--kbg);stroke:var(--k);stroke-width:1.5} svg g.kchip text{fill:var(--k);font-weight:700;font-size:13px;font-style:italic}
+.sumtab table{border-collapse:collapse;width:100%;min-width:520px;font-variant-numeric:tabular-nums}
+.tscroll{overflow-x:auto}
+.sumtab th,.sumtab td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left}.sumtab th{font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.sumtab tr.r1 td:first-child{border-left:4px solid var(--d1)}.sumtab tr.r2 td:first-child{border-left:4px solid var(--d2)}.sumtab tr.r3 td:first-child{border-left:4px solid var(--d3)}
+.sumtab tr.r1 sup{color:var(--d1);font-weight:700}.sumtab tr.r2 sup{color:var(--d2);font-weight:700}.sumtab tr.r3 sup{color:var(--d3);font-weight:700}
+.note{margin:.8em 0 0;color:var(--muted)}
+.inv-h h3{margin-top:0}.invctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.invstage{display:flex;flex-direction:column;gap:8px;margin-top:12px}.invstage .il{animation:pop .4s ease;font-size:1.02rem}
+.recorda{border-left:4px solid var(--muted)}.rgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.rgrid p{margin:.3em 0}.big-f{font-size:1.15rem}
+/* pràctica */
+.start{max-width:640px}.fld{display:block;font-weight:700;margin:12px 0 4px}
+#pname{width:100%;max-width:420px;font:1rem var(--font);padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);margin-bottom:12px}
+#pname.err{border-color:var(--bad)}
+.phead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.score{display:flex;align-items:center;gap:10px;font-variant-numeric:tabular-nums}
+.bar{display:inline-block;width:120px;height:8px;border-radius:4px;background:var(--grid);overflow:hidden}.bar i{display:block;height:100%;background:var(--ok)}
+.pgrid{display:grid;grid-template-columns:260px minmax(0,1fr);gap:14px;align-items:start}
+.exlist{display:flex;flex-direction:column;gap:6px}
+.exb{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:9px;padding:8px 10px;cursor:pointer;font:600 .88rem var(--font)}
+.exb .n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--grid);font-size:.8rem}
+.exb .c{color:var(--muted);font-size:.78rem;font-variant-numeric:tabular-nums}
+.exb.on{border-color:var(--ink);box-shadow:inset 3px 0 0 var(--k)} .exb.done .n{background:var(--okbg);color:var(--ok)} .exb.gave .n{background:var(--badbg);color:var(--bad)}
+.exv{min-width:0}.exh h3{font-size:1.2rem}
+.story{font-size:1rem;margin:.4em 0 .8em}
+.fig{margin:6px 0 12px;max-width:340px}.fig svg{width:100%;height:auto;display:block}
+.steps{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;counter-reset:s}
+.step{border:1px solid var(--line);border-radius:10px;padding:12px 14px;counter-increment:s;position:relative}
+.step .q{font-weight:600}.step .q::before{content:"Pas " counter(s) " · ";color:var(--muted);font-weight:700}
+.step.cur{border-color:var(--ink)}
+.inrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.ansin{font:1.05rem var(--font);width:150px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-variant-numeric:tabular-nums}
+.unit{color:var(--muted);min-width:20px}.tip{color:var(--muted);font-size:.82rem;margin-top:4px}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.opt{font:600 .95rem var(--font);border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:8px 12px;border-radius:8px;cursor:pointer;text-align:left}
+.opt:hover{border-color:var(--ink)}
+.fb{margin-top:8px;padding:7px 10px;border-radius:8px}.fb.good{background:var(--okbg)}.fb.bad{background:var(--badbg)}
+.fb .gv{display:block;color:var(--muted);font-size:.85rem}
+.why{margin-top:6px;font-size:.92rem;color:var(--muted)}.why b{color:var(--ink)}
+.exfoot,.exend{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:flex-end;margin-top:14px}
+/* informe */
+.repbar{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;align-items:center}
+.big{font-size:2.4rem;font-weight:700;font-variant-numeric:tabular-nums}.big small{font-size:1rem;color:var(--muted)}
+.dlbtns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.msg{width:100%;color:var(--muted);font-size:.88rem}
+#repview{overflow-x:auto}
+.rep h1{font-size:1.3rem}.rep table{border-collapse:collapse;margin:8px 0 16px}.rep td,.rep th{border:1px solid var(--line);padding:5px 9px;text-align:left}
+.rep .rex{margin-top:14px}.rep .rex ol{padding-left:20px}.rep li{margin-bottom:8px}.rep .ra{font-size:.9rem}.rep .rw{font-size:.85rem;color:var(--muted)}
+.rep .tag{font-size:.78rem;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--grid)}.rep .tag.g{background:var(--okbg);color:var(--ok)}.rep .tag.b{background:var(--badbg);color:var(--bad)}
+.rep .nota b{font-size:1.2em}
+.pdfbox{position:fixed;left:-10000px;top:0;width:760px;background:#fff;color:#111;padding:10px;font:14px/1.45 Arial,sans-serif;--line:#ccc;--grid:#eee;--okbg:#e2f3e8;--ok:#1b7f4b;--badbg:#f8dedc;--bad:#b3261e;--muted:#555;--data:#1f4e9e;--k:#d9541e}
+#print-report{display:none}
+@media print{
+  :root{color-scheme:light} body{background:#fff!important;color:#111} .wrap{display:none!important}
+  #print-report{display:block;--line:#bbb;--grid:#eee;--okbg:#e2f3e8;--ok:#1b7f4b;--badbg:#f8dedc;--bad:#b3261e;--muted:#555;--data:#1f4e9e;--k:#d9541e;color:#111}
+  .rex{break-inside:avoid-page}
+}
+@media (max-width:900px){.labintro{grid-template-columns:1fr}.dims{grid-template-columns:1fr}.dim svg{max-height:260px}.rgrid{grid-template-columns:1fr}.pgrid{grid-template-columns:1fr}.exlist{flex-direction:row;overflow-x:auto;padding-bottom:4px}.exb{min-width:190px}}
+@media (max-width:480px){header.top h1{font-size:1.35rem}.ctl .lab{min-width:0;width:100%}.tab{padding:8px 10px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+:root{--tA:#A6CDB0;--tB:#C8E1CE}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--tA:#2F5A3B;--tB:#3D6B4A}}
+:root[data-theme="dark"]{--tA:#2F5A3B;--tB:#3D6B4A}
+.pgrid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.pgrid2 .dim svg{max-height:440px}
+.dn1,.dn2{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:1px 6px;border-radius:4px;margin-right:6px}
+.dn1{background:var(--d1bg);color:var(--d1)}.dn2{background:var(--d2bg);color:var(--d2)}
+.eqs div{margin:3px 0}
+.strike{text-decoration:line-through;color:var(--bad)}
+svg .sqa{fill:var(--d1bg);stroke:var(--d1);stroke-width:2} svg .sqb{fill:var(--d3bg);stroke:var(--d3);stroke-width:2} svg .sqh{fill:var(--d2bg);stroke:var(--d2);stroke-width:2}
+svg .gl{stroke-width:.8;stroke-opacity:.45} svg .gl.a{stroke:var(--d1)} svg .gl.b{stroke:var(--d3)} svg .gl.h{stroke:var(--d2)}
+svg .tile.ta{fill:var(--d1);fill-opacity:.75} svg .tile.tb{fill:var(--d3);fill-opacity:.75}
+svg .tri{fill:var(--card);stroke:var(--ink);stroke-width:2.5;stroke-linejoin:round} svg .right{fill:none;stroke:var(--ink);stroke-width:1.5}
+svg .sqlbl{font-weight:700;font-size:15px;paint-order:stroke;stroke:var(--card);stroke-width:4px} svg .la{fill:var(--d1)} svg .lb{fill:var(--d3)} svg .lh{fill:var(--d2)}
+svg .sidelbl{font-weight:700;font-size:13px;fill:var(--ink);paint-order:stroke;stroke:var(--card);stroke-width:4px} svg .sidelbl.hh{fill:var(--k)}
+svg .bigsq{fill:var(--paper);stroke:var(--ink);stroke-width:2} svg .hole{stroke:none} svg .hole.h{fill:var(--d2bg)} svg .hole.a{fill:var(--d1bg)} svg .hole.b{fill:var(--d3bg)}
+svg .ptri{stroke:var(--ink);stroke-width:1.5;stroke-linejoin:round} svg .ptri.t0,svg .ptri.t2{fill:var(--tA)} svg .ptri.t1,svg .ptri.t3{fill:var(--tB)}
+svg .emp{fill-opacity:.25;stroke-dasharray:5 4}
+.fig svg .tri2{fill:var(--d2bg);stroke:var(--ink);stroke-width:2;stroke-linejoin:round} .fig svg .right2{fill:none;stroke:var(--ink);stroke-width:1.4}
+.fig svg .dat{fill:var(--data);font-weight:700;font-size:14px} .fig svg .unk{fill:var(--k);font-weight:700;font-size:14px}
+.fig svg .wall{stroke:var(--muted);stroke-width:6} .fig svg .floor2{stroke:var(--muted);stroke-width:3} .fig svg .hgt{stroke:var(--k);stroke-width:2;stroke-dasharray:5 4}
+@media (max-width:900px){.pgrid2{grid-template-columns:1fr}}
+
+</style>
+<div class="wrap">
+  <header class="top"><div><h1>Teorema de Pitàgores</h1><p class="sub">Matemàtiques B · 4t ESO · U1 Nombres</p></div>
+    <nav class="tabs" role="tablist"><button class="tab" role="tab" data-t="laboratori">Laboratori</button><button class="tab" role="tab" data-t="practica">Pràctica</button><button class="tab" role="tab" data-t="informe">Informe</button></nav></header>
+  <main>
+    <div class="pane" id="laboratori"><section class="labintro card">
+  <div class="li-text">
+    <span class="eyebrow">Laboratori</span>
+    <h2>Pitàgores és una igualtat de superfícies</h2>
+    <p>Els costats del triangle són longituds (dimensió 1). Si hi construïm un quadrat a sobre, passem a superfícies (dimensió 2): <i>a</i><sup class="e2">2</sup> + <i>b</i><sup class="e2">2</sup> = <i>h</i><sup class="e2">2</sup>. Per tornar a la longitud, l’arrel desfà el quadrat.</p>
+  </div>
+  <div class="ctrls">
+    <div class="ctl"><span class="lab">Què busco?</span>
+      <div class="seg" id="mode" role="radiogroup" aria-label="Què busco">
+        <button role="radio" data-v="h" aria-checked="true">La hipotenusa</button><button role="radio" data-v="c">Un catet</button></div></div>
+    <div class="ctl"><span class="lab">Triangle</span>
+      <div class="seg" id="pre" role="radiogroup" aria-label="Triangle">
+        <button role="radio" data-a="3" data-b="4" aria-checked="true">3 · 4</button><button role="radio" data-a="6" data-b="8">6 · 8</button><button role="radio" data-a="5" data-b="12">5 · 12</button><button role="radio" data-a="8" data-b="15">8 · 15</button><button role="radio" data-a="2" data-b="5">2 · 5</button></div></div>
+    <div class="ctl"><span class="lab">Catets</span>
+      <label class="slide">a <input type="range" id="sa" min="1" max="12" step="1" value="3"><output id="oa">3</output></label>
+      <label class="slide">b <input type="range" id="sb" min="1" max="12" step="1" value="4"><output id="ob">4</output></label></div>
+    <div class="ctl acts">
+      <button class="btn pri" id="bSq">1 · Construeix els quadrats</button>
+      <button class="btn pri" id="bFly">2 · Mou les rajoles</button>
+      <button class="btn kbtn" id="bK">3 · Amplia ×2</button>
+      <button class="btn ghost sm" id="bReset">Torna a l’inici</button>
+    </div>
+  </div>
+</section>
+
+<p class="narr" id="narr" role="status" aria-live="polite">Tria un triangle i prem «Construeix els quadrats».</p>
+
+<div class="pgrid2">
+  <article class="dim d2">
+    <header><span class="dn">Costats i quadrats</span><h3>De la longitud a la superfície</h3></header>
+    <svg viewBox="0 0 420 420" id="SQ" role="img" aria-label="Triangle rectangle amb quadrats sobre els costats"></svg>
+    <div class="chips" id="CK" aria-hidden="true"></div>
+    <div class="fx eqs" id="EQ"></div>
+  </article>
+  <article class="dim d3">
+    <header><span class="dn">Demostració</span><h3>Els quatre triangles</h3><button class="btn sm" id="bProof">Reordena</button></header>
+    <svg viewBox="0 0 420 420" id="PR" role="img" aria-label="Quadrat gran amb quatre triangles"></svg>
+    <div class="fx" id="PRtxt"></div>
+  </article>
+</div>
+
+<section class="card recorda">
+  <h3>Recorda (fitxa El teorema de Pitàgores)</h3>
+  <div class="rgrid">
+    <div><p>En un triangle rectangle, els <b>catets</b> <i>a</i> i <i>b</i> formen l’angle recte. La <b>hipotenusa</b> <i>h</i> és el costat oposat, el més llarg.</p><p class="big-f"><i>h</i><sup>2</sup> = <i>a</i><sup>2</sup> + <i>b</i><sup>2</sup></p></div>
+    <div><p>Hipotenusa: <i>h</i> = √<span class="ov"><i>a</i><sup>2</sup> + <i>b</i><sup>2</sup></span> (sumem els quadrats).</p><p>Catet: <i>a</i> = √<span class="ov"><i>h</i><sup>2</sup> − <i>b</i><sup>2</sup></span> (restem al quadrat de <i>h</i>).</p><p>Diagonal d’un quadrat de costat <i>c</i>: <i>d</i> = <i>c</i>√<span class="ov">2</span>.</p></div>
+    <div><p>Triples pitagòriques: 3-4-5, 5-12-13, 8-15-17, 6-8-10.</p><p>Compte: <span class="strike">h = 3 + 4 = 7</span>. Els costats no se sumen; se sumen els quadrats.</p></div>
+  </div>
+</section>
+</div>
+    <div class="pane" id="practica" hidden><div id="practice"></div></div>
+    <div class="pane" id="informe" hidden></div>
+  </main>
+</div>
+<div id="print-report"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+const REPORT_CSS = `body{font:14px/1.45 Arial,sans-serif;color:#111;max-width:820px;margin:24px auto;padding:0 16px}.dat{color:#1f4e9e;font-weight:700}.res{color:#1b7f4b;font-weight:700}sup{font-size:.68em;vertical-align:.55em;line-height:0}.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.15;font-size:.92em}.fr>span:first-child{border-bottom:1.5px solid currentColor}.rad .rc{border-top:1.5px solid currentColor}.idx{font-size:.62em;vertical-align:.9em;margin-right:-.35em}.kk{color:#d9541e;font-style:italic;font-weight:700}table{border-collapse:collapse}td,th{border:1px solid #bbb;padding:5px 9px;text-align:left}.tag{font-size:.78rem;font-weight:700;padding:1px 6px;border-radius:4px;background:#eee}.tag.g{background:#e2f3e8;color:#1b7f4b}.tag.b{background:#f8dedc;color:#b3261e}.rw,.meta{color:#555}.muted{color:#555}`;
+/* ===== Motor comú de pràctica: versions A/B/C, passos, 2 intents, «Em rendeixo», nota i informe ===== */
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const sleep = ms => new Promise(r => setTimeout(r, REDUCED ? Math.min(ms, 30) : ms));
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const pick = (rng, arr) => arr[Math.floor(rng() * arr.length)];
+// format numbers in Catalan: decimal comma, thin space thousands
+function fmt(x, d) {
+  if (d === undefined) { d = Math.abs(x - Math.round(x)) < 1e-9 ? 0 : (Math.abs(x * 10 - Math.round(x * 10)) < 1e-9 ? 1 : 2); }
+  let s = (Math.round(x * 10 ** d) / 10 ** d).toFixed(d);
+  let [i, f] = s.split('.'); const neg = i.startsWith('-'); if (neg) i = i.slice(1);
+  if (i.length > 4) i = i.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return (neg ? '−' : '') + i + (f ? ',' + f : '');
+}
+const B = x => `<span class="dat">${x}</span>`, G = x => `<span class="res">${x}</span>`;
+const sup = (b, e) => `${b}<sup>${e}</sup>`;
+const frac = (n, d) => `<span class="fr"><span>${n}</span><span>${d}</span></span>`;
+const rt = (x, n) => `<span class="rad">${n ? `<sup class="idx">${n}</sup>` : ''}√<span class="rc">${x}</span></span>`;
+function parseNum(s) {
+  if (s == null) return NaN; s = String(s).trim().replace(/\s| /g, '').replace(/−/g, '-');
+  if (/^-?\d+\/\d+$/.test(s)) { const [a, b] = s.split('/'); return +a / +b; }
+  if (/,/.test(s)) s = s.replace(/\./g, '').replace(',', '.');
+  return /^-?\d*\.?\d+$/.test(s) ? +s : NaN;
+}
+
+const APP = { key: '', title: '', bank: [], ver: null, name: '', st: null, dl: null, mode: 'file' };
+const VERS = { A: 101, B: 202, C: 303 };
+
+function genVersion(v) {
+  const rng = mulberry32(VERS[v] + APP.salt);
+  return APP.bank.map((g, i) => { const e = g(rng, v); e.i = i; return e; });
+}
+function save() { try { localStorage.setItem(APP.key, JSON.stringify({ ver: APP.ver, name: APP.name, st: APP.st })); } catch (e) { } }
+function load() { try { return JSON.parse(localStorage.getItem(APP.key) || 'null'); } catch (e) { return null; } }
+
+function startPractice(v, name) {
+  APP.ver = v; APP.name = name; APP.ex = genVersion(v);
+  if (!APP.st || APP.st.ver !== v) APP.st = { ver: v, ex: APP.ex.map(e => ({ cur: 0, rendit: false, steps: e.steps.map(() => ({ tries: 0, status: '', given: [] })) })) };
+  save(); renderPractice();
+}
+
+function points(s) { return s.status === 'ok1' ? 1 : s.status === 'ok2' ? 0.5 : 0; }
+function totals() {
+  let p = 0, n = 0, done = 0;
+  APP.ex.forEach((e, i) => e.steps.forEach((s, j) => { const S = APP.st.ex[i].steps[j]; n++; p += points(S); if (S.status) done++; }));
+  return { p, n, done, nota: n ? p / n * 10 : 0 };
+}
+
+function renderPractice() {
+  const host = $('#practice');
+  if (!APP.ver) {
+    host.innerHTML = `<div class="start card">
+      <h2>Pràctica</h2>
+      <p>Hi ha ${APP.bank.length} exercicis de la fitxa, resolts pas a pas. Cada pas té 2 intents: <b>1 punt</b> si l’encertes al primer, <b>0,5</b> al segon. Després del segon error veuràs la solució. Si un exercici se t’encalla, pots prémer <b>«Em rendeixo»</b>: veuràs la resolució, però aquells passos compten 0.</p>
+      <p>En començar se’t sortejarà una versió (A, B o C) amb números diferents dels dels companys.</p>
+      <label class="fld" for="pname">Nom i cognoms</label>
+      <input id="pname" type="text" autocomplete="name" placeholder="Escriu el teu nom">
+      <button class="btn pri" id="pgo">Comença la pràctica</button></div>`;
+    $('#pgo').onclick = () => { const nm = $('#pname').value.trim(); if (!nm) { $('#pname').focus(); $('#pname').classList.add('err'); return; } startPractice('ABC'[Math.floor(Math.random() * 3)], nm); };
+    return;
+  }
+  const T = totals();
+  host.innerHTML = `<div class="phead"><div><b>${APP.name}</b> · Versió <b>${APP.ver}</b></div>
+     <div class="score"><span>${fmt(T.p)} / ${T.n} punts</span><span class="bar"><i style="width:${T.n ? T.done / T.n * 100 : 0}%"></i></span><button class="btn sm" id="toRep">Informe i nota</button></div></div>
+    <div class="pgrid"><nav class="exlist" aria-label="Exercicis">${APP.ex.map((e, i) => {
+      const S = APP.st.ex[i]; const d = S.steps.filter(s => s.status).length; const ok = S.steps.every(s => s.status);
+      return `<button class="exb ${i === APP.cur ? 'on' : ''} ${ok ? (S.rendit ? 'gave' : 'done') : ''}" data-i="${i}"><span class="n">${i + 1}</span><span class="t">${e.title}</span><span class="c">${d}/${e.steps.length}</span></button>`;
+    }).join('')}</nav><section id="exv" class="exv card"></section></div>`;
+  $$('.exb').forEach(b => b.onclick = () => { APP.cur = +b.dataset.i; renderPractice(); });
+  $('#toRep').onclick = () => showTab('informe');
+  renderEx();
+}
+APP.cur = 0;
+
+function stepAnswerHTML(e, s) {
+  if (s.kind === 'choice') return s.opts[s.ans];
+  return (s.show || fmt(s.ans)) + (s.unit ? ' ' + s.unit : '');
+}
+
+function renderEx() {
+  const i = APP.cur, e = APP.ex[i], S = APP.st.ex[i], v = $('#exv');
+  const allDone = S.steps.every(s => s.status);
+  let h = `<header class="exh"><span class="eyebrow">Exercici ${i + 1} de ${APP.ex.length}</span><h3>${e.title}</h3></header>
+    <div class="story">${e.story}</div>${e.fig ? `<div class="fig">${e.fig}</div>` : ''}<ol class="steps">`;
+  e.steps.forEach((s, j) => {
+    const R = S.steps[j];
+    if (j > S.cur && !R.status) return;
+    h += `<li class="step ${R.status ? 'st-' + R.status : 'cur'}"><div class="q">${s.q}</div>`;
+    if (R.status) {
+      const lab = { ok1: '✓ Correcte', ok2: '✓ Correcte al segon intent', fail: '✗ Solució', rendit: 'Resolució' }[R.status];
+      h += `<div class="fb ${R.status.startsWith('ok') ? 'good' : 'bad'}"><b>${lab}:</b> ${G(stepAnswerHTML(e, s))}${R.given.length && R.status !== 'ok1' ? `<span class="gv">Has respost: ${R.given.map(x => esc(x)).join(' · ')}</span>` : ''}</div>`;
+      if (s.why) h += `<div class="why"><b>Per què?</b> ${s.why}</div>`;
+    } else {
+      if (s.kind === 'choice') h += `<div class="opts" role="group">${s.opts.map((o, k) => `<button class="opt" data-k="${k}">${o}</button>`).join('')}</div>`;
+      else h += `<div class="inrow"><input id="in-${i}-${j}" class="ansin" inputmode="decimal" autocomplete="off" aria-label="Resposta"><span class="unit">${s.unit || ''}</span><button class="btn pri" id="chk">Comprova</button></div>${s.tol ? `<div class="tip">Arrodoneix a ${s.tol >= 0.1 ? '1 decimal' : '2 decimals'}. Pots escriure la coma.</div>` : ''}`;
+      if (R.tries === 1) h += `<div class="fb bad">✗ No és correcte. ${s.hint ? `<b>Pista:</b> ${s.hint}` : 'Torna-ho a provar.'}</div>`;
+    }
+    h += `</li>`;
+  });
+  h += `</ol>`;
+  h += allDone ? `<div class="exend">${S.rendit ? 'Exercici resolt amb «Em rendeixo».' : 'Exercici acabat.'} ${i < APP.ex.length - 1 ? '<button class="btn pri" id="nextEx">Exercici següent →</button>' : '<button class="btn pri" id="nextEx">Veure l’informe →</button>'}</div>`
+    : `<div class="exfoot"><button class="btn ghost" id="giveup">Em rendeixo</button></div>`;
+  v.innerHTML = h;
+  const j = S.cur, s = e.steps[j];
+  if (!allDone) {
+    if (s.kind === 'choice') $$('.opt', v).forEach(b => b.onclick = () => answer(i, j, +b.dataset.k, s.opts[+b.dataset.k]));
+    else { const inp = $(`#in-${i}-${j}`); inp.focus({ preventScroll: true }); const go = () => { const raw = inp.value; if (!raw.trim()) return; answer(i, j, parseNum(raw), raw); }; $('#chk').onclick = go; inp.onkeydown = ev => { if (ev.key === 'Enter') go(); }; }
+    $('#giveup').onclick = () => confirmGiveUp(i);
+  } else $('#nextEx').onclick = () => { if (i < APP.ex.length - 1) { APP.cur = i + 1; renderPractice(); } else showTab('informe'); };
+  if (window.MathFix) MathFix(v);
+}
+function esc(x) { return String(x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+function isRight(s, val) {
+  if (s.kind === 'choice') return val === s.ans;
+  if (Number.isNaN(val)) return false;
+  const tol = s.tol ? s.tol * 0.51 + 1e-9 : 1e-6 * Math.max(1, Math.abs(s.ans));
+  return Math.abs(val - s.ans) <= tol || (s.alt || []).some(a => Math.abs(val - a) <= tol);
+}
+function answer(i, j, val, raw) {
+  const S = APP.st.ex[i], R = S.steps[j], s = APP.ex[i].steps[j];
+  R.given.push(raw); R.tries++;
+  if (isRight(s, val)) R.status = R.tries === 1 ? 'ok1' : 'ok2';
+  else if (R.tries >= 2) R.status = 'fail';
+  if (R.status) S.cur = j + 1;
+  save(); renderPractice();
+}
+function confirmGiveUp(i) {
+  const f = $('.exfoot');
+  f.innerHTML = `<span>Segur? Els passos que queden comptaran 0.</span><button class="btn bad" id="gyes">Sí, em rendeixo</button><button class="btn ghost" id="gno">Continuo</button>`;
+  $('#gno').onclick = renderEx;
+  $('#gyes').onclick = () => { const S = APP.st.ex[i]; S.rendit = true; S.steps.forEach(R => { if (!R.status) R.status = 'rendit'; }); S.cur = S.steps.length; save(); renderPractice(); };
+}
+
+/* ---------- informe ---------- */
+function reportHTML() {
+  const T = totals(), d = new Date();
+  let h = `<div class="rep"><h1>${APP.title} · Informe</h1>
+   <p class="meta">${esc(APP.name)} · Versió ${APP.ver} · ${d.toLocaleDateString('ca-ES')} ${d.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' })}</p>
+   <p class="nota">Nota orientativa: <b>${fmt(T.nota, 1)}</b> / 10 <span>(${fmt(T.p)} de ${T.n} punts · ${T.done} passos fets)</span></p><table><thead><tr><th>Exercici</th><th>Punts</th><th>Estat</th></tr></thead><tbody>`;
+  APP.ex.forEach((e, i) => { const S = APP.st.ex[i]; const p = S.steps.reduce((a, R) => a + points(R), 0); const st = S.rendit ? 'Rendició' : S.steps.every(R => R.status) ? 'Acabat' : S.steps.some(R => R.status) ? 'A mitges' : 'No començat';
+    h += `<tr><td>${i + 1}. ${e.title}</td><td>${fmt(p)} / ${e.steps.length}</td><td>${st}</td></tr>`; });
+  h += `</tbody></table>`;
+  APP.ex.forEach((e, i) => {
+    const S = APP.st.ex[i];
+    h += `<section class="rex"><h2>${i + 1}. ${e.title}</h2><div class="story">${e.story}</div><ol>`;
+    e.steps.forEach((s, j) => { const R = S.steps[j];
+      const lab = { ok1: 'Correcte (1)', ok2: 'Correcte al 2n intent (0,5)', fail: 'Error (0)', rendit: 'Rendició (0)', '': 'Sense fer' }[R.status];
+      h += `<li><div>${s.q}</div><div class="ra"><span class="tag ${R.status.startsWith('ok') ? 'g' : R.status ? 'b' : ''}">${lab}</span> ${R.given.length ? 'Respostes: ' + R.given.map(esc).join(' · ') + ' · ' : ''}Solució: ${G(stepAnswerHTML(e, s))}</div>${s.why ? `<div class="rw">${s.why}</div>` : ''}</li>`; });
+    h += `</ol></section>`;
+  });
+  return h + `</div>`;
+}
+function renderReport() {
+  const host = $('#informe');
+  if (!APP.ver) { host.innerHTML = `<div class="card"><p>Encara no has començat la pràctica. Quan la facis, aquí tindràs la nota i l’informe per descarregar.</p></div>`; return; }
+  const T = totals();
+  host.innerHTML = `<div class="card repbar"><div><span class="eyebrow">Nota orientativa</span><div class="big">${fmt(T.nota, 1)}<small> / 10</small></div><div>${fmt(T.p)} de ${T.n} punts · ${T.done} de ${T.n} passos fets</div></div>
+    <div class="dlbtns" id="dlbtns"></div></div><div class="card" id="repview">${reportHTML()}</div>
+    <div class="card"><button class="btn ghost" id="reset">Esborra la pràctica i torna a començar</button></div>`;
+  const b = $('#dlbtns');
+  if (APP.mode === 'artifact') {
+    b.innerHTML = `<button class="btn pri" id="dpdf">Descarrega l’informe en PDF</button><button class="btn" id="dhtml">Descarrega’l en HTML</button><div class="msg" id="dmsg" role="status"></div>`;
+    $('#dpdf').onclick = savePDF; $('#dhtml').onclick = saveHTML;
+  } else if (APP.mode === 'file') {
+    b.innerHTML = `<button class="btn pri" id="dprint">Desa en PDF (imprimir)</button><button class="btn" id="dhtml">Descarrega’l en HTML</button><div class="msg" id="dmsg" role="status"></div>`;
+    $('#dprint').onclick = () => { $('#print-report').innerHTML = reportHTML(); window.print(); };
+    $('#dhtml').onclick = saveHTML;
+  } else b.innerHTML = `<div class="msg">La descàrrega no està disponible en aquesta vista.</div>`;
+  $('#reset').onclick = () => { const r = $('#reset'); if (r.dataset.c) { APP.ver = null; APP.st = null; save(); try { localStorage.removeItem(APP.key) } catch (e) { } showTab('practica'); } else { r.dataset.c = 1; r.textContent = 'Segur? Prem una altra vegada per esborrar-ho tot'; } };
+}
+function fileName(ext) { return `${APP.file}_${(APP.name || 'alumne').replace(/[^\p{L}\p{N}]+/gu, '_')}_${APP.ver}.${ext}`; }
+function standaloneReport() {
+  return `<!doctype html><html lang="ca"><head><meta charset="utf-8"><title>${APP.title} · Informe</title><style>${REPORT_CSS}</style></head><body>${reportHTML()}</body></html>`;
+}
+async function saveHTML() {
+  const data = standaloneReport();
+  if (APP.mode === 'artifact') { try { await APP.dl.save({ filename: fileName('html'), data }); msg('Informe desat.'); } catch (e) { msg(e && e.code === 'declined' ? 'Descàrrega cancel·lada.' : 'No s’ha pogut desar.'); } return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: 'text/html' })); a.download = fileName('html'); a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+function msg(t) { const m = $('#dmsg'); if (m) m.textContent = t; }
+async function savePDF() {
+  if (!window.jspdf || !window.html2canvas) { msg('Falta carregar el generador de PDF. Prova el format HTML.'); return; }
+  msg('Preparant el PDF…');
+  const box = document.createElement('div'); box.className = 'pdfbox'; box.innerHTML = reportHTML(); document.body.appendChild(box);
+  try {
+    const { jsPDF } = window.jspdf; const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
+    const W = 190, PH = 277; let y = 10, first = true;
+    const blocks = [box.querySelector('h1').parentElement.querySelector('h1'), ...box.querySelectorAll('.rep > p, .rep > table, .rex')];
+    for (const el of blocks) {
+      const c = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff' });
+      let hmm = c.height * W / c.width;
+      if (hmm > PH) { // talla blocs molt llargs
+        const sliceH = Math.floor(c.width * PH / W); let off = 0;
+        while (off < c.height) { const cv = document.createElement('canvas'); cv.width = c.width; cv.height = Math.min(sliceH, c.height - off); cv.getContext('2d').drawImage(c, 0, -off); if (!first) pdf.addPage(); pdf.addImage(cv.toDataURL('image/jpeg', 0.92), 'JPEG', 10, 10, W, cv.height * W / c.width); first = false; off += sliceH; y = 10 + cv.height * W / c.width + 4; }
+        continue;
+      }
+      if (y + hmm > 287) { pdf.addPage(); y = 10; }
+      pdf.addImage(c.toDataURL('image/jpeg', 0.92), 'JPEG', 10, y, W, hmm); y += hmm + 4; first = false;
+    }
+    const out = pdf.output('blob');
+    await APP.dl.save({ filename: fileName('pdf'), data: out }); msg('Informe desat.');
+  } catch (e) { msg(e && e.code === 'declined' ? 'Descàrrega cancel·lada.' : 'No s’ha pogut generar el PDF. Prova el format HTML.'); }
+  finally { box.remove(); }
+}
+
+/* ---------- pestanyes i arrencada ---------- */
+function showTab(t) {
+  $$('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.t === t));
+  $$('.pane').forEach(p => p.hidden = p.id !== t);
+  if (t === 'practica') renderPractice(); if (t === 'informe') renderReport();
+  try { localStorage.setItem(APP.key + ':tab', t); } catch (e) { }
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+async function boot() {
+  const saved = load();
+  if (saved && saved.ver) { APP.ver = saved.ver; APP.name = saved.name; APP.st = saved.st; APP.ex = genVersion(APP.ver);
+    if (!APP.st || APP.st.ex.length !== APP.ex.length) { APP.st = null; startPractice(APP.ver, APP.name); } }
+  $$('.tab').forEach(b => b.onclick = () => showTab(b.dataset.t));
+  let t = 'laboratori'; try { t = localStorage.getItem(APP.key + ':tab') || t; } catch (e) { }
+  showTab(t);
+  if (window.claude && window.claude.use) {
+    APP.mode = 'pending';
+    try { const dl = await window.claude.use('downloads'); if (dl) { APP.dl = dl; APP.mode = 'artifact'; } else APP.mode = 'none'; } catch (e) { APP.mode = 'none'; }
+    if (!$('#informe').hidden) renderReport();
+  }
+  window.__app = APP; // proves
+}
+
+/* ===== Banc d'exercicis · Pitàgores (fitxa) ===== */
+const BYV = (v, a) => a['ABC'.indexOf(v)];
+// triangle rectangle: catet horitzontal a, vertical b; etiquetes [baix, esquerra, hipotenusa]; la que és incògnita va en taronja
+function triFig(a, b, labs, opt = {}) {
+  const W = 300, Hh = 190, s = Math.min((W - 90) / a, (Hh - 50) / b), x0 = 50, y0 = Hh - 24, A = [x0 + a * s, y0], Bp = [x0, y0 - b * s];
+  const cls = t => /\?/.test(t) ? 'unk' : 'dat';
+  const r = 12;
+  return `<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="${opt.aria || 'Triangle rectangle'}">
+   ${opt.wall ? `<line x1="${x0}" y1="${y0}" x2="${x0}" y2="${Bp[1] - 14}" class="wall"/><line x1="${x0 - 30}" y1="${y0}" x2="${A[0] + 20}" y2="${y0}" class="floor2"/>` : ''}
+   <polygon points="${x0},${y0} ${A[0]},${A[1]} ${Bp[0]},${Bp[1]}" class="tri2"/>
+   <polyline points="${x0 + r},${y0} ${x0 + r},${y0 - r} ${x0},${y0 - r}" class="right2"/>
+   <text x="${x0 + a * s / 2}" y="${y0 + 18}" text-anchor="middle" class="${cls(labs[0])}">${labs[0]}</text>
+   <text x="${x0 - 8}" y="${y0 - b * s / 2 + 5}" text-anchor="end" class="${cls(labs[1])}">${labs[1]}</text>
+   <text x="${x0 + a * s / 2 + 10}" y="${y0 - b * s / 2 - 8}" text-anchor="start" class="${cls(labs[2])}">${labs[2]}</text></svg>`;
+}
+function isoFig(l, base) {
+  const W = 300, Hh = 200, hgt = Math.sqrt(l * l - (base / 2) ** 2), s = Math.min(220 / base, 150 / hgt), cx = 150, y0 = 175;
+  const L = [cx - base / 2 * s, y0], R = [cx + base / 2 * s, y0], T = [cx, y0 - hgt * s];
+  return `<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Triangle isòsceles"><polygon points="${L} ${R} ${T}" class="tri2"/>
+   <line x1="${cx}" y1="${y0}" x2="${cx}" y2="${T[1]}" class="hgt"/><polyline points="${cx + 10},${y0} ${cx + 10},${y0 - 10} ${cx},${y0 - 10}" class="right2"/>
+   <text x="${(L[0] + T[0]) / 2 - 8}" y="${(L[1] + T[1]) / 2}" text-anchor="end" class="dat">${fmt(l)} cm</text><text x="${(R[0] + T[0]) / 2 + 8}" y="${(R[1] + T[1]) / 2}" class="dat">${fmt(l)} cm</text>
+   <text x="${cx}" y="${y0 + 18}" text-anchor="middle" class="dat">${fmt(base)} cm</text><text x="${cx + 8}" y="${(y0 + T[1]) / 2}" class="unk">h = ?</text></svg>`;
+}
+const hipOpts = (names) => ({ opts: names, ans: 2 });
+APP.bank = [
+  (rng, v) => { const [a, b] = BYV(v, [[5, 12], [8, 15], [6, 8]]), h = Math.hypot(a, b);
+    return { title: 'La hipotenusa', story: `Un triangle rectangle té els catets de ${B(a + ' cm')} i ${B(b + ' cm')}. Calcula la hipotenusa.`, fig: triFig(a, b, [a + ' cm', b + ' cm', 'h = ?']),
+      steps: [
+        { q: 'Quin costat és la hipotenusa?', kind: 'choice', opts: [`El de ${a} cm`, `El de ${b} cm`, 'El costat oposat a l’angle recte'], ans: 2, why: 'La hipotenusa és el costat oposat a l’angle recte, i és el més llarg.' },
+        { q: 'Quant val <i>h</i><sup>2</sup>?', ans: a * a + b * b, unit: 'cm²', why: `<i>h</i><sup>2</sup> = ${a}<sup>2</sup> + ${b}<sup>2</sup> = ${a * a} + ${b * b} = ${a * a + b * b} (és una superfície).`, hint: 'Suma els quadrats dels catets.' },
+        { q: 'Quant fa la hipotenusa <i>h</i>?', ans: h, unit: 'cm', why: `<i>h</i> = ${rt(a * a + b * b)} = ${h} cm: l’arrel ens torna a la longitud.`, hint: 'Fes l’arrel quadrada del resultat anterior.' }
+      ] }; },
+  (rng, v) => { const [a, b] = BYV(v, [[2, 5], [3, 7], [4, 6]]), h2 = a * a + b * b, h = Math.sqrt(h2);
+    return { title: 'Una hipotenusa no exacta', story: `Els catets fan ${B(a + ' cm')} i ${B(b + ' cm')}.`, fig: triFig(a, b, [a + ' cm', b + ' cm', 'h = ?']),
+      steps: [
+        { q: 'Quant val <i>h</i><sup>2</sup>?', ans: h2, unit: 'cm²', why: `${a}<sup>2</sup> + ${b}<sup>2</sup> = ${a * a} + ${b * b} = ${h2}.` },
+        { q: 'Quant fa <i>h</i>? Arrodoneix a les centèsimes.', ans: h, tol: 0.01, show: fmt(h, 2), unit: 'cm', why: `<i>h</i> = ${rt(h2)} ≈ ${fmt(h, 2)} cm. ${h2} no és un quadrat perfecte: la deixem com a arrel o en donem un valor aproximat.`, hint: `Calcula ${rt(h2)} amb la calculadora.` }
+      ] }; },
+  (rng, v) => { const [h, a] = BYV(v, [[13, 5], [17, 8], [10, 6]]), b = Math.sqrt(h * h - a * a);
+    return { title: 'El catet que falta', story: `La hipotenusa d’un triangle rectangle fa ${B(h + ' cm')} i un catet, ${B(a + ' cm')}.`, fig: triFig(a, b, [a + ' cm', 'b = ?', h + ' cm']),
+      steps: [
+        { q: 'Quina operació fem amb els quadrats?', kind: 'choice', opts: [`${h}<sup>2</sup> + ${a}<sup>2</sup>`, `${h}<sup>2</sup> − ${a}<sup>2</sup>`, `${a}<sup>2</sup> − ${h}<sup>2</sup>`], ans: 1, why: 'El quadrat de la hipotenusa és el més gran: hi restem el del catet que coneixem.' },
+        { q: 'Quant val <i>b</i><sup>2</sup>?', ans: h * h - a * a, unit: 'cm²', why: `${h}<sup>2</sup> − ${a}<sup>2</sup> = ${h * h} − ${a * a} = ${h * h - a * a}.` },
+        { q: 'Quant fa el catet <i>b</i>?', ans: b, unit: 'cm', why: `<i>b</i> = ${rt(h * h - a * a)} = ${b} cm.` }
+      ] }; },
+  (rng, v) => { const [e, p] = BYV(v, [[5, 3], [6.5, 2.5], [10, 6]]), hgt = Math.sqrt(e * e - p * p);
+    return { title: 'L’escala', story: `Una escala de ${B(fmt(e) + ' m')} es recolza en una paret amb el peu a ${B(fmt(p) + ' m')} de la paret. Quina altura de la paret assoleix?`, fig: triFig(p, hgt, [fmt(p) + ' m', 'altura = ?', 'escala ' + fmt(e) + ' m'], { wall: true }),
+      steps: [
+        { q: 'Quin element fa d’hipotenusa?', kind: 'choice', opts: ['La paret', 'El terra', 'L’escala'], ans: 2, why: 'La paret i el terra formen l’angle recte; l’escala és el costat oposat.' },
+        { q: 'Quant val el quadrat de l’altura?', ans: e * e - p * p, unit: 'm²', why: `${fmt(e)}<sup>2</sup> − ${fmt(p)}<sup>2</sup> = ${fmt(e * e)} − ${fmt(p * p)} = ${fmt(e * e - p * p)}.`, hint: 'Al quadrat de l’escala, resta-hi el quadrat de la distància al peu.' },
+        { q: 'Quina altura assoleix?', ans: hgt, unit: 'm', why: `${rt(fmt(e * e - p * p))} = ${fmt(hgt)} m.` }
+      ] }; },
+  (rng, v) => { const c = BYV(v, [4, 5, 6]), d = c * Math.SQRT2;
+    return { title: 'La diagonal del quadrat', story: `Calcula la diagonal d’un quadrat de ${B(c + ' cm')} de costat.`, fig: triFig(c, c, [c + ' cm', c + ' cm', 'd = ?'], { aria: 'Meitat d’un quadrat' }),
+      steps: [
+        { q: 'Quant val <i>d</i><sup>2</sup>?', ans: 2 * c * c, unit: 'cm²', why: `<i>d</i><sup>2</sup> = ${c}<sup>2</sup> + ${c}<sup>2</sup> = 2 · ${c * c} = ${2 * c * c}.` },
+        { q: 'Com es pot escriure <i>d</i> de forma exacta?', kind: 'choice', opts: [`${2 * c}`, `${c}√2`, `2√${c}`, `${c * c}√2`], ans: 1, why: `<i>d</i> = ${rt(2 * c * c)} = ${rt(`${c * c} · 2`)} = ${c}√2: el ${c * c} surt de l’arrel com a ${c}.` },
+        { q: 'Quant fa <i>d</i>, aproximadament (centèsimes)?', ans: d, tol: 0.01, show: fmt(d, 2), unit: 'cm', why: `${c}√2 ≈ ${c} · 1,414 ≈ ${fmt(d, 2)} cm.` }
+      ] }; },
+  (rng, v) => { const [l, w] = BYV(v, [[100, 64], [105, 68], [90, 60]]), d = Math.hypot(l, w);
+    return { title: 'El camp de futbol', story: `Un camp de futbol fa ${B(l + ' m')} de llarg i ${B(w + ' m')} d’ample. Quant mesura la diagonal?`, fig: triFig(l, w, [l + ' m', w + ' m', 'diagonal = ?'], { aria: 'Rectangle partit per la diagonal' }),
+      steps: [
+        { q: 'Quant val el quadrat de la diagonal?', ans: l * l + w * w, unit: 'm²', why: `${l}<sup>2</sup> + ${w}<sup>2</sup> = ${fmt(l * l)} + ${fmt(w * w)} = ${fmt(l * l + w * w)}.` },
+        { q: 'Quant fa la diagonal (centèsimes)?', ans: d, tol: 0.01, show: fmt(d, 2), unit: 'm', why: `${rt(fmt(l * l + w * w))} ≈ ${fmt(d, 2)} m.` }
+      ] }; },
+  (rng, v) => { const [a, b] = BYV(v, [[3, 4], [6, 8], [9, 12]]), h = Math.hypot(a, b);
+    return { title: 'Detecta l’error', story: `Un alumne ha calculat la hipotenusa d’un triangle de catets ${B(a)} i ${B(b)} així: «<i>h</i> = ${a} + ${b} = ${a + b}».`,
+      steps: [
+        { q: 'Quin és l’error?', kind: 'choice', opts: ['Havia de multiplicar els catets', 'Se sumen els quadrats dels catets, no els catets', 'Havia de restar els catets'], ans: 1, why: `Pitàgores és una igualtat de superfícies: <i>h</i><sup>2</sup> = <i>a</i><sup>2</sup> + <i>b</i><sup>2</sup>. Sumar costats no dona la hipotenusa: ${a} + ${b} ≠ <i>h</i>.` },
+        { q: 'Quant fa realment la hipotenusa?', ans: h, why: `<i>h</i> = ${rt(`${a}<sup>2</sup> + ${b}<sup>2</sup>`)} = ${rt(a * a + b * b)} = ${h}.` }
+      ] }; },
+  (rng, v) => { const [dz, hz] = BYV(v, [[1.5, 8], [1.2, 6], [2, 10]]), r = Math.hypot(dz, hz);
+    return { title: 'La rampa', story: `Una rampa salva un desnivell de ${B(fmt(dz) + ' m')} i el seu recorregut horitzontal és de ${B(fmt(hz) + ' m')}. Quant mesura la rampa?`, fig: triFig(hz, dz * 2.2, [fmt(hz) + ' m', fmt(dz) + ' m', 'rampa = ?'], { aria: 'Rampa' }),
+      steps: [
+        { q: 'Quant val el quadrat de la rampa?', ans: dz * dz + hz * hz, unit: 'm²', why: `${fmt(dz)}<sup>2</sup> + ${fmt(hz)}<sup>2</sup> = ${fmt(dz * dz)} + ${fmt(hz * hz)} = ${fmt(dz * dz + hz * hz)}.` },
+        { q: 'Quant mesura la rampa (centèsimes)?', ans: r, tol: 0.01, show: fmt(r, 2), unit: 'm', why: `${rt(fmt(dz * dz + hz * hz))} ≈ ${fmt(r, 2)} m. La rampa és una mica més llarga que el recorregut horitzontal.` }
+      ] }; },
+  (rng, v) => { const [l, base] = BYV(v, [[13, 10], [17, 16], [10, 12]]), half = base / 2, hgt = Math.sqrt(l * l - half * half);
+    return { title: 'Repte: el triangle isòsceles', story: `Un triangle isòsceles té dos costats iguals de ${B(l + ' cm')} i la base de ${B(base + ' cm')}. Troba’n l’altura i l’àrea.`, fig: isoFig(l, base),
+      steps: [
+        { q: 'L’altura parteix la base en dos trossos iguals. Quant fa cada tros?', ans: half, unit: 'cm', why: `${base} : 2 = ${half} cm. Ara tenim un triangle rectangle amb hipotenusa ${l} i un catet ${half}.` },
+        { q: 'Quant fa l’altura?', ans: hgt, unit: 'cm', why: `<i>h</i> = ${rt(`${l}<sup>2</sup> − ${half}<sup>2</sup>`)} = ${rt(l * l - half * half)} = ${hgt} cm.`, hint: 'L’altura és un catet: resta quadrats.' },
+        { q: 'Quina és l’àrea del triangle?', ans: base * hgt / 2, unit: 'cm²', why: `A = ${frac('base · altura', 2)} = ${frac(`${base} · ${hgt}`, 2)} = ${base * hgt / 2} cm<sup>2</sup>.` }
+      ] }; }
+];
+APP.salt = 13;
+
+/* ===== Laboratori de Pitàgores ===== */
+(function () {
+  const NS = 'http://www.w3.org/2000/svg';
+  const S = { a: 3, b: 4, mode: 'h', g: 0, kk: 1, K: 1, tiles: null, built: false, busy: false, proof: 0, pt: 0 };
+  const ui = id => document.getElementById(id);
+  const el = (tag, at, txt) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); if (txt != null) e.textContent = txt; return e; };
+  const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+  const isInt = x => Math.abs(x - Math.round(x)) < 1e-9;
+  function anim(ms, fn) { if (REDUCED) { fn(1); return Promise.resolve(); } return new Promise(r => { const t0 = performance.now(); const f = n => { const t = Math.min(1, (n - t0) / ms); fn(ease(t)); t < 1 ? requestAnimationFrame(f) : r(); }; requestAnimationFrame(f); }); }
+  const H = () => Math.hypot(S.a, S.b);
+  const say = t => ui('narr').innerHTML = t;
+  function lock(v) { S.busy = v; $$('#laboratori .ctrls button, #laboratori .ctrls input, #bProof').forEach(x => x.disabled = v); }
+
+  /* ---------- geometria del dibuix ---------- */
+  function frame() {
+    const K = S.K, a = S.a * K, b = S.b * K;           // mida del dibuix final (per encabir l'ampliació)
+    const minx = -b, maxx = a + b, miny = -a, maxy = a + b;
+    const s = Math.min(392 / (maxx - minx), 392 / (maxy - miny));
+    const ox = 14 + (392 - (maxx - minx) * s) / 2, oy = 14 + (392 - (maxy - miny) * s) / 2;
+    return { s, X: x => ox + (x - minx) * s, Y: y => oy + (maxy - y) * s };
+  }
+  const pts = (F, arr) => arr.map(([x, y]) => F.X(x) + ',' + F.Y(y)).join(' ');
+  function squares(a, b) { // en coordenades del món (y amunt)
+    const h = Math.hypot(a, b), A = [a, 0], Bp = [0, b];
+    return { h, A, Bp, sa: [[0, 0], [a, 0], [a, -a], [0, -a]], sb: [[0, 0], [0, b], [-b, b], [-b, 0]],
+      sh: [A, Bp, [Bp[0] + b, Bp[1] + a], [A[0] + b, A[1] + a]] };
+  }
+  function grow(poly, base0, base1, g) { // fa créixer el quadrat des del costat
+    return [poly[0], poly[1], [base1[0] + (poly[2][0] - base1[0]) * g, base1[1] + (poly[2][1] - base1[1]) * g], [base0[0] + (poly[3][0] - base0[0]) * g, base0[1] + (poly[3][1] - base0[1]) * g]];
+  }
+  function gridLines(F, g, o, u, v, n, m, cls) { // graella n×m dins el paral·lelogram o + i·u + j·v
+    for (let i = 1; i < n; i++) g.append(el('line', { x1: F.X(o[0] + u[0] * i), y1: F.Y(o[1] + u[1] * i), x2: F.X(o[0] + u[0] * i + v[0] * m), y2: F.Y(o[1] + u[1] * i + v[1] * m), class: cls }));
+    for (let j = 1; j < m; j++) g.append(el('line', { x1: F.X(o[0] + v[0] * j), y1: F.Y(o[1] + v[1] * j), x2: F.X(o[0] + v[0] * j + u[0] * n), y2: F.Y(o[1] + v[1] * j + u[1] * n), class: cls }));
+  }
+  function drawSQ() {
+    const g = ui('SQ'); g.replaceChildren(); const F = frame(), k = S.kk, a = S.a * k, b = S.b * k, Q = squares(a, b);
+    const showGhost = S.K > 1;
+    if (showGhost) { const q0 = squares(S.a, S.b); g.append(el('polygon', { points: pts(F, [[0, 0], q0.A, q0.Bp]), class: 'ghost' })); }
+    const G = S.g;
+    if (G > 0) {
+      const sa = grow(Q.sa, [0, 0], Q.A, G), sb = grow(Q.sb, [0, 0], Q.Bp, G), sh = grow(Q.sh, Q.A, Q.Bp, G);
+      const em = S.tiles ? ' emp' : ''; g.append(el('polygon', { points: pts(F, sa), class: 'sqa' + em }), el('polygon', { points: pts(F, sb), class: 'sqb' + em }), el('polygon', { points: pts(F, sh), class: 'sqh' + em }));
+      if (G === 1 && isInt(a) && isInt(b) && a <= 24 && b <= 24) {
+        gridLines(F, g, [0, 0], [1, 0], [0, -1], a, a, 'gl a'); gridLines(F, g, [0, 0], [0, 1], [-1, 0], b, b, 'gl b');
+        const h = Q.h; if (isInt(h)) { const u = [(Q.Bp[0] - Q.A[0]) / h, (Q.Bp[1] - Q.A[1]) / h], v = [b / h, a / h]; gridLines(F, g, Q.A, u, v, Math.round(h), Math.round(h), 'gl h'); }
+      }
+      if (G === 1 && !S.tiles) {
+        const c = (p) => [(p[0][0] + p[2][0]) / 2, (p[0][1] + p[2][1]) / 2];
+        const [xa, ya] = c(Q.sa), [xb, yb] = c(Q.sb), [xh, yh] = c(Q.sh);
+        const t2 = (x, y, t, cls) => g.append(el('text', { x: F.X(x), y: F.Y(y) + 5, 'text-anchor': 'middle', class: 'sqlbl ' + cls }, t));
+        t2(xa, ya, `a² = ${fmt(a * a)}`, 'la'); t2(xb, yb, `b² = ${fmt(b * b)}`, 'lb');
+        t2(xh, yh, S.mode === 'h' ? 'h² = ?' : `h² = ${fmt(Q.h * Q.h, 0)}`, 'lh');
+      }
+    }
+    if (S.tiles) S.tiles.forEach(t => { const c = Math.cos(t.r), s2 = Math.sin(t.r), hs = .5 - .04;
+      const P = [[-hs, -hs], [hs, -hs], [hs, hs], [-hs, hs]].map(([x, y]) => [t.x + x * c - y * s2, t.y + x * s2 + y * c]);
+      g.append(el('polygon', { points: pts(F, P), class: 'tile ' + t.cls })); });
+    g.append(el('polygon', { points: pts(F, [[0, 0], Q.A, Q.Bp]), class: 'tri' }));
+    const ra = .55 * Math.min(1, Math.min(a, b) / 3);
+    g.append(el('polyline', { points: pts(F, [[ra, 0], [ra, ra], [0, ra]]), class: 'right' }));
+    const lab = (x, y, t, cls, anchor = 'middle') => g.append(el('text', { x: F.X(x), y: F.Y(y), 'text-anchor': anchor, class: 'sidelbl ' + cls }, t));
+    const hk = Math.hypot(a, b);
+    const hTxt = S.mode === 'h' && !S.solved ? 'h = ?' : `h = ${isInt(hk) ? fmt(hk) : '√' + fmt(a * a + b * b)}`;
+    const bTxt = S.mode === 'c' && !S.solved ? 'b = ?' : `b = ${fmt(b)}`;
+    const F2 = F, off = 12 / F2.s;
+    g.append(el('text', { x: F.X(a / 2), y: F.Y(0) - 8, 'text-anchor': 'middle', class: 'sidelbl s' }, `a = ${fmt(a)}`));
+    g.append(el('text', { x: F.X(0) + 8, y: F.Y(b * .3), 'text-anchor': 'start', class: 'sidelbl s' }, bTxt));
+    { const hh = Math.hypot(a, b), off = 16 / F.s, mx = a * .38 - b / hh * off, my = b * .62 - a / hh * off; g.append(el('text', { x: F.X(mx), y: F.Y(my) + 4, 'text-anchor': 'middle', class: 'sidelbl hh' }, hTxt)); }
+  }
+
+  /* ---------- rajoles: de a² i b² a h² (o al revés) ---------- */
+  async function fly() {
+    if (S.busy) return; const a = S.a, b = S.b, h = H();
+    if (!isInt(h)) { say(`Amb catets ${a} i ${b}, <i>h</i><sup>2</sup> = ${a * a + b * b} no és un quadrat perfecte: les rajoles hi caben, però no formen un quadrat de costat sencer. Tria una triple pitagòrica (3·4, 6·8, 5·12, 8·15).`); return; }
+    lock(true); S.K = 1; S.kk = 1; ui('CK').innerHTML = '';
+    if (S.g < 1) await buildSq(false);
+    const Q = squares(a, b), u = [(Q.Bp[0] - Q.A[0]) / h, (Q.Bp[1] - Q.A[1]) / h], v = [b / h, a / h], th = Math.atan2(u[1], u[0]);
+    const src = []; for (let j = 0; j < a; j++) for (let i = 0; i < a; i++) src.push({ x: i + .5, y: -j - .5, r: 0, cls: 'ta' });
+    for (let j = 0; j < b; j++) for (let i = 0; i < b; i++) src.push({ x: -i - .5, y: j + .5, r: 0, cls: 'tb' });
+    const dst = []; const H2 = Math.round(h); for (let j = 0; j < H2; j++) for (let i = 0; i < H2; i++) dst.push({ x: Q.A[0] + u[0] * (i + .5) + v[0] * (j + .5), y: Q.A[1] + u[1] * (i + .5) + v[1] * (j + .5), r: th });
+    const toH = S.mode === 'h';
+    const T = src.map((s, i) => toH ? { ...s, from: { ...s }, to: dst[i] } : { ...dst[i], cls: s.cls, from: { ...dst[i] }, to: s });
+    S.tiles = T.map(t => ({ x: t.from.x, y: t.from.y, r: t.from.r, cls: t.cls }));
+    say(toH ? `Movem les ${a * a} rajoles de <i>a</i><sup>2</sup> i les ${b * b} de <i>b</i><sup>2</sup> cap al quadrat de la hipotenusa…` : `Comencem amb les ${H2 * H2} rajoles de <i>h</i><sup>2</sup>. En traiem les ${a * a} de <i>a</i><sup>2</sup>: les que queden formen <i>b</i><sup>2</sup>…`);
+    drawSQ(); await sleep(300);
+    const groups = [T.filter(t => t.cls === 'ta'), T.filter(t => t.cls === 'tb')];
+    for (const grp of groups) {
+      await anim(1500, e => { grp.forEach((t, i) => { const lag = Math.min(1, Math.max(0, e * 1.6 - (i / grp.length) * .6)); const s = S.tiles[T.indexOf(t)]; s.x = t.from.x + (t.to.x - t.from.x) * lag; s.y = t.from.y + (t.to.y - t.from.y) * lag; s.r = t.from.r + (t.to.r - t.from.r) * lag; }); drawSQ(); });
+      await sleep(300);
+    }
+    S.solved = true; drawSQ(); eqs(true);
+    say(toH ? `Hi caben exactament: ${a * a} + ${b * b} = ${H2 * H2}. La superfície del quadrat gran és la suma de les dues petites.` : `Han quedat ${b * b} rajoles: <i>b</i><sup>2</sup> = ${H2 * H2} − ${a * a} = ${b * b}, per tant <i>b</i> = √${b * b} = ${b}.`);
+    lock(false);
+  }
+
+  /* ---------- equacions ---------- */
+  function eqs(done) {
+    const a = S.a * S.K, b = S.b * S.K, h2 = a * a + b * b, h = Math.sqrt(h2), E = ui('EQ');
+    const hres = isInt(h) ? fmt(h) : `${rt(h2)} ≈ ${fmt(h, 2)}`;
+    const L1 = `<div><span class="dn1">Dimensió 1</span> costats: a = ${B(fmt(a))}, ${S.mode === 'h' ? `b = ${B(fmt(b))}, h = ?` : `h = ${B(isInt(h) ? fmt(h) : rt(h2))}, b = ?`}</div>`;
+    let L2, L3;
+    if (S.mode === 'h') {
+      L2 = `<div><span class="dn2">Dimensió 2</span> <i>h</i><sup class="e2">2</sup> = <i>a</i><sup class="e2">2</sup> + <i>b</i><sup class="e2">2</sup> = ${fmt(a)}<sup>2</sup> + ${fmt(b)}<sup>2</sup> = ${fmt(a * a)} + ${fmt(b * b)} = ${fmt(h2)}</div>`;
+      L3 = `<div><span class="dn1">Tornem a 1</span> <i>h</i> = ${rt(fmt(h2))} = ${G(hres)} <span class="muted">(l’arrel desfà el quadrat)</span></div>`;
+    } else {
+      L2 = `<div><span class="dn2">Dimensió 2</span> <i>b</i><sup class="e2">2</sup> = <i>h</i><sup class="e2">2</sup> − <i>a</i><sup class="e2">2</sup> = ${fmt(h2)} − ${fmt(a * a)} = ${fmt(b * b)}</div>`;
+      L3 = `<div><span class="dn1">Tornem a 1</span> <i>b</i> = ${rt(fmt(b * b))} = ${G(fmt(b))} <span class="muted">(l’arrel desfà el quadrat)</span></div>`;
+    }
+    E.innerHTML = L1 + (S.g >= 1 ? L2 : '') + (done ? L3 : '');
+  }
+
+  async function buildSq(solo = true) {
+    if (solo) { if (S.busy) return; lock(true); }
+    S.tiles = null; S.solved = false; S.K = 1; S.kk = 1; ui('CK').innerHTML = '';
+    say('Sobre cada costat (una longitud) construïm un quadrat: passem a una superfície.');
+    S.g = 0; await anim(1400, e => { S.g = e; drawSQ(); }); S.g = 1; drawSQ(); eqs(false);
+    say(S.mode === 'h' ? 'Les superfícies dels quadrats dels catets se sumen. Prem «Mou les rajoles» per veure-ho.' : 'Coneixem el quadrat de la hipotenusa i el d’un catet. Prem «Mou les rajoles» per trobar el que falta.');
+    if (solo) lock(false);
+  }
+
+  /* ---------- ampliació ×k ---------- */
+  async function scaleK() {
+    if (S.busy) return; lock(true); const k = 2;
+    S.tiles = null; S.solved = true; if (S.g < 1) S.g = 1;
+    S.K = k; S.kk = 1; drawSQ();
+    const C = ui('CK');
+    say(`Ampliem el triangle ×${k}: cada costat (dimensió 1) es multiplica per <i>k</i> = ${k}…`);
+    C.innerHTML = `<span class="chip">costats ×${k}</span>`; C.firstElementChild.classList.add('pop');
+    await anim(1300, e => { S.kk = 1 + (k - 1) * e; drawSQ(); }); S.kk = k; drawSQ(); await sleep(300);
+    C.innerHTML += ` <span class="chip big e2">quadrats ×${k}<sup>2</sup><span class="eq"> = ${k * k}</span></span>`; C.lastElementChild.classList.add('pop');
+    const a = S.a, b = S.b, h2 = a * a + b * b;
+    say(`…i cada quadrat (dimensió 2) es multiplica per <i>k</i><sup>2</sup> = ${k * k}. La igualtat es manté: (${k} · ${a})<sup>2</sup> + (${k} · ${b})<sup>2</sup> = ${k}<sup>2</sup> · (${a * a} + ${b * b}) = ${k * k} · ${h2} = ${fmt(k * k * h2)}.`);
+    eqs(true); lock(false);
+  }
+
+  /* ---------- demostració dels 4 triangles ---------- */
+  function proofTris(a, b) {
+    const S2 = a + b;
+    const c1 = [[[0, 0], 0], [[S2, 0], 90], [[S2, S2], 180], [[0, S2], 270]];
+    const c2 = [[[a, a], 270], [[S2, 0], 90], [[0, a], 0], [[a, S2], 180]];
+    return { S2, c1, c2 };
+  }
+  function drawPR() {
+    const g = ui('PR'); g.replaceChildren(); const a = S.a, b = S.b, { S2, c1, c2 } = proofTris(a, b), s = 380 / S2, o = 20;
+    const X = x => o + x * s, Y = y => o + y * s; // y avall
+    g.append(el('rect', { x: o, y: o, width: S2 * s, height: S2 * s, class: 'bigsq' }));
+    const t = S.pt; // 0 = config 1, 1 = config 2
+    if (t < .02) { g.append(el('polygon', { points: [[a, 0], [S2, a], [b, S2], [0, b]].map(([x, y]) => X(x) + ',' + Y(y)).join(' '), class: 'hole h' }), el('text', { x: X(S2 / 2), y: Y(S2 / 2) + 6, 'text-anchor': 'middle', class: 'sqlbl lh' }, 'h²')); }
+    if (t > .98) {
+      g.append(el('rect', { x: X(0), y: Y(0), width: a * s, height: a * s, class: 'hole a' }), el('rect', { x: X(a), y: Y(a), width: b * s, height: b * s, class: 'hole b' }));
+      g.append(el('text', { x: X(a / 2), y: Y(a / 2) + 6, 'text-anchor': 'middle', class: 'sqlbl la' }, 'a²'), el('text', { x: X(a + b / 2), y: Y(a + b / 2) + 6, 'text-anchor': 'middle', class: 'sqlbl lb' }, 'b²'));
+    }
+    c1.forEach(([R1, d1], i) => { const [R2, d2] = c2[i]; let dd = d2 - d1; if (dd > 180) dd -= 360; if (dd < -180) dd += 360;
+      const R = [R1[0] + (R2[0] - R1[0]) * t, R1[1] + (R2[1] - R1[1]) * t], ang = (d1 + dd * t) * Math.PI / 180;
+      const rot = ([x, y]) => [R[0] + x * Math.cos(ang) - y * Math.sin(ang), R[1] + x * Math.sin(ang) + y * Math.cos(ang)];
+      const P = [[0, 0], [a, 0], [0, b]].map(rot);
+      g.append(el('polygon', { points: P.map(([x, y]) => X(x) + ',' + Y(y)).join(' '), class: 'ptri t' + i })); });
+    g.append(el('text', { x: X(S2 / 2), y: Y(S2) + 16, 'text-anchor': 'middle', class: 'small' }, `costat del quadrat gran: a + b = ${a + b}`));
+    ui('PRtxt').innerHTML = t < .5 ? `Quadrat de costat <i>a</i> + <i>b</i> amb 4 triangles iguals. El que queda lliure és el quadrat de la hipotenusa, <i>h</i><sup class="e2">2</sup>.`
+      : `Mateix quadrat, mateixos 4 triangles, ordenats d’una altra manera: ara queden lliures <i>a</i><sup class="e2">2</sup> i <i>b</i><sup class="e2">2</sup>. Per tant, <i>a</i><sup class="e2">2</sup> + <i>b</i><sup class="e2">2</sup> = <i>h</i><sup class="e2">2</sup>.`;
+  }
+  async function proof() { if (S.busy) return; lock(true); const from = S.pt, to = from < .5 ? 1 : 0; await anim(1600, e => { S.pt = from + (to - from) * e; drawPR(); }); S.pt = to; drawPR(); lock(false); }
+
+  /* ---------- controls ---------- */
+  function setAB(a, b) { S.a = a; S.b = b; ui('sa').value = a; ui('sb').value = b; ui('oa').textContent = a; ui('ob').textContent = b;
+    $$('#pre [role=radio]').forEach(x => x.setAttribute('aria-checked', +x.dataset.a === a && +x.dataset.b === b));
+    S.tiles = null; S.solved = false; S.K = 1; S.kk = 1; ui('CK').innerHTML = ''; drawSQ(); drawPR(); eqs(false); }
+  $$('#pre [role=radio]').forEach(bn => bn.onclick = () => { if (!S.busy) setAB(+bn.dataset.a, +bn.dataset.b); });
+  $$('#mode [role=radio]').forEach(bn => bn.onclick = () => { if (S.busy) return; $$('#mode [role=radio]').forEach(x => x.setAttribute('aria-checked', x === bn)); S.mode = bn.dataset.v; S.tiles = null; S.solved = false; drawSQ(); eqs(false); });
+  ui('sa').oninput = e => setAB(+e.target.value, S.b); ui('sb').oninput = e => setAB(S.a, +e.target.value);
+  ui('bSq').onclick = () => buildSq(); ui('bFly').onclick = fly; ui('bK').onclick = scaleK; ui('bProof').onclick = proof;
+  ui('bReset').onclick = () => { if (S.busy) return; S.g = 0; S.pt = 0; setAB(S.a, S.b); say('Tria un triangle i prem «Construeix els quadrats».'); };
+  S.g = 1; drawSQ(); drawPR(); eqs(false); say('Ja tens els quadrats sobre els tres costats. Prem «Mou les rajoles» o tria un altre triangle.');
+  window.__lab = { S, buildSq, fly, scaleK, proof };
+})();
+
+APP.key = 'pitagores4tB_v1'; APP.title = 'Teorema de Pitàgores'; APP.file = 'Informe_Pitagores';
+boot();
+</script>
+</body></html>
