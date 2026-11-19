@@ -1,0 +1,765 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Missió Captura i Lliurament</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/*
+  Layout concept: same paged "browser window" mission format as the other
+  Connectem missions — blue field, lime chunky tags, thick black outlines,
+  hard offset shadows. One screen at a time, Back/Next + progress dots.
+  The Classroom screen is a small simulator the student operates.
+*/
+:root{
+  --blue:#1476DE; --blue-deep:#0A4F9E; --blue-ink:#063164; --lime:#CFEB6E;
+  --ink:#15181E; --paper:#F4F7EC; --white:#FFFFFF;
+  --red:#FF5C5C; --red-deep:#C23B3B; --green:#3FB871; --green-deep:#2A8650;
+  --font-display:'Archivo Black','Arial Black',sans-serif;
+  --font-body:'Space Grotesk','Segoe UI',sans-serif;
+  --font-mono:'Space Mono','Courier New',monospace;
+  color-scheme: light;
+}
+*{box-sizing:border-box;}
+body{
+  background:var(--blue);
+  background-image:
+    radial-gradient(circle at 8% 10%, rgba(255,255,255,.08) 0, transparent 40%),
+    radial-gradient(circle at 92% 85%, rgba(0,0,0,.12) 0, transparent 45%);
+  color:var(--ink); font-family:var(--font-body); min-height:100%;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:24px; display:flex; justify-content:center;
+}
+button{font-family:inherit;}
+.app{width:100%; max-width:860px; min-width:0; display:flex; flex-direction:column; gap:14px;}
+
+.chrome{background:var(--paper); border:3px solid var(--ink); border-radius:14px; box-shadow:8px 8px 0 var(--blue-ink); overflow:hidden;}
+.chrome-bar{display:flex; align-items:center; gap:8px; background:var(--white); border-bottom:3px solid var(--ink); padding:10px 14px;}
+.chrome-dot{width:13px;height:13px;border-radius:50%;border:2px solid var(--ink);flex:0 0 auto;}
+.chrome-dot.lime{background:var(--lime);} .chrome-dot.ink{background:var(--ink);} .chrome-dot.blue{background:var(--blue);}
+.chrome-url{margin-left:8px; font-family:var(--font-mono); font-size:12px; opacity:.65; letter-spacing:.3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.screen-body{padding:28px 26px 30px; min-height:430px; display:flex; flex-direction:column; gap:18px;}
+@media (max-width:480px){ .screen-body{padding:20px 16px 24px;} }
+
+.brandbar{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;}
+.brand{font-family:var(--font-display); font-size:13px; letter-spacing:.5px; background:var(--ink); color:var(--lime); padding:6px 10px; border-radius:6px;}
+h1,h2{font-family:var(--font-display); line-height:.98; margin:0; text-wrap:balance; color:var(--ink);}
+h1{font-size:clamp(30px, 6vw, 46px);}
+h2{font-size:clamp(22px, 4.2vw, 30px);}
+.eyebrow{display:inline-flex; align-items:center; gap:6px; font-family:var(--font-mono); font-size:12px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; color:var(--blue-deep);}
+.sub{font-size:15px; line-height:1.5; color:var(--ink); opacity:.88; max-width:62ch; margin:0;}
+.tag{display:inline-flex; align-items:center; gap:8px; background:var(--lime); border:3px solid var(--ink); border-radius:8px; padding:8px 14px; font-family:var(--font-display); font-size:13px; color:var(--ink); box-shadow:4px 4px 0 var(--ink);}
+.panel{background:var(--white); border:3px solid var(--ink); border-radius:12px; padding:18px; box-shadow:5px 5px 0 var(--ink); min-width:0;}
+.panel.lime{background:var(--lime);} .panel.ink{background:var(--ink); color:var(--white);}
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+@media (max-width:620px){ .grid-2{grid-template-columns:1fr;} }
+
+label.field-label{display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; font-family:var(--font-mono); font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--blue-deep); margin-bottom:6px;}
+.field + .field{margin-top:14px;}
+input[type=text]{width:100%; font-family:var(--font-mono); font-size:15px; padding:11px 12px; border:3px solid var(--ink); border-radius:8px; background:var(--paper); color:var(--ink); outline:none;}
+input[type=text]:focus{background:var(--white); box-shadow:3px 3px 0 var(--blue);}
+input::placeholder{color:#7b828c;}
+.hint{font-family:var(--font-mono); font-size:11.5px; margin-top:6px; opacity:.75; line-height:1.45; color:var(--ink);}
+.pill{font-family:var(--font-mono); font-size:11px; text-transform:none; letter-spacing:0; padding:2px 8px; border-radius:12px; border:2px solid var(--ink); background:var(--paper); color:var(--ink); font-weight:700;}
+.pill.on{background:var(--green); color:#fff; border-color:var(--green-deep);}
+
+.keys{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.key{font-family:var(--font-display); font-size:14px; background:var(--white); color:var(--ink); border:3px solid var(--ink); border-radius:9px; padding:8px 14px; box-shadow:0 5px 0 var(--ink);}
+.key.lime{background:var(--lime);}
+.keys .plus{font-family:var(--font-display);}
+
+/* order exercise */
+.slots{display:flex; flex-direction:column; gap:8px; margin:0; padding:0; list-style:none;}
+.slot{display:flex; gap:10px; align-items:flex-start; min-height:48px; border:3px dashed rgba(21,24,30,.45); border-radius:10px; padding:8px 10px; background:var(--paper);}
+.slot.filled{border-style:solid; border-color:var(--ink); background:var(--white); cursor:pointer;}
+.slot.ok{background:#E3F7EA; border-color:var(--green-deep);}
+.slot.bad{background:#FFE1E1; border-color:var(--red-deep);}
+.slot-n{font-family:var(--font-display); font-size:12px; width:24px; height:24px; border-radius:50%; background:var(--blue); color:#fff; border:2px solid var(--blue-ink); display:flex; align-items:center; justify-content:center; flex:0 0 auto; margin-top:1px;}
+.slot-body{flex:1; min-width:0; font-size:13.5px; line-height:1.45; overflow-wrap:anywhere;}
+.slot-empty{font-family:var(--font-mono); font-size:12px; opacity:.55; align-self:center;}
+.slot-verdict{display:block; font-family:var(--font-mono); font-size:11.5px; font-weight:700; margin-top:4px;}
+.pool{display:flex; flex-direction:column; gap:8px;}
+.piece{text-align:left; font-size:13.5px; line-height:1.45; overflow-wrap:anywhere; background:var(--lime); color:var(--ink); border:3px solid var(--ink); border-radius:10px; padding:9px 12px; box-shadow:3px 3px 0 var(--ink); cursor:pointer;}
+.piece:active{transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink);}
+.pool-empty{font-family:var(--font-mono); font-size:12px; opacity:.6;}
+
+/* scenario quiz */
+.quiz + .quiz{margin-top:14px;}
+.quiz-q{font-size:14.5px; font-weight:600; line-height:1.45; margin:0 0 10px;}
+.quiz-opts{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+@media (max-width:520px){ .quiz-opts{grid-template-columns:1fr;} }
+.opt{font-family:var(--font-display); font-size:13px; text-align:left; background:var(--white); color:var(--ink); border:3px solid var(--ink); border-radius:9px; padding:10px 12px; cursor:pointer; box-shadow:3px 3px 0 var(--ink);}
+.opt:active{transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink);}
+.opt.ok{background:var(--green); color:#fff; border-color:var(--green-deep);}
+.opt.bad{background:#FFE1E1; border-color:var(--red-deep); color:var(--red-deep);}
+.quiz-fb{font-size:12.5px; font-weight:600; margin-top:8px; line-height:1.45;}
+
+/* save dialog mock */
+.win{border:3px solid var(--ink); border-radius:10px; overflow:hidden; background:var(--white);}
+.win-bar{background:#E7ECE0; border-bottom:2.5px solid var(--ink); padding:7px 12px; font-family:var(--font-mono); font-size:12px; display:flex; justify-content:space-between; gap:8px;}
+.win-body{padding:14px; display:flex; flex-direction:column; gap:12px;}
+.folders{display:flex; gap:8px; flex-wrap:wrap;}
+.folder{font-family:var(--font-mono); font-size:13px; font-weight:700; background:var(--paper); color:var(--ink); border:2.5px solid var(--ink); border-radius:8px; padding:8px 12px; cursor:pointer;}
+.folder.active{background:var(--ink); color:var(--lime);}
+.seg{display:flex; gap:8px;}
+
+/* classroom simulator */
+.cr{border:3px solid var(--ink); border-radius:10px; overflow:hidden; background:var(--white); position:relative;}
+.cr-head{background:var(--blue-deep); color:#fff; padding:10px 14px; display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap;}
+.cr-head b{font-family:var(--font-display); font-size:14px;}
+.cr-head span{font-family:var(--font-mono); font-size:11.5px;}
+.cr-body{display:grid; grid-template-columns:1.3fr 1fr; gap:0;}
+@media (max-width:620px){ .cr-body{grid-template-columns:1fr;} }
+.cr-task{padding:14px; font-size:13.5px; line-height:1.5; border-right:2.5px solid var(--ink);}
+@media (max-width:620px){ .cr-task{border-right:0; border-bottom:2.5px solid var(--ink);} }
+.cr-task h3{font-family:var(--font-display); font-size:16px; margin:0 0 6px;}
+.cr-side{padding:14px; display:flex; flex-direction:column; gap:10px; background:var(--paper); position:relative;}
+.cr-side h4{margin:0; font-family:var(--font-mono); font-size:12px; text-transform:uppercase; letter-spacing:.4px; color:var(--blue-deep);}
+.cr-status{font-family:var(--font-mono); font-size:11.5px; font-weight:700;}
+.cr-btn{font-family:var(--font-body); font-weight:700; font-size:13.5px; background:var(--white); color:var(--blue-deep); border:2.5px solid var(--ink); border-radius:8px; padding:9px 12px; cursor:pointer; text-align:left;}
+.cr-btn.primary{background:var(--blue); color:#fff; text-align:center;}
+.cr-btn:disabled{opacity:.45; cursor:not-allowed;}
+.cr-menu{display:flex; flex-direction:column; gap:0; border:2.5px solid var(--ink); border-radius:8px; background:var(--white); overflow:hidden;}
+.cr-menu button{font-family:var(--font-body); font-size:13.5px; background:var(--white); color:var(--ink); border:0; border-bottom:1.5px solid rgba(21,24,30,.2); padding:10px 12px; text-align:left; cursor:pointer;}
+.cr-menu button:last-child{border-bottom:0;}
+.cr-menu button:hover{background:#EAF3C6;}
+.cr-dialog{position:absolute; inset:0; background:rgba(6,49,100,.55); display:flex; align-items:center; justify-content:center; padding:14px;}
+.cr-dialog-card{background:var(--white); border:3px solid var(--ink); border-radius:10px; padding:16px; max-width:340px; width:100%; display:flex; flex-direction:column; gap:12px; box-shadow:5px 5px 0 var(--ink);}
+.cr-dialog-card h4{margin:0; font-family:var(--font-display); font-size:15px; color:var(--ink); text-transform:none; letter-spacing:0;}
+.cr-dialog-card p{margin:0; font-size:13px; line-height:1.45;}
+.cr-row{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
+.upload-btn{display:inline-flex; align-items:center; gap:8px; font-family:var(--font-body); font-weight:700; font-size:13.5px; background:var(--blue); color:#fff; border:2.5px solid var(--ink); border-radius:8px; padding:10px 12px; cursor:pointer; justify-content:center;}
+input[type=file]{position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;}
+.chip{display:flex; align-items:center; gap:8px; background:var(--white); border:2.5px solid var(--ink); border-radius:8px; padding:8px 10px; font-family:var(--font-mono); font-size:12.5px; min-width:0;}
+.chip span.nm{flex:1; min-width:0; overflow-wrap:anywhere;}
+.chip button{background:var(--paper); border:2px solid var(--ink); border-radius:6px; cursor:pointer; font-family:var(--font-display); font-size:12px; padding:2px 7px; color:var(--ink);}
+.coach{display:flex; gap:10px; align-items:flex-start; background:var(--ink); color:#fff; border-radius:10px; padding:12px 14px; font-size:13.5px; line-height:1.5;}
+.coach b{color:var(--lime);}
+
+.list-steps{display:flex; flex-direction:column; gap:10px; margin:0; padding:0; list-style:none;}
+.list-steps li{display:flex; gap:12px; align-items:flex-start; font-size:14px; line-height:1.45;}
+.step-num{font-family:var(--font-display); width:26px; height:26px; border-radius:50%; background:var(--blue); color:#fff; border:2px solid var(--blue-ink); display:flex; align-items:center; justify-content:center; font-size:13px; flex:0 0 auto;}
+.callout{display:flex; gap:10px; align-items:flex-start; font-size:13.5px; line-height:1.5; background:#FFF4D6; border:2.5px solid var(--ink); border-radius:10px; padding:12px 14px; color:var(--ink);}
+.callout.warn{background:#FFE1E1;} .callout.good{background:#E3F7EA;}
+
+.mini-checks{display:flex; flex-wrap:wrap; gap:6px;}
+.mini-check{font-family:var(--font-mono); font-size:11.5px; padding:3px 8px; border-radius:12px; border:2px solid var(--ink); background:var(--paper); color:var(--ink);}
+.mini-check.on{background:var(--green); color:#fff; border-color:var(--green-deep);}
+
+.task-row{display:flex; align-items:center; gap:12px; padding:12px 14px; border:3px solid var(--ink); border-radius:10px; background:var(--white); cursor:pointer; user-select:none; width:100%; text-align:left; color:var(--ink);}
+.task-row + .task-row{margin-top:10px;}
+.task-row.done{background:#E3F7EA; border-color:var(--green-deep);}
+.task-box{width:26px; height:26px; flex:0 0 auto; border:2.5px solid var(--ink); border-radius:6px; background:var(--paper); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:14px; color:transparent;}
+.task-row.done .task-box{background:var(--green); color:#fff; border-color:var(--green-deep);}
+.task-label{font-size:14px; font-weight:600;}
+.task-row.done .task-label{color:var(--green-deep);}
+.report-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+@media (max-width:560px){.report-grid{grid-template-columns:1fr;}}
+.report-item{background:var(--paper); border:2.5px solid var(--ink); border-radius:8px; padding:10px 12px; color:var(--ink); min-width:0;}
+.report-item .k{font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; color:var(--blue-deep); letter-spacing:.4px;}
+.report-item .v{font-family:var(--font-mono); font-weight:700; font-size:14px; word-break:break-word; color:var(--ink);}
+
+.btn-row{display:flex; gap:10px; flex-wrap:wrap;}
+.navbar{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+.navbtn{font-family:var(--font-display); font-size:14px; letter-spacing:.3px; background:var(--lime); color:var(--ink); border:3px solid var(--ink); border-radius:10px; padding:12px 18px; box-shadow:4px 4px 0 var(--ink); cursor:pointer; display:flex; align-items:center; gap:8px; transition:transform .08s; user-select:none;}
+.navbtn:active{transform:translate(3px,3px); box-shadow:1px 1px 0 var(--ink);}
+.navbtn:disabled{opacity:.35; cursor:not-allowed;}
+.navbtn:disabled:active{transform:none; box-shadow:4px 4px 0 var(--ink);}
+.navbtn.ghost{background:var(--white);} .navbtn.primary{background:var(--ink); color:var(--lime);}
+.navbtn.small{padding:9px 14px; font-size:13px;}
+.navbtn:focus-visible,.opt:focus-visible,.piece:focus-visible,.task-row:focus-visible,.dot:focus-visible,.slot.filled:focus-visible,.folder:focus-visible,.cr-btn:focus-visible,.cr-menu button:focus-visible,.upload-btn:focus-within{outline:3px solid var(--ink); outline-offset:3px;}
+.dots{display:flex; gap:7px; flex-wrap:wrap; justify-content:center;}
+.dot{width:12px; height:12px; border-radius:50%; border:2px solid var(--ink); background:var(--white); cursor:pointer; padding:0;}
+.dot.active{background:var(--ink);} .dot.done{background:var(--lime);}
+.screen{display:none; flex-direction:column; gap:18px; animation:fadein .25s ease;}
+.screen.active{display:flex;}
+@keyframes fadein{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+.reward-overlay{position:fixed; inset:0; background:rgba(6,49,100,.88); display:flex; align-items:center; justify-content:center; padding:16px; z-index:50; overflow:auto;}
+.reward-card{position:relative; background:var(--paper); border:4px solid var(--ink); border-radius:18px; box-shadow:10px 10px 0 var(--blue-ink); padding:28px 24px; max-width:360px; width:100%; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; overflow:hidden; animation:popin .35s cubic-bezier(.26,1.4,.4,1);}
+@keyframes popin{from{opacity:0; transform:scale(.7) rotate(-4deg);} to{opacity:1; transform:scale(1) rotate(0);}}
+.medal-img{width:150px; height:auto; margin:4px 0;}
+.reward-card h2{font-size:21px;}
+.confetti-piece{position:absolute; top:-12px; width:8px; height:8px; border:1.5px solid var(--ink); animation:confetti-fall 1.8s linear forwards; pointer-events:none;}
+@keyframes confetti-fall{0%{transform:translateY(0) rotate(0deg); opacity:1;} 100%{transform:translateY(340px) rotate(340deg); opacity:0;}}
+@media (prefers-reduced-motion: reduce){
+  .screen,.reward-card{animation:none;}
+  .confetti-piece{animation:none; display:none;}
+}
+footer.credit{text-align:center; color:rgba(255,255,255,.8); font-family:var(--font-mono); font-size:11.5px; padding-bottom:4px;}
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<div class="app">
+  <div class="chrome">
+    <div class="chrome-bar">
+      <span class="chrome-dot lime"></span><span class="chrome-dot ink"></span><span class="chrome-dot blue"></span>
+      <span class="chrome-url" id="urlbar">connectem.missio/inici</span>
+    </div>
+    <div class="screen-body">
+
+      <!-- 0 · TITLE -->
+      <section class="screen active" data-screen="0">
+        <div class="brandbar">
+          <span class="brand">CONNECTEM · 1r ESO</span>
+          <span class="tag">📸 ENTRENAMENT</span>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:flex-start; gap:10px; padding-top:6px;">
+          <h1>MISSIÓ:<br>CAPTURA I<br>LLIURAMENT</h1>
+          <p class="sub">Aprèn a fer una captura de pantalla, a desar un fitxer amb un nom clar i a lliurar-lo en una tasca del Classroom. Tot practicat en un simulador, sense risc.</p>
+        </div>
+        <div class="callout"><span>🕹️</span><span>Fes servir <b>Enrere</b> i <b>Endavant</b> per moure’t. Els fitxers que triïs aquí no es pugen enlloc: només es mostra el seu nom.</span></div>
+      </section>
+
+      <!-- 1 · MISSION -->
+      <section class="screen" data-screen="1">
+        <span class="eyebrow">01 · La missió</span>
+        <h2>Dues habilitats, un lliurament</h2>
+        <div class="grid-2">
+          <div class="panel"><div class="tag">📸 CAPTURA</div><p class="sub" style="font-size:13.5px; margin-top:10px;">Fer una foto del que veus a la pantalla per demostrar una feina feta, per exemple un correu abans d’enviar-lo.</p></div>
+          <div class="panel"><div class="tag">📎 FITXER</div><p class="sub" style="font-size:13.5px; margin-top:10px;">Desar-lo amb un nom clar, saber on és i adjuntar-lo a una tasca del Classroom.</p></div>
+        </div>
+        <div class="panel ink">
+          <div class="tag" style="margin-bottom:10px;">🎯 AL FINAL SABRÀS</div>
+          <p style="font-size:13.5px; line-height:1.6; margin:0;">1) Fer una captura amb el teclat.<br>2) Triar el mode de captura adequat.<br>3) Desar el fitxer amb nom, format i carpeta correctes.<br>4) Adjuntar-lo al Classroom i lliurar la tasca.</p>
+        </div>
+      </section>
+
+      <!-- 2 · GUIDE -->
+      <section class="screen" data-screen="2">
+        <span class="eyebrow">02 · Guia ràpida</span>
+        <h2>Com es fa una captura a Windows</h2>
+        <div class="keys" aria-label="Windows més Maj més S">
+          <span class="key">Windows</span><span class="plus">+</span><span class="key">Maj</span><span class="plus">+</span><span class="key lime">S</span>
+        </div>
+        <ol class="list-steps">
+          <li><span class="step-num">1</span><span>Prepara la pantalla: obre el que vols capturar i comprova que es veu tot.</span></li>
+          <li><span class="step-num">2</span><span>Prem <b>Windows + Maj + S</b>. La pantalla s’enfosqueix i surt una barra a dalt.</span></li>
+          <li><span class="step-num">3</span><span>Tria el mode: rectangle, forma lliure, finestra o pantalla completa.</span></li>
+          <li><span class="step-num">4</span><span>Arrossega el ratolí per seleccionar l’àrea i deixa’l anar.</span></li>
+          <li><span class="step-num">5</span><span>Fes clic a l’avís de baix a la dreta i desa la imatge amb <b>Ctrl + S</b>.</span></li>
+        </ol>
+        <div class="callout"><span>💡</span><span>La captura també es copia al porta-retalls: pots enganxar-la amb Ctrl + V.</span></div>
+      </section>
+
+      <!-- 3 · ORDER -->
+      <section class="screen" data-screen="3">
+        <span class="eyebrow">03 · Repte 1</span>
+        <h2>Ordena els passos</h2>
+        <p class="sub">Toca els passos per posar-los en ordre, de dalt a baix. Toca un pas col·locat per treure’l.</p>
+        <div>
+          <label class="field-label" style="margin-bottom:8px;">Passos per col·locar</label>
+          <div class="pool" id="order-pool"></div>
+        </div>
+        <div>
+          <label class="field-label" style="margin-bottom:8px;">El teu ordre</label>
+          <ol class="slots" id="order-slots"></ol>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="navbtn small" onclick="checkOrder()">✔ Comprova</button>
+          <button type="button" class="navbtn small ghost" onclick="resetOrder()">↺ Torna a començar</button>
+        </div>
+        <div class="callout" id="order-msg" hidden></div>
+      </section>
+
+      <!-- 4 · MODES -->
+      <section class="screen" data-screen="4">
+        <span class="eyebrow">04 · Repte 2</span>
+        <h2>Quin mode de captura?</h2>
+        <p class="sub">Tria el mode més adequat per a cada situació.</p>
+        <div id="quiz-list"></div>
+        <div class="callout" id="quiz-msg" hidden></div>
+      </section>
+
+      <!-- 5 · SAVE WORKSHOP -->
+      <section class="screen" data-screen="5">
+        <span class="eyebrow">05 · Taller</span>
+        <h2>Desa el fitxer: «Desa com a…»</h2>
+        <p class="sub">Simula el moment de desar la captura o el document. Omple els camps com ho faries de veritat.</p>
+        <div class="panel lime">
+          <div class="field">
+            <label class="field-label" for="f-name">El teu nom i cognoms <span class="pill" id="pill-name">·</span></label>
+            <input type="text" id="f-name" placeholder="p. ex. Marc Puig Soler" autocomplete="off" oninput="updateSave()">
+          </div>
+          <div class="field">
+            <label class="field-label" for="f-code">Nom de la tasca <span class="pill" id="pill-code">·</span></label>
+            <input type="text" id="f-code" value="T1.04" autocomplete="off" oninput="updateSave()">
+          </div>
+        </div>
+        <div class="win">
+          <div class="win-bar"><span>Desa com a</span><span>✕</span></div>
+          <div class="win-body">
+            <div>
+              <label class="field-label">Tipus de fitxer</label>
+              <div class="seg">
+                <button type="button" class="folder" id="type-png" onclick="setType('png')">Captura (.png)</button>
+                <button type="button" class="folder" id="type-pdf" onclick="setType('pdf')">Document (.pdf)</button>
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="f-file">Nom del fitxer <span class="pill" id="pill-file">·</span></label>
+              <input type="text" id="f-file" placeholder="p. ex. Marc_Puig_T1.04.png" autocomplete="off" oninput="updateSave()">
+              <div class="hint" id="file-hint"></div>
+            </div>
+            <div>
+              <label class="field-label">Carpeta <span class="pill" id="pill-folder">·</span></label>
+              <div class="folders">
+                <button type="button" class="folder" id="folder-Escriptori" onclick="setFolder('Escriptori')">📁 Escriptori</button>
+                <button type="button" class="folder" id="folder-Documents" onclick="setFolder('Documents')">📁 Documents</button>
+                <button type="button" class="folder" id="folder-Baixades" onclick="setFolder('Baixades')">📁 Baixades</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mini-checks" id="save-checks"></div>
+        <div class="callout good" id="save-ok" hidden><span>✅</span><span>Fitxer desat a <b id="save-path">—</b>. Recorda aquesta carpeta: la hi buscaràs amb Windows + E.</span></div>
+      </section>
+
+      <!-- 6 · CLASSROOM SIMULATOR -->
+      <section class="screen" data-screen="6">
+        <span class="eyebrow">06 · Simulador</span>
+        <h2>Lliura al Classroom</h2>
+        <div class="coach" role="status" aria-live="polite"><span>🧭</span><span id="coach-text"></span></div>
+        <div class="cr" id="cr">
+          <div class="cr-head"><b>Connectem · 1r ESO</b><span>Tasca T1.04 · Pràctica 2</span></div>
+          <div class="cr-body">
+            <div class="cr-task">
+              <h3>Pràctica 2: normes de cortesia al correu</h3>
+              <p style="margin:0 0 8px;">Escriu un correu seguint les 7 parts, retalla’l i adjunta la imatge a aquesta tasca.</p>
+              <p style="margin:0; font-family:var(--font-mono); font-size:12px; opacity:.75;">Exemple de simulació: pots triar qualsevol fitxer del teu dispositiu.</p>
+            </div>
+            <div class="cr-side" id="cr-side"></div>
+          </div>
+          <div class="cr-dialog" id="cr-dialog" hidden></div>
+        </div>
+        <input type="file" id="cr-file" onchange="onCrFile(event)">
+        <div class="btn-row"><button type="button" class="navbtn small ghost" onclick="resetCr()">↺ Repeteix el simulador</button></div>
+      </section>
+
+      <!-- 7 · CHECK -->
+      <section class="screen" data-screen="7">
+        <span class="eyebrow">07 · Comprovació</span>
+        <h2>Estàs a punt per al lliurament real?</h2>
+        <button type="button" class="task-row" id="task-capture" onclick="toggleTask('task-capture')"><span class="task-box">✓</span><span class="task-label">Sé fer una captura amb Windows + Maj + S i triar el mode</span></button>
+        <button type="button" class="task-row" id="task-save" onclick="toggleTask('task-save')"><span class="task-box">✓</span><span class="task-label">Sé desar un fitxer amb nom clar i trobar-lo després</span></button>
+        <button type="button" class="task-row" id="task-deliver" onclick="toggleTask('task-deliver')"><span class="task-box">✓</span><span class="task-label">Sé adjuntar-lo al Classroom i prémer «Lliura»</span></button>
+        <div class="panel ink">
+          <div class="tag" style="margin-bottom:12px;">📋 RESUM DE L’ENTRENAMENT</div>
+          <div class="report-grid">
+            <div class="report-item"><div class="k">Nom</div><div class="v" id="sum-name">—</div></div>
+            <div class="report-item"><div class="k">Repte 1 · passos</div><div class="v" id="sum-order">Sense comprovar</div></div>
+            <div class="report-item"><div class="k">Repte 2 · modes</div><div class="v" id="sum-quiz">0 / 4</div></div>
+            <div class="report-item"><div class="k">Fitxer desat</div><div class="v" id="sum-file">—</div></div>
+            <div class="report-item"><div class="k">Simulador Classroom</div><div class="v" id="sum-cr">Sense fer</div></div>
+            <div class="report-item"><div class="k">Passos marcats</div><div class="v" id="sum-tasks">0 / 3</div></div>
+          </div>
+        </div>
+        <div class="callout"><span>📎</span><span>Ensenya aquesta pantalla al professorat com a comprovant de l’entrenament.</span></div>
+      </section>
+
+      <!-- 8 · RECAP -->
+      <section class="screen" data-screen="8">
+        <h2 style="text-align:center;">Entrenament completat!</h2>
+        <div class="grid-2">
+          <div class="panel"><b>📸 Captura</b><p class="sub" style="font-size:13px; margin-top:6px;">Windows + Maj + S, el mode adequat i desar amb Ctrl + S.</p></div>
+          <div class="panel"><b>🏷️ Nom clar</b><p class="sub" style="font-size:13px; margin-top:6px;">Nom, cognom i tasca, amb l’extensió correcta.</p></div>
+          <div class="panel"><b>📁 Carpeta coneguda</b><p class="sub" style="font-size:13px; margin-top:6px;">Escriptori, Documents o Baixades, i Windows + E per trobar-lo.</p></div>
+          <div class="panel"><b>🚀 Lliura!</b><p class="sub" style="font-size:13px; margin-top:6px;">Afegeix o crea, Fitxer, Penja i Lliura. Si no ho prems, no arriba.</p></div>
+        </div>
+        <div style="display:flex; justify-content:center;"><button type="button" class="navbtn primary" onclick="resetMission()">↺ Reiniciar la missió</button></div>
+      </section>
+
+    </div>
+  </div>
+
+  <div class="navbar">
+    <button type="button" class="navbtn ghost" id="btn-back" onclick="go(-1)">← Enrere</button>
+    <div class="dots" id="dots"></div>
+    <button type="button" class="navbtn" id="btn-next" onclick="onNextClick()">Endavant →</button>
+  </div>
+  <footer class="credit">Captura i Lliurament · Connectem · 1r ESO</footer>
+</div>
+
+<div class="reward-overlay" id="reward-overlay" hidden>
+  <div class="reward-card" id="reward-card">
+    <div class="tag">🏅 MISSIÓ COMPLETADA</div>
+    <img class="medal-img" id="medal-img" alt="Medalla de la missió Captura i Lliurament">
+    <h2>Bona feina, <span id="reward-name">crack</span>!</h2>
+    <p class="sub" style="font-size:13px;">Has completat la missió «Captura i Lliurament» el <span id="reward-date">—</span>.</p>
+    <p class="sub" style="font-size:12px;">📌 Fes clic dret (o mantén premut al mòbil) sobre la medalla i tria «Desa la imatge com…» per guardar-la com a trofeu.</p>
+    <button type="button" class="navbtn primary" onclick="closeReward()">Tanca</button>
+  </div>
+</div>
+
+<script>
+var TOTAL = 9;
+var current = 0;
+var SLUGS = ['inici','la-missio','guia','ordena','modes','desa','classroom','comprovacio','enhorabona'];
+
+function el(id){ return document.getElementById(id); }
+function val(id){ return el(id).value; }
+function hide(id){ el(id).hidden = true; }
+
+/* ============ Navigation ============ */
+function buildDots(){
+  var wrap = el('dots'); wrap.innerHTML = '';
+  for (var i = 0; i < TOTAL; i++){
+    var d = document.createElement('button'); d.type = 'button'; d.className = 'dot';
+    d.setAttribute('aria-label', 'Pantalla ' + (i + 1));
+    d.onclick = (function(idx){ return function(){ showScreen(idx); }; })(i);
+    wrap.appendChild(d);
+  }
+}
+function showScreen(idx){
+  if (idx < 0 || idx >= TOTAL) return;
+  current = idx;
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.toggle('active', parseInt(s.getAttribute('data-screen'), 10) === idx); });
+  document.querySelectorAll('.dot').forEach(function(d, i){ d.classList.toggle('active', i === idx); d.classList.toggle('done', i < idx); });
+  el('btn-back').disabled = (idx === 0);
+  el('btn-next').textContent = (idx === TOTAL - 1) ? '🏅 Reclama la medalla' : 'Endavant →';
+  el('urlbar').textContent = 'connectem.missio/' + SLUGS[idx];
+  if (idx === 7) updateReport();
+  window.scrollTo(0, 0);
+}
+function go(d){ showScreen(current + d); }
+function onNextClick(){ if (current === TOTAL - 1) claimReward(); else go(1); }
+document.addEventListener('keydown', function(e){
+  var t = e.target && e.target.tagName;
+  if (t === 'INPUT' || t === 'TEXTAREA') return;
+  if (e.key === 'Escape') closeReward();
+  if (!el('reward-overlay').hidden) return;
+  if (e.key === 'ArrowRight') onNextClick();
+  if (e.key === 'ArrowLeft') go(-1);
+});
+
+/* ============ Challenge 1: order steps ============ */
+var STEPS = {
+  prep:  { name: 'Preparar',       text: 'Prepara la pantalla: obre el que vols capturar i comprova que es veu tot.' },
+  keys:  { name: 'Tecles',         text: 'Prem Windows + Maj + S.' },
+  mode:  { name: 'Mode',           text: 'Tria el mode de captura a la barra de dalt.' },
+  area:  { name: 'Seleccionar',    text: 'Arrossega el ratolí per seleccionar l’àrea i deixa’l anar.' },
+  toast: { name: 'Avís',           text: 'Fes clic a l’avís que surt a baix a la dreta.' },
+  save:  { name: 'Desar',          text: 'Prem Ctrl + S i desa la imatge amb un nom clar.' }
+};
+var CORRECT_ORDER = ['prep','keys','mode','area','toast','save'];
+var POOL_START = ['area','save','prep','toast','keys','mode'];
+var placed = [], orderChecked = false, orderBest = -1;
+
+function renderOrder(){
+  var pool = el('order-pool'); pool.innerHTML = '';
+  var remaining = POOL_START.filter(function(id){ return placed.indexOf(id) === -1; });
+  if (!remaining.length){ var e = document.createElement('div'); e.className = 'pool-empty'; e.textContent = 'Has col·locat tots els passos.'; pool.appendChild(e); }
+  remaining.forEach(function(id){
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'piece'; b.textContent = STEPS[id].text;
+    b.onclick = function(){ placed.push(id); orderChecked = false; hide('order-msg'); renderOrder(); };
+    pool.appendChild(b);
+  });
+  var slots = el('order-slots'); slots.innerHTML = '';
+  for (var i = 0; i < CORRECT_ORDER.length; i++){
+    var li = document.createElement('li');
+    var n = document.createElement('span'); n.className = 'slot-n'; n.textContent = i + 1;
+    var body = document.createElement('div'); body.className = 'slot-body';
+    var id = placed[i];
+    if (id){
+      li.className = 'slot filled'; li.tabIndex = 0; li.setAttribute('role', 'button'); li.setAttribute('aria-label', 'Treu el pas ' + (i + 1));
+      body.textContent = STEPS[id].text;
+      if (orderChecked){
+        var ok = CORRECT_ORDER[i] === id;
+        li.className += ok ? ' ok' : ' bad';
+        var v = document.createElement('span'); v.className = 'slot-verdict';
+        v.textContent = ok ? '✓ ' + STEPS[id].name : '✗ Aquí no va. Això és: ' + STEPS[id].name;
+        body.appendChild(v);
+      }
+      (function(idx){
+        var rm = function(){ placed.splice(idx, 1); orderChecked = false; hide('order-msg'); renderOrder(); };
+        li.onclick = rm;
+        li.onkeydown = function(ev){ if (ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); rm(); } };
+      })(i);
+    } else {
+      li.className = 'slot'; body.className = 'slot-empty'; body.textContent = 'Posició ' + (i + 1);
+    }
+    li.appendChild(n); li.appendChild(body); slots.appendChild(li);
+  }
+}
+function checkOrder(){
+  var msg = el('order-msg');
+  if (placed.length < CORRECT_ORDER.length){
+    msg.className = 'callout'; msg.hidden = false;
+    msg.innerHTML = '<span>🧩</span><span>Encara et falten passos per col·locar (' + placed.length + ' de ' + CORRECT_ORDER.length + ').</span>';
+    return;
+  }
+  orderChecked = true;
+  var good = 0; CORRECT_ORDER.forEach(function(id, i){ if (placed[i] === id) good++; });
+  if (good > orderBest) orderBest = good;
+  renderOrder(); msg.hidden = false;
+  if (good === CORRECT_ORDER.length){ msg.className = 'callout good'; msg.innerHTML = '<span>🎉</span><span>Perfecte! Els 6 passos estan en ordre.</span>'; }
+  else { msg.className = 'callout warn'; msg.innerHTML = '<span>🔁</span><span>' + good + ' de 6 al lloc correcte. Toca els passos en vermell per treure’ls i torna-ho a provar.</span>'; }
+}
+function resetOrder(){ placed = []; orderChecked = false; hide('order-msg'); renderOrder(); }
+
+/* ============ Challenge 2: capture modes ============ */
+var MODES = ['Rectangle', 'Forma lliure', 'Finestra', 'Pantalla completa'];
+var QUIZ = [
+  { q: 'Vols capturar només el correu que has escrit, sense la resta de la pantalla.', a: 0, why: 'El rectangle et deixa triar exactament l’àrea que vols.' },
+  { q: 'Vols guardar tot el que es veu ara mateix a la pantalla.', a: 3, why: 'Pantalla completa captura tot el que hi ha a la pantalla.' },
+  { q: 'Vols capturar una finestra del navegador sencera, sense el fons.', a: 2, why: 'El mode finestra captura una finestra sencera amb un sol clic.' },
+  { q: 'Vols retallar el contorn d’un dibuix dibuixant-lo amb el ratolí.', a: 1, why: 'Forma lliure et deixa dibuixar el contorn a mà.' }
+];
+var quizAnswered = {};
+function renderQuiz(){
+  var wrap = el('quiz-list'); wrap.innerHTML = '';
+  QUIZ.forEach(function(item, qi){
+    var box = document.createElement('div'); box.className = 'quiz';
+    var p = document.createElement('p'); p.className = 'quiz-q'; p.textContent = (qi + 1) + '. ' + item.q; box.appendChild(p);
+    var opts = document.createElement('div'); opts.className = 'quiz-opts';
+    MODES.forEach(function(m, oi){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.textContent = m;
+      var picked = quizAnswered[qi];
+      if (picked !== undefined && picked.indexOf(oi) !== -1){ b.className += (oi === item.a) ? ' ok' : ' bad'; }
+      if (picked !== undefined && picked.indexOf(item.a) !== -1 && oi === item.a){ b.className = 'opt ok'; }
+      b.onclick = function(){
+        var arr = quizAnswered[qi] || [];
+        if (arr.indexOf(item.a) !== -1) return;
+        if (arr.indexOf(oi) === -1) arr.push(oi);
+        quizAnswered[qi] = arr; renderQuiz();
+      };
+      opts.appendChild(b);
+    });
+    box.appendChild(opts);
+    var arr = quizAnswered[qi];
+    if (arr !== undefined){
+      var fb = document.createElement('div'); fb.className = 'quiz-fb';
+      if (arr.indexOf(item.a) !== -1){ fb.textContent = '✓ ' + item.why; }
+      else { fb.textContent = '✗ No és aquest. Prova’n un altre.'; }
+      box.appendChild(fb);
+    }
+    wrap.appendChild(box);
+  });
+  var solved = quizSolved();
+  var msg = el('quiz-msg');
+  if (solved === QUIZ.length){ msg.hidden = false; msg.className = 'callout good'; msg.innerHTML = '<span>🎉</span><span>Molt bé! Has triat el mode correcte a les 4 situacions.</span>'; }
+  else { msg.hidden = true; }
+}
+function quizSolved(){
+  var n = 0;
+  QUIZ.forEach(function(item, qi){ var a = quizAnswered[qi]; if (a !== undefined && a.indexOf(item.a) !== -1) n++; });
+  return n;
+}
+function quizFirstTry(){
+  var n = 0;
+  QUIZ.forEach(function(item, qi){ var a = quizAnswered[qi]; if (a !== undefined && a.length === 1 && a[0] === item.a) n++; });
+  return n;
+}
+
+/* ============ Workshop: save as ============ */
+var fileType = 'png', folder = '';
+function norm(s){ return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+function setType(t){ fileType = t; updateSave(); }
+function setFolder(f){ folder = f; updateSave(); }
+function saveCriteria(){
+  var name = val('f-name').trim();
+  var words = norm(name).split(/\s+/).filter(function(w){ return w.length >= 3; });
+  var code = val('f-code').trim();
+  var file = val('f-file').trim();
+  var nf = norm(file);
+  var extOk = fileType === 'png' ? /\.(png|jpg|jpeg)$/.test(nf) : /\.pdf$/.test(nf);
+  var hasName = words.some(function(w){ return nf.indexOf(w) !== -1; });
+  var hasCode = code.length > 0 && nf.indexOf(norm(code)) !== -1;
+  return {
+    name: name.split(/\s+/).filter(Boolean).length >= 2,
+    code: code.length >= 3,
+    ext: extOk, hasName: hasName, hasCode: hasCode,
+    noSpaces: file.length > 0 && !/\s/.test(file),
+    folder: folder !== ''
+  };
+}
+function updateSave(){
+  var c = saveCriteria();
+  el('type-png').classList.toggle('active', fileType === 'png');
+  el('type-pdf').classList.toggle('active', fileType === 'pdf');
+  ['Escriptori','Documents','Baixades'].forEach(function(f){ el('folder-' + f).classList.toggle('active', folder === f); });
+  el('file-hint').textContent = 'Extensió correcta: ' + (fileType === 'png' ? '.png' : '.pdf') + '. Sense espais: fes servir guions baixos.';
+  function pill(id, ok, on, off){ var p = el(id); p.classList.toggle('on', ok); p.textContent = ok ? on : off; }
+  pill('pill-name', c.name, '✓ correcte', '· nom i cognoms');
+  pill('pill-code', c.code, '✓ correcte', '· pendent');
+  var fileOk = c.ext && c.hasName && c.hasCode && c.noSpaces;
+  pill('pill-file', fileOk, '✓ correcte', '· pendent');
+  pill('pill-folder', c.folder, '✓ triada', '· tria una');
+  var items = [
+    { l: 'Nom i cognoms', ok: c.name },
+    { l: 'Extensió correcta', ok: c.ext },
+    { l: 'Porta el teu nom', ok: c.hasName },
+    { l: 'Porta el nom de la tasca', ok: c.hasCode },
+    { l: 'Sense espais', ok: c.noSpaces },
+    { l: 'Carpeta triada', ok: c.folder }
+  ];
+  var h = el('save-checks'); h.innerHTML = '';
+  items.forEach(function(i){ var s = document.createElement('span'); s.className = 'mini-check' + (i.ok ? ' on' : ''); s.textContent = (i.ok ? '✓ ' : '· ') + i.l; h.appendChild(s); });
+  var all = items.every(function(i){ return i.ok; });
+  el('save-ok').hidden = !all;
+  if (all) el('save-path').textContent = folder + ' › ' + val('f-file').trim();
+  updateReport();
+}
+function saveDone(){ var c = saveCriteria(); return c.name && c.ext && c.hasName && c.hasCode && c.noSpaces && c.folder; }
+
+/* ============ Classroom simulator ============ */
+var crState = 'start', crFileName = '', crHint = '';
+var COACH = {
+  start:   '<b>Pas 1.</b> Fes clic a «Afegeix o crea» per adjuntar un fitxer.',
+  menu:    '<b>Pas 2.</b> Al menú, tria «Fitxer».',
+  dialog:  '<b>Pas 3.</b> Fes clic a «Selecciona fitxers del dispositiu» i tria qualsevol fitxer.',
+  picked:  '<b>Pas 4.</b> Ja has triat un fitxer. Prem «Penja» per adjuntar-lo.',
+  attached:'<b>Pas 5.</b> El fitxer és adjuntat. Ara prem «Lliura».',
+  confirm: '<b>Pas 6.</b> Confirma amb «Lliura» al quadre que ha sortit.',
+  done:    '<b>Fet!</b> La tasca ja és lliurada. Si t’has equivocat, pots prémer «Anul·la el lliurament».'
+};
+function setCoach(){ el('coach-text').innerHTML = (crHint ? '<b>Ep!</b> ' + crHint + '<br>' : '') + COACH[crState]; }
+function crSet(s, hint){ crState = s; crHint = hint || ''; renderCr(); }
+function renderCr(){
+  var side = el('cr-side'); side.innerHTML = '';
+  var h = document.createElement('h4'); h.textContent = 'La teva feina'; side.appendChild(h);
+  var st = document.createElement('div'); st.className = 'cr-status';
+  st.textContent = (crState === 'done') ? 'Estat: Lliurat' : 'Estat: Assignat';
+  st.style.color = (crState === 'done') ? 'var(--green-deep)' : 'var(--red-deep)';
+  side.appendChild(st);
+
+  if (crState === 'attached' || crState === 'confirm' || crState === 'done'){
+    var chip = document.createElement('div'); chip.className = 'chip';
+    var nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = '📎 ' + crFileName; chip.appendChild(nm);
+    if (crState === 'attached'){
+      var x = document.createElement('button'); x.type = 'button'; x.textContent = '✕'; x.setAttribute('aria-label', 'Treu el fitxer');
+      x.onclick = function(){ crFileName = ''; crSet('start'); }; chip.appendChild(x);
+    }
+    side.appendChild(chip);
+  }
+  if (crState === 'start' || crState === 'menu' || crState === 'dialog' || crState === 'picked'){
+    var add = document.createElement('button'); add.type = 'button'; add.className = 'cr-btn'; add.textContent = '＋ Afegeix o crea';
+    add.onclick = function(){ crSet(crState === 'menu' ? 'start' : 'menu'); };
+    side.appendChild(add);
+  }
+  if (crState === 'menu'){
+    var menu = document.createElement('div'); menu.className = 'cr-menu';
+    [['🔗 Enllaç', 'link'], ['💾 Google Drive', 'drive'], ['📄 Fitxer', 'file'], ['✏️ Crea', 'create']].forEach(function(m){
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = m[0];
+      b.onclick = function(){
+        if (m[1] === 'file') crSet('dialog');
+        else crSet('menu', 'Aquesta opció no serveix per pujar un fitxer del dispositiu. Tria «Fitxer».');
+      };
+      menu.appendChild(b);
+    });
+    side.appendChild(menu);
+  }
+  if (crState === 'attached' || crState === 'confirm'){
+    var sub = document.createElement('button'); sub.type = 'button'; sub.className = 'cr-btn primary'; sub.textContent = 'Lliura';
+    sub.onclick = function(){ crSet('confirm'); }; side.appendChild(sub);
+  } else if (crState === 'done'){
+    var un = document.createElement('button'); un.type = 'button'; un.className = 'cr-btn'; un.textContent = 'Anul·la el lliurament';
+    un.onclick = function(){ crSet('attached'); }; side.appendChild(un);
+  } else {
+    var dis = document.createElement('button'); dis.type = 'button'; dis.className = 'cr-btn primary'; dis.textContent = 'Lliura';
+    dis.onclick = function(){ crSet(crState, 'Primer has d’adjuntar el fitxer. Fes clic a «Afegeix o crea».'); }; side.appendChild(dis);
+  }
+
+  var dlg = el('cr-dialog'); dlg.innerHTML = '';
+  if (crState === 'dialog' || crState === 'picked'){
+    dlg.hidden = false;
+    var card = document.createElement('div'); card.className = 'cr-dialog-card';
+    var t = document.createElement('h4'); t.textContent = 'Afegeix fitxers'; card.appendChild(t);
+    if (crState === 'dialog'){
+      var lab = document.createElement('label'); lab.className = 'upload-btn'; lab.setAttribute('for', 'cr-file'); lab.textContent = '📂 Selecciona fitxers del dispositiu';
+      card.appendChild(lab);
+    } else {
+      var ch = document.createElement('div'); ch.className = 'chip'; var n2 = document.createElement('span'); n2.className = 'nm'; n2.textContent = '📎 ' + crFileName; ch.appendChild(n2); card.appendChild(ch);
+    }
+    var row = document.createElement('div'); row.className = 'cr-row';
+    var cancel = document.createElement('button'); cancel.type = 'button'; cancel.className = 'cr-btn'; cancel.textContent = 'Cancel·la';
+    cancel.onclick = function(){ crFileName = ''; el('cr-file').value = ''; crSet('start'); };
+    row.appendChild(cancel);
+    var up = document.createElement('button'); up.type = 'button'; up.className = 'cr-btn primary'; up.textContent = 'Penja';
+    up.onclick = function(){
+      if (crState === 'picked') crSet('attached');
+      else crSet('dialog', 'Primer has de triar un fitxer amb «Selecciona fitxers del dispositiu».');
+    };
+    row.appendChild(up); card.appendChild(row);
+    dlg.appendChild(card);
+  } else if (crState === 'confirm'){
+    dlg.hidden = false;
+    var c2 = document.createElement('div'); c2.className = 'cr-dialog-card';
+    var t2 = document.createElement('h4'); t2.textContent = 'Vols lliurar la feina?'; c2.appendChild(t2);
+    var p2 = document.createElement('p'); p2.textContent = 'Un cop lliurada, el professorat podrà veure el teu fitxer.'; c2.appendChild(p2);
+    var r2 = document.createElement('div'); r2.className = 'cr-row';
+    var c3 = document.createElement('button'); c3.type = 'button'; c3.className = 'cr-btn'; c3.textContent = 'Cancel·la'; c3.onclick = function(){ crSet('attached'); };
+    var ok = document.createElement('button'); ok.type = 'button'; ok.className = 'cr-btn primary'; ok.textContent = 'Lliura'; ok.onclick = function(){ crSet('done'); };
+    r2.appendChild(c3); r2.appendChild(ok); c2.appendChild(r2); dlg.appendChild(c2);
+  } else { dlg.hidden = true; }
+  setCoach();
+  updateReport();
+}
+function onCrFile(evt){
+  var f = evt.target.files && evt.target.files[0];
+  if (!f){ return; }
+  crFileName = f.name;
+  crSet('picked');
+}
+function resetCr(){ crFileName = ''; el('cr-file').value = ''; crSet('start'); }
+
+/* ============ Final check ============ */
+var tasks = { 'task-capture': false, 'task-save': false, 'task-deliver': false };
+function toggleTask(id){ tasks[id] = !tasks[id]; el(id).classList.toggle('done', tasks[id]); updateReport(); }
+function updateReport(){
+  el('sum-name').textContent = val('f-name').trim() || '—';
+  el('sum-order').textContent = orderBest < 0 ? 'Sense comprovar' : (orderBest + ' / 6 al lloc');
+  el('sum-quiz').textContent = quizSolved() + ' / 4 resolts (' + quizFirstTry() + ' a la primera)';
+  el('sum-file').textContent = saveDone() ? (folder + ' › ' + val('f-file').trim()) : '—';
+  el('sum-cr').textContent = crState === 'done' ? 'Lliurat' : 'Sense fer';
+  el('sum-tasks').textContent = Object.keys(tasks).filter(function(k){ return tasks[k]; }).length + ' / 3';
+}
+
+/* ============ Reward ============ */
+function medalSvgDataUri(){
+  var svg = '' +
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 132'>" +
+    "<polygon points='35,58 24,127 50,111 76,127 65,58' fill='#1476DE' stroke='#15181E' stroke-width='4' stroke-linejoin='round'/>" +
+    "<circle cx='50' cy='46' r='40' fill='#15181E'/>" +
+    "<circle cx='50' cy='46' r='35' fill='#CFEB6E' stroke='#15181E' stroke-width='4'/>" +
+    "<circle cx='50' cy='46' r='28' fill='none' stroke='#15181E' stroke-width='2' stroke-dasharray='4 3.4'/>" +
+    "<path d='M32 40 L32 33 L39 33 M61 33 L68 33 L68 40 M68 52 L68 59 L61 59 M39 59 L32 59 L32 52' fill='none' stroke='#15181E' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/>" +
+    "<circle cx='50' cy='46' r='6' fill='#15181E'/>" +
+    "</svg>";
+  return 'data:image/svg+xml,' + encodeURIComponent(svg);
+}
+function spawnConfetti(container){
+  var colors = ['#1476DE', '#CFEB6E', '#FF5C5C', '#3FB871', '#15181E'];
+  container.querySelectorAll('.confetti-piece').forEach(function(n){ n.remove(); });
+  for (var i = 0; i < 16; i++){
+    var p = document.createElement('span'); p.className = 'confetti-piece';
+    p.style.left = (4 + Math.random() * 92) + '%'; p.style.background = colors[i % colors.length];
+    p.style.animationDelay = (Math.random() * 0.4) + 's'; p.style.borderRadius = (i % 2 === 0) ? '50%' : '2px';
+    container.appendChild(p);
+  }
+}
+function claimReward(){
+  el('reward-name').textContent = val('f-name').trim() || 'crack';
+  el('reward-date').textContent = new Date().toLocaleDateString('ca-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+  el('medal-img').src = medalSvgDataUri();
+  el('reward-overlay').hidden = false;
+  spawnConfetti(el('reward-card'));
+}
+function closeReward(){ el('reward-overlay').hidden = true; }
+
+/* ============ Reset & boot ============ */
+function resetMission(){
+  el('f-name').value = ''; el('f-code').value = 'T1.04'; el('f-file').value = '';
+  fileType = 'png'; folder = '';
+  Object.keys(tasks).forEach(function(k){ tasks[k] = false; el(k).classList.remove('done'); });
+  orderBest = -1; quizAnswered = {};
+  resetOrder(); renderQuiz(); resetCr(); updateSave(); closeReward(); showScreen(0);
+}
+function start(){
+  buildDots(); renderOrder(); renderQuiz(); renderCr(); updateSave(); showScreen(0);
+}
+if (window.claude && window.claude.hot && window.claude.hot.ready){ window.claude.hot.ready(start); } else { start(); }
+</script>
+
+</body></html>
