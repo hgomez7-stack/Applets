@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ca"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulacre d'examen · Economia 4t ESO · Sessions 6 a 9</title>
+<style>
+:root{color-scheme:light;--bg:#faf6ec;--card:#fffdf7;--ink:#2b2a26;--mut:#6b675c;--gold:#b8902f;--line:#e3dcc8;--ok:#1e7e3e;--okbg:#e6f4ea;--ko:#b3261e;--kobg:#fce8e6;--gray:#ece8da}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Georgia,'Times New Roman',serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px 80px}
+header.top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:2px solid var(--gold);padding:10px 0;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+header.top h1{font-size:1.05rem;margin:0}
+.timer{font-family:ui-monospace,Menlo,monospace;font-size:1.1rem;background:var(--gray);padding:4px 10px;border-radius:6px}
+.timer.low{background:var(--kobg);color:var(--ko)}
+button{font:inherit;cursor:pointer;border:1.5px solid var(--gold);background:var(--gold);color:#fff;padding:8px 16px;border-radius:8px;font-weight:bold}
+button.sec{background:transparent;color:var(--gold)}
+.intro{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--gold);padding:12px 16px;margin:18px 0;border-radius:6px}
+h2.bar{background:#d9d9d9;font-style:italic;font-size:1rem;padding:5px 10px;margin:28px 0 8px;display:flex;justify-content:space-between;border-radius:2px}
+.box{background:#f2f2f2;border-left:5px solid #a6a6a6;padding:8px 12px;margin:6px 0 10px;font-family:Arial,sans-serif;font-size:.95rem}
+.q{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:12px 0;font-family:Arial,sans-serif;font-size:.97rem}
+.q .pts{color:var(--mut);font-style:italic;white-space:nowrap}
+.q.ok{border-color:var(--ok);background:var(--okbg)} .q.ko{border-color:var(--ko);background:var(--kobg)}
+.opt{display:block;padding:5px 8px;border-radius:6px;cursor:pointer}
+.opt:hover{background:var(--gray)}
+.opt.right{background:#c8e6c9;font-weight:bold}.opt.wrong{background:#f7c6c2}
+select,input[type=text],textarea{color:#2b2a26;-webkit-text-fill-color:#2b2a26;caret-color:#2b2a26;font:inherit;font-family:Arial,sans-serif;padding:6px 8px;border:1.5px solid var(--line);border-radius:6px;background:#fff;max-width:100%}
+option{color:#2b2a26;background:#fff}
+select:disabled,input:disabled,textarea:read-only{color:#2b2a26;-webkit-text-fill-color:#2b2a26;opacity:1}
+select{min-width:190px}
+::placeholder{color:#8a8575;-webkit-text-fill-color:#8a8575}
+textarea{width:100%;min-height:76px}
+input.op{width:100%;margin:4px 0}input.res{width:130px}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line)}
+.row span.t{flex:1}
+table.fpp{border-collapse:collapse;margin:6px 0;font-family:Arial,sans-serif}
+table.fpp td,table.fpp th{border:1px solid #333;padding:4px 14px;text-align:center}table.fpp th{background:#e7e6e6}
+.fb{margin-top:8px;font-size:.92rem}.fb .good{color:var(--ok);font-weight:bold}.fb .bad{color:var(--ko);font-weight:bold}
+.model{background:#fff;border:1px dashed var(--ok);padding:8px 10px;border-radius:6px;margin-top:6px;color:#14532d}
+.self label{display:block;padding:3px 0;cursor:pointer}
+.score{background:var(--card);border:2px solid var(--gold);border-radius:10px;padding:16px 20px;margin:18px 0;display:none;font-family:Arial,sans-serif}
+.score .big{font-size:2.2rem;font-weight:bold;color:var(--gold)}
+.score table{border-collapse:collapse;width:100%;margin-top:8px}.score td{padding:3px 6px;border-bottom:1px solid var(--line)}
+.hide{display:none}
+</style></head><body><div class="wrap">
+<header class="top"><h1>Simulacre d'examen · Economia 4t ESO<br><small style="font-weight:normal;color:var(--mut)">Sessions 6 a 9 · versió reduïda</small></h1>
+<div style="display:flex;gap:10px;align-items:center"><span class="timer" id="timer">40:00</span><button id="go">Corregir</button></div></header>
+<div class="intro"><b>Durada:</b> 40 minuts (el cronòmetre és orientatiu). <b>Materials:</b> calculadora i paper d'esborrany. <b>Puntuació:</b> 5 parts (10 punts) i 1 pregunta extra (fins a 1 punt, sense superar el 10 final).<br>Als càlculs escriu <b>l'operació i el resultat</b>: l'operació val la meitat. Als nombres decimals pots fer servir coma o punt. En les preguntes obertes, quan corregeixis veuràs un model i hauràs de puntuar-te tu mateix/a amb els criteris.</div>
+<div id="score" class="score"></div>
+<div id="app"></div>
+<div style="text-align:center;margin:26px 0"><button id="go2">Corregir</button> <button class="sec" id="again">Tornar a començar</button></div>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const num=s=>{const m=String(s).replace(/−|–/g,'-').replace(/\s/g,'').replace(',','.');const v=parseFloat(m);return isNaN(v)?null:v};
+const nums=s=>(String(s).replace(/,/g,'.').match(/\d+(?:\.\d+)?/g)||[]).map(parseFloat);
+const P=[
+ {t:"Part 1. Test de conceptes",p:"3 punts",box:"Encercla l'única resposta correcta de cada pregunta. Cada pregunta val 0,5 punts.",qs:[
+  {k:'mc',q:"Quin dels fets següents és un exemple de microeconomia?",o:["El nivell d'atur de tot el país.","El creixement del PIB d'un any.","El preu d'un entrepà en una cafeteria concreta.","La inflació de la zona euro."],ok:2,pts:.5,why:"La microeconomia estudia decisions i preus concrets; la resta són dades de tot el país (macro)."},
+  {k:'mc',q:"Per què cal triar en economia?",o:["Perquè els recursos són limitats i les necessitats, il·limitades.","Perquè els diners sempre són escassos.","Perquè l'Estat prohibeix produir-ho tot.","Perquè els preus pugen cada any."],ok:0,pts:.5,why:"L'escassetat obliga a triar: recursos limitats davant necessitats il·limitades."},
+  {k:'mc',q:"Un país on empreses i consumidors decideixen lliurement què es produeix i a quin preu, amb molt poca intervenció de l'Estat, té una economia…",o:["de planificació centralitzada.","de mercat.","mixta.","sense escassetat."],ok:1,pts:.5,why:"Decisions lliures i poca intervenció de l'Estat = economia de mercat."},
+  {k:'mc',q:"En el flux circular, les empreses paguen sous a les famílies a canvi de…",o:["béns i serveis acabats.","impostos.","importacions.","el treball, un factor de producció."],ok:3,pts:.5,why:"Les famílies ofereixen factors de producció (treball) i reben renda."},
+  {k:'mc',q:"«Els últims tres anys el pa ha pujat un 3 %, així que aquest any també pujarà un 3 %.» Quin tipus d'expectativa és?",o:["Adaptativa.","Racional.","Profecia autocomplerta.","Cap, és una dada."],ok:0,pts:.5,why:"Es projecta el passat cap al futur: expectativa adaptativa."},
+  {k:'mc',q:"Compres unes sabatilles perquè un anunci amb un futbolista famós les presenta com a imprescindibles. Quin biaix actua?",o:["La impulsivitat.","L'excés d'informació.","El màrqueting.","La personalitat."],ok:2,pts:.5,why:"La publicitat i la imatge d'un famós són màrqueting."}]},
+ {t:"Part 2. Micro, macro i sistemes econòmics",p:"1,5 punts",box:"Aquests casos són exemples de la vida quotidiana. Classifica'ls.",qs:[
+  {k:'tab',q:"a) Indica si cada cas és micro o macro.",o:["micro","macro"],pts:.15,rows:[["a) La producció total de béns i serveis d'un país en un any.",1],["b) El preu d'un bitllet de tren concret.",0],["c) La inflació d'un país.",1],["d) El sou d'una dependenta.",0],["e) La decisió d'un bar de rebaixar el preu del cafè.",0],["f) El deute públic d'un país.",1]]},
+  {k:'tab',q:"b) A quin sistema s'assembla cada cas?",o:["mercat","mixta","planificació centralitzada"],pts:.15,rows:[["g) L'Estat és propietari de totes les empreses i decideix què es produeix i quant.",2],["h) Hi ha sanitat pública gratuïta i també clíniques privades.",1],["i) Els preus es fixen només amb l'oferta i la demanda, sense serveis públics ni impostos.",0]]},
+  {k:'tab',q:"c) «El preu del lloguer ha pujat un 5 % aquest any.» És una frase positiva o normativa?",o:["positiva","normativa"],pts:.15,rows:[["",0]],why:"Descriu un fet comprovable amb dades: és positiva."}]},
+ {t:"Part 3. Flux circular",p:"1,5 punts",box:"Una economia exporta béns per valor de 200 M€ i n'importa per valor de 240 M€.",qs:[
+  {k:'calc',q:"a) Quin és el saldo del sector exterior (X − M)? Escriu l'operació i el resultat (en M€).",pts:.3,op:[200,240],res:-40,model:"X − M = 200 − 240 = −40 M€"},
+  {k:'tab',q:"   Què significa aquest signe?",o:["Superàvit: exportem més del que importem","Dèficit: importem més del que exportem","Equilibri: exportem i importem el mateix"],pts:.2,rows:[["El saldo és negatiu:",1]]},
+  {k:'open',q:"b) Quin agent construeix escoles i hospitals públics, i amb quins diners ho fa?",pts:.5,model:"El sector públic, amb els diners dels impostos que paguen famílies i empreses.",crit:[["Diu que és el sector públic / l'Estat",.25],["Diu que ho paga amb impostos",.25]]},
+  {k:'open',q:"c) Quan una empresa paga un sou, què rep a canvi de la família?",pts:.5,model:"El seu treball, que és un factor de producció.",crit:[["Parla del treball (factor de producció)",.5]]}]},
+ {t:"Part 4. Expectatives i biaixos",p:"2 punts",box:"Les expectatives i els biaixos expliquen per què prenem decisions econòmiques que no sempre són les millors.",qs:[
+  {k:'tab',q:"a) Indica si cada cas és una expectativa adaptativa, racional o una profecia autocomplerta.",o:["adaptativa","racional","profecia autocomplerta"],pts:.25,rows:[["a) Els hotels han estat plens els últims tres estius; per això espero que aquest també ho estiguin.",0],["b) Corre el rumor que un banc té problemes; tothom retira els diners i el banc acaba tancant.",2],["c) Abans de demanar una hipoteca, una parella compara les previsions de l'euríbor de diversos bancs i organismes oficials.",1]]},
+  {k:'tab',q:"b) Quin biaix hi ha en cada cas?",o:["impulsivitat","entorn","màrqueting","excés d'informació","personalitat"],pts:.25,rows:[["d) Gastes en un videojoc els diners de l'excursió el mateix dia que els reps.",0],["e) Un anunci diu «només avui, −50 %» i compres una cosa que no necessitaves.",2],["f) Hi ha tantes ressenyes contradictòries d'uns auriculars que acabes sense decidir-te.",3]]},
+  {k:'open',q:"c) Explica la diferència entre una expectativa adaptativa i una racional. Posa un exemple propi de cadascuna.",pts:.5,model:"Adaptativa: espero que passi el mateix que ha passat en el passat (ex.: «aquest estiu plourà poc perquè els tres anteriors també»). Racional: faig servir totes les dades i previsions disponibles abans de decidir (ex.: comparo previsions oficials abans d'invertir).",crit:[["Explica que l'adaptativa es basa en el passat",.15],["Explica que la racional fa servir totes les dades i previsions",.15],["Posa un exemple propi de cadascuna",.2]]}]},
+ {t:"Part 5. Cost d'oportunitat i FPP",p:"2 punts",box:"Una granja produeix blat i patates (en tones). Aquestes són les combinacions que pot produir en una setmana, amb tots els seus recursos.",fpp:true,qs:[
+  {k:'calc',q:"a) Quantes tones de patates es deixen de produir si es passa de la combinació C a la D? Escriu l'operació i el resultat.",pts:.5,op:[60,38],res:22,model:"60 − 38 = 22 tones de patates"},
+  {k:'calc',q:"b) Quin és el cost d'oportunitat de cada tona addicional de blat en aquest tram (C a D)? Escriu l'operació i el resultat.",pts:.5,op:[22,10],res:2.2,model:"22 t de patates / 10 t de blat = 2,2 t de patates per cada tona de blat"},
+  {k:'tab',q:"c) La granja vol produir 20 t de blat i 70 t de patates. És possible amb els recursos actuals?",o:["Sí, és possible","No, és inassolible"],pts:.25,rows:[["",1]]},
+  {k:'open',q:"   Justifica-ho.",pts:.25,model:"Amb 20 t de blat (combinació C) el màxim de patates és 60 t, i 70 > 60: el punt és fora de la frontera.",crit:[["Compara 70 amb el màxim de 60 t de patates per a 20 t de blat",.25]]},
+  {k:'tab',q:"d) Què passaria amb la frontera si una plaga destrueix part dels camps?",o:["Es desplaça cap enfora","Es desplaça cap endins","No canvia"],pts:.5,rows:[["",1]]}]},
+ {t:"Pregunta extra. Inici de la unitat 2",p:"fins a 1 punt extra",extra:true,box:"Només si tens temps. Un productor ven el cotó a una fàbrica de teles per 1,00 €. La fàbrica ven la tela a una botiga per 2,50 €. La botiga ven la camisa acabada al client per 6,00 €.",qs:[
+  {k:'calc',q:"a) Valor afegit del cotó (productor). Operació i resultat (€).",pts:.15,op:[],res:1,model:"1,00 € (no ha comprat res abans)"},
+  {k:'calc',q:"    Valor afegit de la fàbrica de teles.",pts:.15,op:[2.5,1],res:1.5,model:"2,50 − 1,00 = 1,50 €"},
+  {k:'calc',q:"    Valor afegit de la botiga.",pts:.15,op:[6,2.5],res:3.5,model:"6,00 − 2,50 = 3,50 €"},
+  {k:'calc',q:"    Suma dels tres valors afegits.",pts:.15,op:[1,1.5,3.5],res:6,model:"1,00 + 1,50 + 3,50 = 6,00 € (coincideix amb el preu final)"},
+  {k:'open',q:"b) Explica un avantatge i un inconvenient de la divisió del treball.",pts:.4,model:"Avantatge: cada persona s'especialitza i es produeix més i més ràpid. Inconvenient: la feina es torna repetitiva i cadascú depèn dels altres.",crit:[["Explica un avantatge (especialització, més producció)",.2],["Explica un inconvenient (feina repetitiva, dependència)",.2]]}]}
+];
+let N=0;const reg=[];
+function render(){
+ const app=$('#app');app.innerHTML='';reg.length=0;
+ P.forEach((pt,pi)=>{
+  const h=document.createElement('h2');h.className='bar';h.innerHTML=`<span>${pt.t}</span><span>(${pt.p})</span>`;app.appendChild(h);
+  const b=document.createElement('div');b.className='box';b.textContent=pt.box;app.appendChild(b);
+  if(pt.fpp){app.insertAdjacentHTML('beforeend','<table class="fpp"><tr><th></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th></tr><tr><th>Blat (t)</th><td>0</td><td>10</td><td>20</td><td>30</td><td>40</td></tr><tr><th>Patates (t)</th><td>80</td><td>74</td><td>60</td><td>38</td><td>0</td></tr></table>')}
+  pt.qs.forEach((q,qi)=>{
+   const d=document.createElement('div');d.className='q';const id=`q${pi}_${qi}`;
+   let html=`<div><b>${q.k==='mc'?(qi+1)+'. ':''}</b>${q.q.replace(/^ +/,'')} <span class="pts">(${String(q.pts*(q.rows?q.rows.length:1)).replace('.',',')} pt)</span></div>`;
+   if(q.k==='mc')html+=q.o.map((o,i)=>`<label class="opt"><input type="radio" name="${id}" value="${i}"> <b>${'ABCD'[i]})</b> ${o}</label>`).join('');
+   if(q.k==='tab')html+=q.rows.map((r,i)=>`<div class="row"><span class="t">${r[0]}</span><select name="${id}_${i}"><option value="">—</option>${q.o.map((o,j)=>`<option value="${j}">${o}</option>`).join('')}</select></div>`).join('');
+   if(q.k==='calc')html+=`<input class="op" type="text" name="${id}_op" placeholder="Operació (p. ex.: 5 + 3 = …)" autocomplete="off"><label>Resultat: <input class="res" type="text" name="${id}_res" autocomplete="off"></label>`;
+   if(q.k==='open')html+=`<textarea name="${id}" placeholder="Escriu aquí la teva resposta…"></textarea>`;
+   html+=`<div class="fb" id="${id}_fb"></div>`;
+   d.innerHTML=html;d.id=id;app.appendChild(d);reg.push({q,id,pi,qi,el:d});
+  });
+ });
+}
+let done=false,sec=2400,tm;
+function tick(){sec--;if(sec<0)sec=0;const m=String(Math.floor(sec/60)).padStart(2,'0'),s=String(sec%60).padStart(2,'0');const t=$('#timer');t.textContent=m+':'+s;t.classList.toggle('low',sec<300);if(sec<=0)clearInterval(tm)}
+function start(){clearInterval(tm);sec=2400;$('#timer').textContent='40:00';$('#timer').classList.remove('low');tm=setInterval(tick,1000)}
+function grade(){
+ done=true;clearInterval(tm);
+ const res=[];
+ reg.forEach(r=>{
+  const {q,id,el}=r;let got=0,max=0,fb='';
+  if(q.k==='mc'){max=q.pts;const v=document.querySelector(`input[name=${id}]:checked`);const labs=el.querySelectorAll('.opt');
+   labs[q.ok].classList.add('right');
+   if(v&&+v.value===q.ok){got=q.pts;fb=`<span class="good">✔ Correcte.</span> ${q.why}`}else{if(v)labs[+v.value].classList.add('wrong');fb=`<span class="bad">✘ ${v?'Incorrecte':'Sense resposta'}.</span> ${q.why}`}}
+  if(q.k==='tab'){max=q.pts*q.rows.length;let ok=0,l=[];q.rows.forEach((r2,i)=>{const s=el.querySelector(`select[name=${id}_${i}]`);const right=s.value!==''&&+s.value===r2[1];if(right){ok++;got+=q.pts}else s.style.borderColor='#b3261e';
+    l.push((right?'✔ ':'✘ ')+(r2[0]?r2[0].slice(0,3)+' ':'')+(right?'':'→ '+q.o[r2[1]]))});
+   fb=ok===q.rows.length?`<span class="good">✔ Tot correcte.</span> ${q.why||''}`:`<span class="bad">${ok}/${q.rows.length} correctes.</span> Respostes: ${l.filter(x=>x[0]==='✘').join(' · ')} ${q.why||''}`}
+  if(q.k==='calc'){max=q.pts;const opv=el.querySelector('.op').value,rv=num(el.querySelector('.res').value);
+   const ns=nums(opv);const opOk=q.op.length===0?true:q.op.every(x=>ns.some(y=>Math.abs(y-x)<1e-9));
+   const resOk=rv!==null&&Math.abs(rv-q.res)<1e-6;
+   if(opOk)got+=q.pts/2;if(resOk)got+=q.pts/2;
+   fb=`${opOk?'<span class="good">✔ Operació</span>':'<span class="bad">✘ Operació</span>'} · ${resOk?'<span class="good">✔ Resultat</span>':'<span class="bad">✘ Resultat</span>'}<div class="model">Model: ${q.model}</div>`}
+  if(q.k==='open'){max=q.pts;const txt=el.querySelector('textarea').value.trim();
+   fb=`<div class="model"><b>Model de resposta:</b> ${q.model}</div><div class="self"><b>Puntua't:</b>${q.crit.map((c,i)=>`<label><input type="checkbox" data-id="${id}" data-p="${c[1]}"> ${c[0]} (${String(c[1]).replace('.',',')})</label>`).join('')}</div>`;
+   el.querySelector('textarea').readOnly=true;}
+  el.querySelector('.fb').innerHTML=fb;
+  if(q.k!=='open')el.classList.add(got>=max-1e-9?'ok':'ko');
+  el.querySelectorAll('input,select').forEach(i=>{if(i.type!=='checkbox')i.disabled=true});
+  r.got=got;r.max=max;
+ });
+ document.querySelectorAll('.self input').forEach(c=>c.addEventListener('change',summary));
+ summary();window.scrollTo({top:0,behavior:'smooth'});
+}
+function summary(){
+ const parts=P.map(()=>({got:0,max:0}));
+ reg.forEach(r=>{let g=r.got;if(r.q.k==='open'){g=0;r.el.querySelectorAll('.self input:checked').forEach(c=>g+=+c.dataset.p)}
+  parts[r.pi].got+=g;parts[r.pi].max+=r.max});
+ const f=x=>x.toFixed(2).replace('.',',').replace(',00',',0').replace(/,(\d)0$/,',$1');
+ let main=0;for(let i=0;i<5;i++)main+=parts[i].got;const extra=parts[5].got;const fin=Math.min(10,main+extra);
+ const msg=fin>=9?"Excel·lent! Estàs a punt per a l'examen.":fin>=7?"Molt bé. Repassa els errors i vas sobrat/da.":fin>=5?"Aprovat, però encara pots millorar: repassa les parts amb errors.":"Cal repassar. Torna a mirar la presentació de cada sessió i prova-ho de nou.";
+ const s=$('#score');s.style.display='block';
+ s.innerHTML=`<div>Nota del simulacre</div><div class="big">${f(fin)} / 10</div><div>${msg}</div><table>${P.map((p,i)=>`<tr><td>${p.t}</td><td style="text-align:right">${f(parts[i].got)} / ${f(parts[i].max)}</td></tr>`).join('')}</table><p style="color:#6b675c;font-size:.88rem">Les preguntes obertes les puntues tu amb els criteris. Pots tornar-ho a provar amb «Tornar a començar».</p>`;
+}
+function reset(){done=false;$('#score').style.display='none';render();start();window.scrollTo(0,0)}
+$('#go').onclick=$('#go2').onclick=()=>{if(!done)grade()};$('#again').onclick=reset;
+render();start();
+</script></body></html>
